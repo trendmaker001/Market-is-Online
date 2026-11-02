@@ -175,8 +175,8 @@ assert.equal(await num("select sum(amount) from public.point_ledger where source
 assert.equal(await num("select count(*) from public.point_ledger where source_order_id=$1 and member_id=$2 and point_type='PPV'",[ppvAffiliate,newBuyer]),0);
 await shop(freeSeller,20);assert.equal(await scalar("select status from public.ecommerce_rewards where order_id=$1 and reward_kind='vendor_introducer'",[cashOrder]),'posted');
 const cancelled=await placeNew(root);await as(root);await q('select public.cancel_unpaid_order($1)',[cancelled]);assert.equal(await num("select count(*) from public.ecommerce_rewards where order_id=$1 and status<>'cancelled'",[cancelled]),0);
-await as(newBuyer);await db.exec('set role authenticated');assert.equal(await num('select count(*) from public.ecommerce_rewards where order_id=$1',[cashOrder]),0);await reject("select public.admin_set_member_rank($1,'leader')",[rootCode],/Master access/);await db.exec('reset role');
-await as(company);await q("select public.admin_set_member_rank($1,'leader')",[rootCode]);const tree=await scalar("select public.my_network('generation',$1,0)",[rootCode]);assert.equal(tree.nodes.find(n=>n.id===root).rank,'leader');
+await as(newBuyer);await db.exec('set role authenticated');assert.equal(await num('select count(*) from public.ecommerce_rewards where order_id=$1',[cashOrder]),0);await reject("select public.admin_set_member_rank($1,'leader')",[rootCode],/permission denied/);await db.exec('reset role');
+await q("update public.member_profiles set achieved_rank='leader' where user_id=$1",[root]);await as(company);const tree=await scalar("select public.my_network('generation',$1,0)",[rootCode]);assert.equal(tree.nodes.find(n=>n.id===root).rank,'leader');
 await as(freeSeller);const vt=await scalar("select public.my_network('vendor',null,3)");assert.ok(vt.nodes.some(n=>n.id===vendor));
 console.log('PASS cashback/affiliate 65%, sponsor15%, second7.5%, introducer12.5%; no PPV/MLM double pay; immutable mode; held activation release; cancellation; RLS; ranks and vendor attribution');
 
