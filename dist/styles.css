@@ -3167,3 +3167,23 @@ body.admin-workspace-active #marketplaceFooter,body.admin-workspace-active #acco
 .ecommerce-history-section .empty{padding:14px}
 @media(max-width:760px){.earning-ecommerce-filters{grid-template-columns:1fr}.ecommerce-history-section>header{align-items:flex-start;flex-direction:column;padding:14px}.ecommerce-section-totals{text-align:left;white-space:normal}.ecommerce-history-section>.earning-desktop-history{display:none}.ecommerce-history-section>.earning-mobile-ledger{display:grid}.ecommerce-history-section>.earning-total-action{flex-wrap:wrap}}
 @media(min-width:761px){.ecommerce-history-section>.earning-mobile-ledger{display:none}}
+
+/* Country identity, breakaway Manager Tree and stable mobile account navigation. */
+.country-field select{min-height:48px;background:#fff}.country-badge{display:inline-flex;align-items:center;gap:6px;width:max-content;max-width:100%;margin-top:5px;padding:4px 8px;border:1px solid #d8e7dd;border-radius:999px;background:#f2f8f4;color:#245b42;font-size:11px;font-weight:700;line-height:1.2}.country-badge>span{font-size:15px;line-height:1}.tree-member-tags .country-badge{margin:0}.visual-node.manager-breakaway{outline:3px solid #d09a2d;outline-offset:3px;border-radius:14px}.visual-node.manager-breakaway .tree-plan-label{background:#fff2cf;color:#805000}.breakaway-tag{background:#fff1ca!important;color:#754c00!important;border-color:#e9c76b!important}.member-sidebar-backdrop{display:none}
+@media(max-width:900px){
+ body.member-sidebar-open{overflow:hidden}
+ .member-account-shell{position:relative;overflow:visible!important}
+ .member-account-shell>.member-sidebar{display:flex!important;position:fixed!important;z-index:1002;inset:0 auto 0 0!important;top:0!important;width:min(86vw,340px);height:100dvh!important;max-height:100dvh!important;margin:0!important;padding:20px 14px!important;border-radius:0 18px 18px 0!important;overflow-y:auto!important;overscroll-behavior:contain;visibility:hidden;transform:translateX(-105%);transition:transform .24s ease,visibility .24s ease;box-shadow:0 24px 70px #071d1580}
+ .member-account-shell.sidebar-open>.member-sidebar{visibility:visible;transform:translateX(0)}
+ .member-account-shell>.member-sidebar nav{display:grid!important;grid-template-columns:1fr!important;gap:5px!important}
+ .member-account-shell>.member-sidebar .member-nav-group{display:grid;gap:4px}
+ .member-account-shell>.member-sidebar nav button{width:100%;min-height:45px!important}
+ .member-sidebar-backdrop{position:fixed;z-index:1001;inset:0;border:0;background:#071c1480;backdrop-filter:blur(2px);opacity:0;visibility:hidden;transition:opacity .2s ease,visibility .2s ease}
+ .member-account-shell.sidebar-open>.member-sidebar-backdrop{display:block;opacity:1;visibility:visible}
+ .graphical-network-active .member-sidebar-backdrop{display:none!important}
+ .member-workspace,.member-page-content,.member-account-shell{min-width:0!important;max-width:100%!important}
+ .member-topbar{position:sticky;top:var(--account-header-offset,0px);z-index:60}
+ .tree-scroll{max-width:100%;overscroll-behavior:contain;touch-action:pan-x pan-y}
+ .tree-workspace,.tree-canvas-column{min-width:0;max-width:100%}
+}
+@media(max-width:620px){.country-badge{font-size:10px}.network-tree-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.network-tree-tab{min-width:0}.tree-member-card .country-badge{margin-top:7px}.tree-scroll{height:min(62dvh,620px)}}
