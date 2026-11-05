@@ -116,7 +116,6 @@
 }
 @media(max-width:900px){
  .member-dashboard-active .member-topbar{top:var(--account-header-offset,0px)}
- .member-dashboard-active .member-account-shell.sidebar-open .member-sidebar{position:sticky;top:calc(var(--account-header-offset,0px) + 56px);z-index:115;max-height:calc(100dvh - var(--account-header-offset,0px) - 68px);box-shadow:0 18px 34px rgba(15,55,37,.22)}
  .dashboard-notifications{top:calc(var(--account-header-offset,0px) + 54px);right:10px;width:calc(100vw - 20px);max-height:calc(100dvh - var(--account-header-offset,0px) - 66px)}
 }
 .dashboard-reward-switch.ppv-limit-locked{border-color:#e7ba83;background:linear-gradient(120deg,#fffaf3,#fff)}
@@ -235,3 +234,67 @@ body.graphical-network-active .member-page-content{overflow:hidden!important}
  .sidebar-signout{margin-top:14px}
 }
 @media(max-width:480px){.member-nav-group{grid-template-columns:1fr}.member-nav-group>p{grid-column:auto}}
+
+/* Premium maintenance countdown: selected green + orange concept. */
+.dashboard-maintenance-card{background:linear-gradient(145deg,#063d2b,#0b5b3d 58%,#0b472f);border:1px solid #167751;color:#fff;box-shadow:0 12px 28px rgba(5,62,42,.18)}
+.dashboard-maintenance-card>summary{display:grid;grid-template-columns:minmax(0,.7fr) minmax(250px,1.3fr);align-items:center;gap:14px;padding:15px}
+.maintenance-card-heading{display:flex;align-items:center;gap:10px;min-width:0}
+.dashboard-maintenance-card .dashboard-future-icon{display:grid;place-items:center;width:37px;height:37px;flex:0 0 37px;border:1px solid #ffffff25;border-radius:11px;background:#ffffff10;color:#ffa51f}
+.dashboard-maintenance-card .dashboard-future-icon svg{width:20px;height:20px;opacity:1}
+.dashboard-maintenance-card h3{margin:0 0 4px;color:#fff;font-size:12px}
+.dashboard-maintenance-card small{color:#bcd8c9}
+.maintenance-countdown{display:grid;grid-template-columns:minmax(46px,1.35fr) auto repeat(3,minmax(42px,1fr) auto);align-items:center;gap:4px;min-width:0;padding:8px;border:1px solid #ffffff22;border-radius:11px;background:#032e21aa;box-shadow:inset 0 1px #ffffff0d;font-variant-numeric:tabular-nums}
+.maintenance-countdown>span{display:grid;justify-items:center;gap:2px;min-width:0}
+.maintenance-countdown b{display:block;color:#ffad28;font-size:21px;font-weight:800;line-height:1;letter-spacing:.02em;text-shadow:0 2px 12px #f59e0b24}
+.maintenance-countdown small{color:#e5f2ea;font-size:7px;font-weight:750;letter-spacing:.1em;text-transform:uppercase}
+.maintenance-countdown i{color:#77a58e;font-size:16px;font-style:normal;font-weight:700}
+.dashboard-maintenance-card.is-expired{border-color:#b87525;background:linear-gradient(145deg,#3c2412,#603713 58%,#43260f)}
+.dashboard-maintenance-card.is-expired .maintenance-countdown{border-color:#f8b65b35;background:#271508aa}
+.dashboard-maintenance-card.is-expired .dashboard-future-icon{color:#ffc15c}
+.maintenance-card-details{padding:0 15px 15px;border-top:1px solid #ffffff1c;background:#042f22b5}
+.maintenance-card-details p{color:#d1e3d8}
+.dashboard-maintenance-card .maintenance-card-details .btn{border-color:#ffad28;background:#ffad28;color:#173d2d}
+.dashboard-maintenance-card.maintenance-unavailable{display:flex;padding:15px;background:linear-gradient(145deg,#173d30,#284f41);border-color:#486d5f;color:#d6e4dc}
+.dashboard-theme-toggle{position:relative;flex:0 0 35px}
+.dashboard-theme-toggle svg{transition:transform .22s ease}
+.dashboard-theme-toggle:hover svg{transform:rotate(12deg)}
+
+/* Member workspace dark mode. The setting is applied only to the signed-in account experience. */
+html[data-member-theme="dark"] body.member-dashboard-active{background:#07120e;color-scheme:dark}
+.member-account-shell[data-theme="dark"]{--account-green:#62d196;--account-dark:#071d15;background:#081710;border-color:#254336;box-shadow:0 18px 50px #0008;color:#e9f5ee}
+.member-account-shell[data-theme="dark"] .member-workspace,
+.member-account-shell[data-theme="dark"] .member-page-content{background:#081710;color:#e9f5ee}
+.member-account-shell[data-theme="dark"] .member-topbar{border-color:#29483a;background:#0c2118;color:#edf8f1;box-shadow:0 8px 22px #0006}
+.member-account-shell[data-theme="dark"] .member-topbar>button{border-color:#345447;background:#112a20;color:#80dda9}
+.member-account-shell[data-theme="dark"] .member-topbar>button:hover{background:#183a2c}
+.member-account-shell[data-theme="dark"] :is(.dashboard-identity,.dashboard-balance,.dashboard-personal-points,.dashboard-metric,.dashboard-panel,.income-wallet-card,.card,.dashboard-reward-switch,.community-share-overview>div,.community-qualification>div,.manager-line-grid article,.super-member-totals>div){border-color:#29463a;background:#0d2119;color:#edf8f1;box-shadow:none}
+.member-account-shell[data-theme="dark"] :is(h1,h2,h3,strong,.dashboard-panel-title h2,.dashboard-person h1,.dashboard-package strong,.dashboard-metric strong,.dashboard-balance strong,.dashboard-binary-sides strong,.income-wallet-card strong){color:#f2fbf6}
+.member-account-shell[data-theme="dark"] :is(p,small,.dashboard-muted,.dashboard-subtitle,.dashboard-person small,.dashboard-package small,.dashboard-balance span,.dashboard-personal-points>span,.dashboard-metric span:not(.dashboard-metric-icon),.dashboard-metric small,.dashboard-binary-sides span,.dashboard-binary-sides small,.income-wallet-card small){color:#9fc0ae}
+.member-account-shell[data-theme="dark"] :is(.dashboard-metric-icon,.income-wallet-card>span,.dashboard-order-update-icon){background:#16372a;color:#72d39f}
+.member-account-shell[data-theme="dark"] .dashboard-total-earned{border-color:#287c54;background:linear-gradient(125deg,#0b5638,#0d7449)}
+.member-account-shell[data-theme="dark"] .dashboard-status{background:#24362d;color:#a8c0b2}
+.member-account-shell[data-theme="dark"] .dashboard-status.active{background:#153e2b;color:#72dda2}
+.member-account-shell[data-theme="dark"] .dashboard-level.pending,.member-account-shell[data-theme="dark"] .dashboard-level.locked{background:#1a2a22;color:#769184}
+.member-account-shell[data-theme="dark"] .dashboard-notifications{border-color:#29483a;background:#0b1d16;color:#eaf6ef;box-shadow:0 22px 60px #000a}
+.member-account-shell[data-theme="dark"] .dashboard-notification-head,.member-account-shell[data-theme="dark"] .dashboard-order-all{border-color:#29483a;background:#10281e;color:#dff0e6}
+.member-account-shell[data-theme="dark"] .dashboard-order-update{border-color:#223d31;background:#0d2119;color:#e6f3eb}
+.member-account-shell[data-theme="dark"] .dashboard-order-update:hover{background:#143024}
+.member-account-shell[data-theme="dark"] :is(input,select,textarea){border-color:#365448;background:#091a13;color:#eef8f2}
+.member-account-shell[data-theme="dark"] .maintenance-card-details{background:#03271c}
+.member-account-shell[data-theme="dark"] .dashboard-program-grid :is(.manager-progress-card,.community-share-card,.super-member-card){background:#0d2119;border-color:#29463a!important}
+.member-account-shell[data-theme="dark"] .manager-progress-card>summary:hover,.member-account-shell[data-theme="dark"] .community-share-card>summary:hover,.member-account-shell[data-theme="dark"] .super-member-card>summary:hover{background:#122b20}
+.member-account-shell[data-theme="dark"] .manager-progress-details,.member-account-shell[data-theme="dark"] .community-share-details,.member-account-shell[data-theme="dark"] .super-member-details{border-color:#29463a}
+.member-account-shell[data-theme="dark"] .country-badge{border-color:#385849;background:#112a20;color:#cce5d6}
+
+@media(max-width:720px){
+ .dashboard-maintenance-card>summary{grid-template-columns:1fr;gap:10px;padding:12px}
+ .maintenance-countdown{width:100%;grid-template-columns:minmax(44px,1.35fr) auto repeat(3,minmax(39px,1fr) auto);padding:8px 6px}
+ .maintenance-countdown b{font-size:19px}
+ .dashboard-maintenance-card h3{font-size:11px}
+ .maintenance-card-details{padding:0 12px 12px}
+}
+@media(max-width:390px){
+ .maintenance-countdown{gap:2px}
+ .maintenance-countdown b{font-size:17px}
+ .maintenance-countdown small{font-size:6px;letter-spacing:.06em}
+}

@@ -3173,7 +3173,7 @@ body.admin-workspace-active #marketplaceFooter,body.admin-workspace-active #acco
 @media(max-width:900px){
  body.member-sidebar-open{overflow:hidden}
  .member-account-shell{position:relative;overflow:visible!important}
- .member-account-shell>.member-sidebar{display:flex!important;position:fixed!important;z-index:1002;inset:0 auto 0 0!important;top:0!important;width:min(86vw,340px);height:100dvh!important;max-height:100dvh!important;margin:0!important;padding:20px 14px!important;border-radius:0 18px 18px 0!important;overflow-y:auto!important;overscroll-behavior:contain;visibility:hidden;transform:translateX(-105%);transition:transform .24s ease,visibility .24s ease;box-shadow:0 24px 70px #071d1580}
+ .member-account-shell>.member-sidebar{display:flex!important;position:fixed!important;z-index:1002!important;inset:0 auto 0 0!important;top:0!important;width:min(86vw,340px);height:100dvh!important;max-height:100dvh!important;margin:0!important;padding:20px 14px!important;border-radius:0 18px 18px 0!important;overflow-y:auto!important;overscroll-behavior:contain;visibility:hidden;transform:translateX(-105%);transition:transform .24s ease,visibility .24s ease;box-shadow:0 24px 70px #071d1580}
  .member-account-shell.sidebar-open>.member-sidebar{visibility:visible;transform:translateX(0)}
  .member-account-shell>.member-sidebar nav{display:grid!important;grid-template-columns:1fr!important;gap:5px!important}
  .member-account-shell>.member-sidebar .member-nav-group{display:grid;gap:4px}
