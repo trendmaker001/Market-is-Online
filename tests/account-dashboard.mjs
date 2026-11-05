@@ -131,7 +131,7 @@ ww.MioDashboard.setFinancial({balance:12,ppv:110,ppvExcess:390,ppvTotal:500,earn
 assert.equal(dd.querySelector('#dashboardRewardSwitch').classList.contains('ppv-limit-locked'),true);
 assert.ok([...dd.querySelectorAll('#dashboardRewardSwitch [data-reward-mode]')].every(b=>b.disabled));
 assert.match(dd.querySelector('#dashboardRewardSwitch [data-reward-mode="MIO"]').title,/Future shopping rewards use MIO/);
-assert.ok(dd.querySelector('.dashboard-person #dashboardRewardSwitch'));
+assert.ok(dd.querySelector('.dashboard-package #dashboardRewardSwitch'));
 assert.equal(dd.querySelector('#page-dashboard > #dashboardRewardSwitch'),null);
 assert.match(dd.querySelector('.dashboard-ppv-balance strong').textContent,/110\.00 PPV \+390\.00 excess/);
 assert.equal(typeof ww.MioDashboard.requestTransactionPin,'function');

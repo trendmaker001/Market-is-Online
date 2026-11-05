@@ -1,0 +1,12 @@
+import {readFile} from 'node:fs/promises';
+import assert from 'node:assert/strict';
+import {JSDOM} from 'jsdom';
+const html=await readFile('dist/index.html','utf8');const dom=new JSDOM(html,{runScripts:'outside-only'}),w=dom.window;
+w.eval(await readFile('dist/product-content.js','utf8'));const c=w.MioProductContent;c.mount();c.mount();assert.equal(w.document.querySelectorAll('#productContentFields').length,1);
+const original='Original description\n## Key features\nwith a second line & <b>text</b>';c.fill(original);assert.equal(w.document.getElementById('prodDescription').value,original);
+w.document.getElementById('listing-features').value='Durable\nEasy to clean';w.document.getElementById('listing-specifications').value='Material: Cotton\nSize: 42';w.document.getElementById('listing-warranty').value='12 months';
+const saved=c.read();c.fill('Another product');assert.equal(w.document.getElementById('listing-features').value,'');c.fill(saved);assert.equal(w.document.getElementById('prodDescription').value,original);assert.equal(w.document.getElementById('listing-warranty').value,'12 months');assert.equal(c.read(),saved);
+const view=w.document.createElement('div');view.innerHTML=c.render(saved);assert.equal(view.querySelectorAll('details').length,4);assert.equal(view.querySelectorAll('li').length,2);assert.equal(view.querySelectorAll('dt').length,2);assert.equal(view.querySelector('b'),null);assert.equal(view.querySelectorAll('details[open]').length,1);assert.ok(!view.textContent.includes('Delivery & returns'));
+w.document.getElementById('productForm').reset();assert.equal(w.document.getElementById('listing-features').value,'');
+const app=await readFile('dist/app.js','utf8');assert.match(app,/p_description:window.MioProductContent.read\(\)/);assert.match(app,/MioProductContent.fill\(p.description\)/);assert.ok(app.split('MioProductContent.render(p.description)').length>=3);
+console.log('PASS Product details: legacy preservation, form save/edit round trip, reset, safe rendering, optional sections, seller/admin integration');dom.window.close();
