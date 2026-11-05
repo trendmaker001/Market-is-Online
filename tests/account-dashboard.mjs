@@ -106,7 +106,7 @@ assert.ok(['179','180'].includes(dd.querySelector('[data-maintenance-countdown="
 assert.ok(['364','365'].includes(dd.querySelector('[data-maintenance-countdown="annual"] [data-time-part="days"]').textContent));
 assert.equal(dd.querySelectorAll('[data-maintenance-countdown="monthly"] [data-time-part]').length,4);
 assert.match(dd.querySelector('[data-maintenance-countdown="monthly"]').getAttribute('aria-label'),/days, .* hours, .* minutes and .* seconds remaining/);
-assert.equal(dd.querySelector('.dashboard-maintenance-card [data-maintenance-shop]').closest('details').open,false);dd.querySelector('.dashboard-maintenance-card.is-active summary').click();assert.match(dd.querySelector('.maintenance-card-details').textContent,/20 MIO from Cash Wallet/);
+assert.equal(dd.querySelector('.dashboard-maintenance-card [data-maintenance-shop]').closest('details').open,false);dd.querySelector('.dashboard-maintenance-card.is-active summary').click();assert.match(dd.querySelector('.dashboard-maintenance-card .maintenance-card-details').textContent,/20 MIO from Cash Wallet/);
 assert.match(dashboardCssSource,/Premium maintenance countdown: selected green \+ orange concept/);
 assert.ok(dd.querySelector('#dashboardThemeToggle'));assert.equal(dd.querySelector('#memberAccountShell').dataset.theme,'light');dd.querySelector('#dashboardThemeToggle').click();assert.equal(dd.querySelector('#memberAccountShell').dataset.theme,'dark');assert.equal(ww.localStorage.getItem('mio-dashboard-theme'),'dark');assert.match(dd.querySelector('#dashboardThemeToggle').getAttribute('aria-label'),/light mode/);dd.querySelector('#dashboardThemeToggle').click();
 console.log('PASS live maintenance countdowns expose all four time units and the persistent dashboard theme toggle works');
@@ -144,7 +144,7 @@ assert.equal(dd.querySelector('#transactionPinChangeVerification').hidden,false)
 assert.equal(dd.querySelector('#transactionPinPrevious').required,true);
 assert.match(dd.querySelector('#transactionPinSave').textContent,/change transaction PIN/);
 assert.match(dd.querySelector('#page-dashboard').textContent,/10% Welcome Bonus/);
-assert.ok(dd.querySelector('#dashboardOfferTimer').textContent.includes('h'));
+assert.equal(dd.querySelectorAll('#dashboardOfferTimer [data-time-part]').length,4);assert.match(dd.querySelector('#dashboardOfferTimer').getAttribute('aria-label'),/days, .* hours, .* minutes and .* seconds remaining/);
 assert.equal(dd.querySelectorAll('.dashboard-level.open').length,2);
 assert.equal(dd.querySelectorAll('.dashboard-level.pending').length,6);
 assert.equal(dd.querySelectorAll('.dashboard-level.locked').length,2);

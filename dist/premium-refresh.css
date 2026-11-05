@@ -206,3 +206,79 @@ html[data-member-theme=dark] .mio-id-label{color:#b2cdbd}
  #page-shop .product .product-foot>.add-cart{min-height:38px!important;font-size:11px!important}
  .dashboard-maintenance-card .maintenance-card-heading h3{font-size:12px}
 }
+
+/* Tighter marketplace rhythm with category illustrations. */
+#page-shop .shop-market-nav{margin-bottom:6px!important}
+#page-shop #marketHero{margin-top:0!important;margin-bottom:0!important}
+#marketTicker{margin-top:0!important}
+#page-shop .dept-art{display:grid!important;place-items:center;height:94px!important;min-height:0!important;margin:0 0 5px;padding:12px;background:#f3f7f2}
+#page-shop .dept-art img.category-illustration{display:block;width:66px!important;height:66px!important;max-height:none;object-fit:contain!important;padding:0!important}
+#page-shop .featured-category-art{display:grid;place-items:center;background:#f3f7f2}
+#page-shop .featured-category-art img.category-illustration{width:84px!important;height:84px!important;object-fit:contain;padding:8px}
+#page-shop .category-directory-card img.category-illustration{object-fit:contain}
+#page-shop .product .product-info{gap:3px!important;padding:10px!important}
+#page-shop .product .product-info h3{min-height:2.6em!important;margin:0!important;line-height:1.3!important}
+#page-shop .product .product-rating{margin:1px 0!important}
+#page-shop .product .product-info>p{margin:0!important;min-height:0!important}
+#page-shop .product .product-foot{flex:0 0 auto!important;margin-top:auto!important;padding-top:4px!important;gap:5px!important}
+#page-shop .product .product-foot>.price{min-height:0!important;line-height:1.4}
+
+/* A compact identity row; display the numeric code, copy the complete member ID. */
+.dashboard-identity{padding:14px!important;gap:12px!important;align-items:center}
+.dashboard-identity .dashboard-person{align-items:flex-start;gap:10px}
+.dashboard-identity .dashboard-person>img{width:46px;height:46px;margin-top:3px}
+.dashboard-identity .dashboard-person h1{font-size:18px;line-height:1.25;margin:0 0 6px}
+.dashboard-identity-meta{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;min-width:0;margin:3px 0 5px}
+.dashboard-identity-meta .country-badge{display:inline-flex;flex:none;gap:4px;padding:4px 6px;margin:0;border-radius:6px;line-height:1.2}
+.dashboard-identity-meta .country-name{font-size:10px}
+.dashboard-identity-meta .country-flag{font-size:13px}
+.dashboard-identity-meta .dashboard-member-code{display:inline-flex;gap:4px;flex-wrap:nowrap;margin:0;font-size:10px;min-width:0}
+.dashboard-identity-meta .mio-id-label{font-size:9px}
+.dashboard-identity-meta .dashboard-member-code .code{font-size:10px;white-space:nowrap;overflow-wrap:normal}
+.dashboard-identity-meta .copy-code{width:26px;height:26px;min-width:26px;padding:5px}
+.dashboard-identity-meta .copy-code svg{width:14px;height:14px}
+.dashboard-identity .dashboard-person small{font-size:10px;line-height:1.4;margin-top:3px}
+.dashboard-identity .dashboard-package{gap:8px}
+.dashboard-identity .dashboard-package strong{font-size:16px;line-height:1.3}
+.dashboard-identity .dashboard-total-earned{padding:12px;min-height:0}
+.dashboard-identity .dashboard-total-earned strong{font-size:24px;line-height:1.3;margin:5px 0}
+@media(max-width:1100px){.dashboard-identity{grid-template-columns:1fr 1fr;gap:10px!important}.dashboard-identity .dashboard-person{grid-column:1/-1}.dashboard-identity .dashboard-package{padding:0}}
+@media(max-width:620px){
+ #page-shop .shop-market-nav{margin-bottom:5px!important}
+ #marketTicker{margin-top:0!important}
+ #page-shop .dept-art{height:80px!important;padding:9px}
+ #page-shop .dept-art img.category-illustration{width:58px!important;height:58px!important}
+ #page-shop .product .product-info{padding:8px!important;gap:2px!important}
+ .dashboard-identity{padding:12px!important;gap:10px!important}
+ .dashboard-identity .dashboard-person{gap:8px}
+ .dashboard-identity .dashboard-person>img{width:40px;height:40px}
+ .dashboard-identity .dashboard-person h1{font-size:17px}
+ .dashboard-identity-meta{gap:6px}
+ .dashboard-identity .dashboard-package>img{width:26px;height:26px}
+ .dashboard-identity .dashboard-package strong{font-size:15px}
+ .dashboard-identity .dashboard-total-earned{padding:10px}
+ .dashboard-identity .dashboard-total-earned strong{font-size:22px}
+ .dashboard-identity .dashboard-total-earned>span,.dashboard-identity .dashboard-total-earned>small{font-size:10px}
+ .dashboard-identity #dashboardRewardSwitch .compact-reward-note{font-size:8px;max-width:125px}
+}
+@media(max-width:360px){.dashboard-identity-meta{gap:4px}.dashboard-identity .dashboard-person>img{width:32px;height:32px}.dashboard-identity-meta .country-badge{padding:4px}.dashboard-identity-meta .country-name{font-size:9px}.dashboard-identity-meta .dashboard-member-code{gap:3px}}
+@media(max-width:360px){.dashboard-identity-meta{margin-left:-40px;width:calc(100% + 40px);margin-top:8px}}
+
+/* Welcome offer uses the same compact four-part timer as maintenance. */
+.dashboard-offer-row .welcome-bonus-card{display:block!important;padding:0!important;border-radius:13px;min-height:0!important;overflow:hidden}
+.welcome-bonus-card>summary{display:grid;grid-template-columns:minmax(0,1fr) 24px;align-items:center;gap:7px 6px;padding:10px 12px;cursor:pointer;list-style:none}
+.welcome-bonus-card>summary::-webkit-details-marker{display:none}
+.welcome-bonus-card .maintenance-card-heading{gap:0;min-width:0}
+.welcome-bonus-card h3{font-size:clamp(10px,.92vw,12px);font-weight:700;white-space:nowrap;text-wrap:nowrap;line-height:1.35;color:#fff;margin:0}
+.welcome-bonus-card .maintenance-open{display:flex;align-items:center;justify-content:center;width:24px;height:24px;grid-column:2;grid-row:1;background:#ffffff12;border-radius:6px;color:#ffcd82}
+.welcome-bonus-card .maintenance-open>span[aria-hidden]{font-size:19px;line-height:1}
+.welcome-bonus-card[open] .maintenance-open>span[aria-hidden]{transform:rotate(180deg)}
+.welcome-bonus-card #dashboardOfferTimer{display:grid;grid-column:1/-1;width:100%;margin:0;grid-template-columns:minmax(0,1.3fr) auto minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1fr);padding:5px 8px;gap:3px;border-radius:9px;background:#034830;border-color:#79c8a94d;line-height:normal}
+.welcome-bonus-card #dashboardOfferTimer b{font-size:18px;line-height:1.1;color:#ffbd53}
+.welcome-bonus-card #dashboardOfferTimer small{font-size:7px!important;line-height:1.2;margin:0;color:#fff;letter-spacing:0}
+.welcome-bonus-card #dashboardOfferTimer i{font-size:14px;color:#99d5b7}
+.welcome-bonus-card .maintenance-card-details{padding:10px 12px 12px}
+.welcome-bonus-card .maintenance-card-details h4{font-size:12px;margin:0 0 5px;color:#fff}
+.welcome-bonus-card .maintenance-card-details p,.welcome-bonus-card .maintenance-card-details small{font-size:11px;line-height:1.6;color:#e5f4eb}
+@media(min-width:901px){.dashboard-offer-row:not(.no-activation-offer){grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:720px){.welcome-bonus-card>summary{padding:9px 11px;gap:5px}.welcome-bonus-card h3{font-size:12px}.welcome-bonus-card #dashboardOfferTimer{padding:4px 8px}.welcome-bonus-card #dashboardOfferTimer b{font-size:17px}}
