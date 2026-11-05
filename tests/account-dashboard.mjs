@@ -124,13 +124,15 @@ assert.equal(dd.querySelector('#dashboardRewardSwitch [data-reward-mode="MIO"]')
 assert.equal(dd.querySelector('#dashboardRewardSwitch [data-reward-mode="PPV"]').getAttribute('aria-pressed'),'false');
 ww.MioDashboard.setRewardPreference({eligible:true,mode:'PPV',ppvUsed:110,ppvCap:110,locked:true});
 assert.equal(dd.querySelector('#dashboardRewardSwitch').classList.contains('ppv-limit-locked'),true);
-assert.equal(dd.querySelector('#dashboardRewardSwitch [data-reward-mode]'),null);
+assert.ok([...dd.querySelectorAll('#dashboardRewardSwitch [data-reward-mode]')].every(b=>b.disabled));
 assert.match(dd.querySelector('#dashboardRewardSwitch').textContent,/Maximum PPV complete/);
 ww.MioDashboard.setRewardPreference({eligible:true,mode:'MIO',ppvUsed:0,ppvCap:110,locked:false});
 ww.MioDashboard.setFinancial({balance:12,ppv:110,ppvExcess:390,ppvTotal:500,earned:40,held:2});
 assert.equal(dd.querySelector('#dashboardRewardSwitch').classList.contains('ppv-limit-locked'),true);
-assert.equal(dd.querySelector('#dashboardRewardSwitch [data-reward-mode]'),null);
-assert.match(dd.querySelector('#dashboardRewardSwitch').textContent,/future shopping rewards will automatically use MIO mode/);
+assert.ok([...dd.querySelectorAll('#dashboardRewardSwitch [data-reward-mode]')].every(b=>b.disabled));
+assert.match(dd.querySelector('#dashboardRewardSwitch [data-reward-mode="MIO"]').title,/Future shopping rewards use MIO/);
+assert.ok(dd.querySelector('.dashboard-person #dashboardRewardSwitch'));
+assert.equal(dd.querySelector('#page-dashboard > #dashboardRewardSwitch'),null);
 assert.match(dd.querySelector('.dashboard-ppv-balance strong').textContent,/110\.00 PPV \+390\.00 excess/);
 assert.equal(typeof ww.MioDashboard.requestTransactionPin,'function');
 assert.equal(ww.MioDashboard.hasTransactionPin(),false);
