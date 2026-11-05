@@ -117,3 +117,14 @@ html[data-member-theme=dark] #dashboardRewardSwitch .compact-mode-toggle{backgro
 #page-shop .dept-art img.collection-photo,#page-shop .featured-category-art img.collection-photo,#page-shop .category-directory-card img.collection-photo{display:block;width:100%!important;height:auto!important;max-height:none!important;padding:0!important;object-fit:contain!important}
 #page-shop .featured-category-card:has(.collection-photo){align-items:start}
 @media(min-width:801px){#productDetail .product-detail{grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);align-items:start}}
+
+/* Crop unused source padding so the visible wordmark fills its responsive width. */
+.top .top-main>.logo img{width:285px!important;height:auto!important;aspect-ratio:2170/340;max-width:100%;filter:none!important}
+#marketplaceFooter .footer-brand img{display:block;width:310px!important;height:auto!important;aspect-ratio:2170/340;max-width:100%;filter:none!important}
+@media(max-width:850px){.top .top-main>.logo img{width:245px!important}}
+@media(max-width:620px){
+ .top .top-main>.logo{max-width:52vw}
+ .top .top-main>.logo img,body.signed-in-header .top .top-main>.logo img{width:210px!important;height:auto!important;max-width:100%}
+ body.signed-in-header .top .top-main{min-height:64px!important}
+ #marketplaceFooter .footer-brand img{width:285px!important}
+}
