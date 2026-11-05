@@ -33,3 +33,11 @@ body{min-width:0}.page form,.page form label,.password-toggle-wrap{min-width:0;m
 #page-admin{width:100%!important;max-width:100%!important;margin-left:0!important}#page-admin .admin-summary-heading{min-width:0;white-space:normal;overflow-wrap:break-word}#page-admin .admin-summary-heading span{min-width:0}@media(max-width:620px){#page-admin .admin-summary-heading{font-size:15px;padding:12px}#page-admin .admin-summary-heading span{font-size:15px}}
 
 @media(max-width:900px){#page-admin #control-home:not(.hidden){display:flex!important;flex-direction:column;gap:14px}#page-admin #control-home>*{width:100%!important;min-width:0!important;grid-column:auto!important;grid-row:auto!important}#page-admin #control-home>.control-help{margin:0 0 4px}#page-admin .admin-area-gates{grid-template-columns:1fr!important}#page-admin .control-panel{min-width:0;max-width:100%}}
+
+/* Account navigation lives in the header and role-aware sidebar. */
+.top .nav{display:none!important}
+.top-main .actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+#marketHero .hero-slide{display:none!important;opacity:1!important;visibility:hidden!important;pointer-events:none;transition:none!important}
+#marketHero .hero-slide.active{display:block!important;opacity:1!important;visibility:visible!important;pointer-events:auto}
+@media(max-width:620px){.top-main .actions{gap:6px}.top-main .actions .btn{font-size:11px;padding:8px 10px;min-height:38px}.top-main{row-gap:8px}}
+@media(prefers-reduced-motion:reduce){#marketHero .hero-slide{transition:none!important}}
