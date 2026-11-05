@@ -282,3 +282,8 @@ html[data-member-theme=dark] .mio-id-label{color:#b2cdbd}
 .welcome-bonus-card .maintenance-card-details p,.welcome-bonus-card .maintenance-card-details small{font-size:11px;line-height:1.6;color:#e5f4eb}
 @media(min-width:901px){.dashboard-offer-row:not(.no-activation-offer){grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:720px){.welcome-bonus-card>summary{padding:9px 11px;gap:5px}.welcome-bonus-card h3{font-size:12px}.welcome-bonus-card #dashboardOfferTimer{padding:4px 8px}.welcome-bonus-card #dashboardOfferTimer b{font-size:17px}}
+
+/* A readable profile portrait with room for the identity row. */
+.dashboard-identity .dashboard-person>img{width:64px;height:64px}
+@media(max-width:620px){.dashboard-identity .dashboard-person>img{width:56px;height:56px}}
+@media(max-width:360px){.dashboard-identity .dashboard-person>img{width:52px;height:52px}.dashboard-identity-meta{margin-left:-60px;width:calc(100% + 60px)}.dashboard-identity .dashboard-person h1{min-height:38px}}
