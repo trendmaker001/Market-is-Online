@@ -3,11 +3,11 @@
  const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  function create(api){
   let summaries=new Map(),loaded=false,ticker=null,reviewRequest=0;
-  const sample=id=>3.5+([...String(id)].reduce((a,c)=>(Math.imul(a,31)+c.charCodeAt(0))>>>0,7)%4)*.5;
   function ratingContent(id){
    if(!loaded)return '<small>Ratings loading…</small>';
-   const r=summaries.get(id),count=Number(r?.rating_count)||0,score=count?Number(r.average_rating):sample(id);
-   return `<span class="rating-score"><span class="rating-stars" aria-hidden="true"><span style="width:${score*20}%">★★★★★</span>☆☆☆☆☆</span><b>${score.toFixed(1)}</b><span>/ 5</span></span><small class="${count?'customer-rating-label':'sample-rating-label'}">${count?`${count} customer rating${count===1?'':'s'}`:'Sample rating—not customer feedback'}</small>`;
+   const r=summaries.get(id),count=Number(r?.rating_count)||0,score=count?Number(r.average_rating):0;
+   if(!count)return '<small class="rating-empty">Not rated yet</small>';
+   return `<span class="rating-score" aria-label="${score.toFixed(1)} out of 5, ${count} ratings"><span class="rating-stars" aria-hidden="true"><span style="width:${score*20}%">★★★★★</span>☆☆☆☆☆</span><b>${score.toFixed(1)}</b><small class="customer-rating-label">(${count})</small></span>`;
   }
   function markup(p){return `<span class="product-rating" data-product-rating="${escape(p.id)}">${ratingContent(p.id)}</span>`;}
   function refresh(){document.querySelectorAll('[data-product-rating]').forEach(e=>e.innerHTML=ratingContent(e.dataset.productRating));}
@@ -25,7 +25,7 @@
    setSummary(id,data);let offset=0;
    host.innerHTML=`<div class="review-summary">${markup({id})}</div><div class="customer-reviews"></div><button type="button" class="btn review-more hidden">Load more ratings</button>`;
    const list=host.querySelector('.customer-reviews'),more=host.querySelector('.review-more');
-   function append(rows){for(const r of rows){list.insertAdjacentHTML('beforeend',`<article class="customer-review"><div><strong>${r.is_mine?'Your rating':'Member rating'}</strong><time>${escape(new Date(r.updated_at).toLocaleDateString('en-GB'))}</time></div><span class="customer-stars" aria-label="${Number(r.rating)} out of 5 stars">${'★'.repeat(Number(r.rating))}${'☆'.repeat(5-Number(r.rating))}</span>${r.body?`<p>${escape(r.body)}</p>`:'<small>Rating only</small>'}</article>`);}offset+=rows.length;more.classList.toggle('hidden',offset>=Number(data.count));}
+   function append(rows){for(const r of rows){list.insertAdjacentHTML('beforeend',`<article class="customer-review"><div><strong>${r.is_mine?'Your rating':'Member rating'}</strong><time>${escape(new Date(r.updated_at).toLocaleDateString('en-GB'))}</time></div><span class="customer-stars" aria-label="${Number(r.rating)} out of 5 stars">${'★'.repeat(Number(r.rating))}${'☆'.repeat(5-Number(r.rating))}</span>${r.body?`<p>${escape(r.body)}</p>`:'<small>Rating only</small>'}</article>`);}offset+=rows.length;more.classList.toggle('hidden',offset>=Number(data.review_count??data.count));}
    append(data.reviews||[]);if(!data.count)list.innerHTML='<p class="reviews-empty">No customer ratings yet.</p>';
    more.onclick=async()=>{more.disabled=true;const response=await api.db.rpc('marketplace_product_reviews',{p_product_id:id,p_offset:offset});if(response.error){more.textContent='Could not load · Try again';}else append(response.data.reviews||[]);more.disabled=false;};
   }
