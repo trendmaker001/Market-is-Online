@@ -1,0 +1,44 @@
+[
+  {
+    "title": "Allure Care Collection",
+    "image_url": "/assets/campaigns/allure-collection-desktop.webp",
+    "mobile_url": "/assets/campaigns/allure-collection-mobile.webp",
+    "link": "#catalog",
+    "enabled": true
+  },
+  {
+    "title": "Allure Sun Care",
+    "image_url": "/assets/campaigns/sun-care-desktop.webp",
+    "mobile_url": "/assets/campaigns/sun-care-mobile.webp",
+    "link": "#product/e11d0a35-74ba-49a5-9369-2a85c2a12df2",
+    "enabled": true
+  },
+  {
+    "title": "Allure Jojoba Oil",
+    "image_url": "/assets/campaigns/jojoba-desktop.webp",
+    "mobile_url": "/assets/campaigns/jojoba-mobile.webp",
+    "link": "#product/4bcf50e9-c6f3-443b-be00-a7a9d528feed",
+    "enabled": true
+  },
+  {
+    "title": "Handbag Style",
+    "image_url": "/assets/campaigns/handbags-desktop.webp",
+    "mobile_url": "/assets/campaigns/handbags-mobile.webp",
+    "link": "#catalog",
+    "enabled": true
+  },
+  {
+    "title": "Sporting Lifestyle",
+    "image_url": "/assets/campaigns/sports-desktop.webp",
+    "mobile_url": "/assets/campaigns/sports-mobile.webp",
+    "link": "#catalog",
+    "enabled": true
+  },
+  {
+    "title": "Perfume & Watches",
+    "image_url": "/assets/campaigns/perfume-watch-desktop.webp",
+    "mobile_url": "/assets/campaigns/perfume-watch-mobile.webp",
+    "link": "#catalog",
+    "enabled": true
+  }
+]
