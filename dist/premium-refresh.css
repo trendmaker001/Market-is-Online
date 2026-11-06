@@ -344,3 +344,13 @@ html[data-member-theme=dark] .mio-id-label{color:#b2cdbd}
  #page-shop .product .product-foot.compact-purchase>.ppv-label{font-size:9px!important;padding:4px!important}
  #productDetail .gallery-nav{display:none}
 }
+
+/* Show complete campaign artwork inside one stable frame. */
+#page-shop #marketHero .hero-slide-track{height:auto!important;aspect-ratio:2/1!important}
+#page-shop #marketHero .hero-media{overflow:hidden;isolation:isolate}
+#page-shop #marketHero .hero-media img:not(.campaign-backdrop){object-fit:contain!important;object-position:center!important;position:relative;z-index:1;background:transparent!important}
+#page-shop #marketHero .hero-media img.campaign-backdrop{position:absolute!important;inset:0!important;z-index:0;object-fit:cover!important;filter:blur(20px);transform:scale(1.12);opacity:.55;pointer-events:none}
+body:has(#page-shop:not(.hidden)) .top-main{padding-top:6px!important;padding-bottom:6px!important;row-gap:5px!important}
+#page-shop .shop-market-nav{padding-top:4px!important;padding-bottom:4px!important}
+#page-shop .shop-market-nav button{min-height:34px!important;padding-top:8px!important;padding-bottom:8px!important}
+@media(max-width:620px){#page-shop #marketHero .hero-slide-track{height:auto!important;aspect-ratio:2/1!important}#productDetail .detail-price-row .detail-price{font-size:21px}}
