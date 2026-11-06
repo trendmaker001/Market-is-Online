@@ -346,7 +346,7 @@ html[data-member-theme=dark] .mio-id-label{color:#b2cdbd}
 }
 
 /* Show complete campaign artwork inside one stable frame. */
-#page-shop #marketHero .hero-slide-track{height:auto!important;aspect-ratio:2/1!important}
+#page-shop #marketHero .hero-slide-track{height:clamp(260px,25vw,340px)!important;aspect-ratio:auto!important}
 #page-shop #marketHero .hero-media{overflow:hidden;isolation:isolate}
 #page-shop #marketHero .hero-media img:not(.campaign-backdrop){object-fit:contain!important;object-position:center!important;position:relative;z-index:1;background:transparent!important}
 #page-shop #marketHero .hero-media img.campaign-backdrop{position:absolute!important;inset:0!important;z-index:0;object-fit:cover!important;filter:blur(20px);transform:scale(1.12);opacity:.55;pointer-events:none}
