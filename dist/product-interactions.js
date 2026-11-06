@@ -31,10 +31,13 @@
   const indicator=document.createElement('span');indicator.className='gallery-position';indicator.setAttribute('aria-live','polite');frame.after(indicator);
   const update=()=>{let i=thumbs.findIndex(b=>b.classList.contains('active'));if(i<0)i=0;indicator.textContent=`${i+1} / ${thumbs.length} · Swipe or drag`;thumbs.forEach((b,n)=>b.setAttribute('aria-pressed',String(n===i)));};
   const move=direction=>{const i=Math.max(0,thumbs.findIndex(b=>b.classList.contains('active')));thumbs[(i+direction+thumbs.length)%thumbs.length].click();update();};
+  for(const [direction,label,symbol]of [[-1,'Previous product photo','‹'],[1,'Next product photo','›']]){
+   const button=document.createElement('button');button.type='button';button.className='gallery-nav '+(direction<0?'gallery-prev':'gallery-next');button.setAttribute('aria-label',label);button.textContent=symbol;button.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();move(direction);});frame.append(button);
+  }
   thumbs.forEach(b=>b.addEventListener('click',()=>queueMicrotask(update)));
   frame.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();move(e.key==='ArrowLeft'?-1:1);}});
   frame.addEventListener('dragstart',e=>e.preventDefault());let start=null;
-  frame.addEventListener('pointerdown',e=>{if(!e.isPrimary||e.button!==0)return;start={x:e.clientX,y:e.clientY,id:e.pointerId};frame.setPointerCapture?.(e.pointerId);frame.classList.add('dragging');});
+  frame.addEventListener('pointerdown',e=>{if(e.target.closest('.gallery-nav')||!e.isPrimary||e.button!==0)return;start={x:e.clientX,y:e.clientY,id:e.pointerId};frame.setPointerCapture?.(e.pointerId);frame.classList.add('dragging');});
   frame.addEventListener('pointerup',e=>{if(!start||start.id!==e.pointerId)return;const dx=e.clientX-start.x,dy=e.clientY-start.y;start=null;frame.classList.remove('dragging');if(Math.abs(dx)>=40&&Math.abs(dx)>Math.abs(dy)*1.3)move(dx<0?1:-1);});
   frame.addEventListener('pointercancel',()=>{start=null;frame.classList.remove('dragging');});update();
  }
