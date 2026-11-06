@@ -27,7 +27,7 @@
    host.classList.toggle('hidden',!!document.querySelector('[data-shop-view="vendors"].active,[data-shop-view="categories"].active'));
    host.innerHTML=v?`<video controls playsinline preload="metadata" poster="${esc(url(window.matchMedia?.('(max-width:620px)').matches?v.mobile_url||v.image_url:v.image_url))}" aria-label="${esc(v.title||'Promotion video')}"><source src="${esc(url(v.mobile_video_url)||url(v.video_url))}" media="(max-width:620px)"><source src="${esc(url(v.video_url))}"></video>${url(v.link)?`<a class="btn primary" href="${esc(url(v.link))}">Visit Promotion →</a>`:''}`:'';
   }
-  const sizes={main:['2000 × 500 px (4:1)','900 × 450 px (2:1)'],slides:['1920 × 360 px','900 × 300 px'],promos:['960 × 480 px','900 × 600 px'],video:['1920 × 1080 px','720 × 1280 px'],categories:['600 × 600 px','600 × 600 px']};
+  const sizes={main:['2000 × 560 px (25:7)','900 × 450 px (2:1)'],slides:['1920 × 360 px','900 × 300 px'],promos:['960 × 480 px','900 × 600 px'],video:['1920 × 1080 px','720 × 1280 px'],categories:['600 × 600 px','600 × 600 px']};
   async function upload(file,video=false){
    const types=video?{'video/mp4':'mp4','video/webm':'webm'}:{'image/jpeg':'jpg','image/png':'png','image/webp':'webp'};
    if(!types[file.type]||file.size>(video?26214400:5242880))throw Error(video?'Choose MP4 or WebM up to 25 MB':'Choose JPG, PNG or WebP up to 5 MB');

@@ -2,12 +2,6 @@
 (function(){
  const mounted=new WeakSet();
  function enhance(){
-  document.querySelectorAll('#marketHero .hero-media').forEach(media=>{
-   const original=media.querySelector('picture img,img:not(.campaign-backdrop)');
-   if(!original||media.querySelector('.campaign-backdrop'))return;
-   const backdrop=document.createElement('img');backdrop.className='campaign-backdrop';backdrop.alt='';backdrop.setAttribute('aria-hidden','true');
-   const sync=()=>{backdrop.src=original.currentSrc||original.src;};original.addEventListener('load',sync);sync();media.prepend(backdrop);
-  });
   document.querySelectorAll('.product .product-foot').forEach(foot=>{
    const ppv=foot.querySelector('.price .ppv-label');if(!ppv)return;
    const price=foot.querySelector('.price'),discount=document.createElement('div');discount.className='card-discount';
