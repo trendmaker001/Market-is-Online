@@ -287,3 +287,35 @@ html[data-member-theme=dark] .mio-id-label{color:#b2cdbd}
 .dashboard-identity .dashboard-person>img{width:64px;height:64px}
 @media(max-width:620px){.dashboard-identity .dashboard-person>img{width:56px;height:56px}}
 @media(max-width:360px){.dashboard-identity .dashboard-person>img{width:52px;height:52px}.dashboard-identity-meta{margin-left:-60px;width:calc(100% + 60px)}.dashboard-identity .dashboard-person h1{min-height:38px}}
+
+/* Compact banner and purchase controls, shared across mobile and desktop. */
+#page-shop #marketHero{margin-top:0!important;margin-bottom:0!important}
+#page-shop .shop-market-nav{margin-bottom:0!important}
+#page-shop #marketHero .hero-media img{height:clamp(180px,26vw,360px)!important;width:100%!important;object-fit:contain!important;object-position:center!important;background:#f3f4ee}
+@media(max-width:620px){#page-shop #marketHero .hero-media img{height:clamp(160px,48vw,260px)!important}}
+.product .compact-purchase{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:10px 8px!important;align-items:center!important;width:100%}
+.product .compact-purchase .price{grid-column:1;min-width:0;display:block!important;margin:0!important;font-size:14px!important;line-height:1.3}
+.product .compact-purchase>.ppv-label{grid-column:2;justify-self:end;display:inline-flex!important;align-items:center;margin:0!important;padding:5px 8px!important;border:1px solid #b8dfc8;border-radius:9px;background:linear-gradient(135deg,#effbf3,#d9f0e4);color:#096543!important;font-size:11px!important;font-weight:800;white-space:nowrap;box-shadow:0 2px 4px #126b3810}
+.product .compact-purchase>.add-cart{grid-column:1/-1;width:100%!important;margin:0!important}
+.card-discount{display:flex;flex-wrap:wrap;gap:3px 5px;align-items:center;font-size:10px;line-height:1.4}
+.card-discount .original-price,.card-discount .sale-saving{margin:0!important}
+#productDetail .detail-price-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0;border-block:1px solid #e3ece6}
+#productDetail .detail-price-row .detail-price{border:0;margin:0;padding:0;flex:1;min-width:0;gap:5px 8px}
+#productDetail .detail-price-row .product-reward{flex:0 1 auto;margin:0;padding:0;border:0;background:none;border-radius:0;max-width:47%}
+#productDetail .detail-price-row .ppv-callout{display:block;padding:9px 12px;border:1px solid #b8dfc8;border-radius:12px;background:linear-gradient(135deg,#effbf3,#d9f0e4);color:#096543;font-size:15px;line-height:1.35;text-align:right}
+#productDetail .compact-reward-note{display:block;margin:6px 0 12px;font-size:11px;color:#526b5c}
+#productDetail .quantity-stepper{display:inline-flex;align-items:center;border:1px solid #bfd5c7;border-radius:10px;overflow:hidden;background:white}
+#productDetail .quantity-stepper button{width:42px;height:42px;border:0;background:#edf7f0;color:#08613e;font-size:23px;line-height:1;cursor:pointer}
+#productDetail .quantity-stepper button:disabled{opacity:.4;cursor:default}
+#productDetail .quantity-stepper input{width:52px;height:42px;min-height:0;border:0;border-radius:0;padding:0;text-align:center;appearance:textfield;-moz-appearance:textfield}
+#productDetail .quantity-stepper input::-webkit-inner-spin-button,#productDetail .quantity-stepper input::-webkit-outer-spin-button{appearance:none;margin:0}
+#productDetail .swipe-gallery{touch-action:pan-y;cursor:grab;user-select:none}
+#productDetail .swipe-gallery.dragging{cursor:grabbing}
+#productDetail .swipe-gallery:focus-visible{outline:3px solid #0a8759;outline-offset:3px}
+#productDetail .swipe-gallery img{-webkit-user-drag:none;user-select:none}
+#productDetail .gallery-position{display:block;text-align:center;margin:7px 0 0;color:#587062;font-size:11px;letter-spacing:.02em}
+@media(max-width:620px){#productDetail .detail-price-row{gap:8px}#productDetail .detail-price-row .detail-price{font-size:23px}#productDetail .detail-price-row .ppv-callout{padding:7px 9px;font-size:12px}.product .compact-purchase .price{font-size:12px!important}.product .compact-purchase>.ppv-label{font-size:9px!important;padding:5px!important}}
+#page-shop #marketHero .hero-slide-track{height:clamp(180px,26vw,360px)!important;aspect-ratio:auto!important}
+#page-shop #marketHero .hero-slide{height:100%!important;position:absolute!important;inset:0!important}
+#page-shop #marketHero .hero-media img{height:100%!important}
+@media(max-width:620px){#page-shop #marketHero .hero-slide-track{height:clamp(150px,44vw,240px)!important}}
