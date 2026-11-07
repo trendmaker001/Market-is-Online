@@ -651,3 +651,27 @@
   #page-ecommerce .history-period-summary{flex-wrap:wrap;gap:7px 12px;overflow-wrap:anywhere}
   #page-earnings .history-day-detail{margin:12px 0;max-width:100%}
 }
+
+/* Keep foreground colours paired with the emerald surfaces above.
+   Shared table/card typography must not put dark ink on these backgrounds. */
+.page:not(#page-shop):not(#page-product) .package-report-table th:not(.package-report-total th){
+  color:#fff!important;
+}
+.page:not(#page-shop):not(#page-product) .package-report-total th{
+  color:var(--mio-emerald-deep)!important;
+}
+#page-admin>.heading :is(h1,p,.eyebrow),
+.page:not(#page-shop):not(#page-product) .earning-summary-card,
+.page:not(#page-shop):not(#page-product) .earning-summary-card :is(span,p,strong,b,small),
+.dashboard-total-earned,
+.dashboard-total-earned :is(strong,b,small,p,span),
+#page-admin .accounting-primary .company-total :is(b,span,small),
+.ex-primary :is(strong,small,span),
+.super-member-benefit :is(strong,small){
+  color:#fff!important;
+}
+/* Selected controls on white backgrounds retain their dark labels. */
+.member-sidebar nav button:not(.active),
+#page-admin .control-nav .btn:not(.active){color:#fff!important}
+.member-sidebar nav button:not(.active) svg,
+#page-admin .control-nav .btn:not(.active) svg{color:currentColor;opacity:1}
