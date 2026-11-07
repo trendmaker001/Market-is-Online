@@ -1,0 +1,21 @@
+import {JSDOM} from 'jsdom';
+import {readFile} from 'node:fs/promises';
+import assert from 'node:assert/strict';
+const dom=new JSDOM('<section id="root"><small id="networkSummaryStatus"></small><strong data-network-value="members"></strong><strong data-network-value="mio-price"></strong><section id="networkQuickDetail"><div id="networkQuickContent"></div></section></section>',{runScripts:'outside-only'});
+const w=dom.window;w.eval(await readFile('dist/network-controls.js','utf8'));
+let admin=true,uid='admin',calls=[],rate=300,error=null;
+const root=w.document.querySelector('#root'),tick=()=>new Promise(r=>setTimeout(r,0));
+const view=w.MioNetworkControls.create({root,authorized:()=>admin,identity:()=>uid,escape:s=>String(s).replaceAll('<','&lt;').replaceAll('"','&quot;'),savePrice:async p=>{rate=p;},rpc:async(name,args)=>{
+ calls.push({name,args});if(error)return {error:{message:error}};
+ return {data:name==='admin_network_control_summary'?{members:52,packages:{free:50,PREMIUM:2},proceed:100,cash:50,shopping:20,promotion:10,mio_price:rate,fees:{subscription:50,proceed:5,combined:55,orders:null,withdrawal:null},as_of:new Date().toISOString()}: {total:52,rows:[{member_code:'MIO-1',full_name:'<unsafe>',package_code:'free',proceed:10,cash:5,shopping:2,promotion:1,created_at:'2026-11-07',reference:'BASIC_1',amount:.5}]}};
+}});
+await view.open('members');assert.equal(root.querySelectorAll('.network-tier').length,6);assert.equal(root.querySelector('[data-network-value="members"]').textContent,'52');assert.equal(root.querySelectorAll('unsafe').length,0);
+root.querySelector('[data-tier="PREMIUM"]').click();await tick();assert.equal(calls.at(-1).args.p_package,'PREMIUM');
+root.querySelector('[data-ledger-page="1"]').click();await tick();assert.equal(calls.at(-1).args.p_offset,25);
+root.querySelector('[data-clear-members]').click();await tick();assert.equal(calls.at(-1).args.p_offset,0);assert.equal(calls.at(-1).args.p_package,null);
+root.querySelector('[name="search"]').value='Founder';root.querySelector('form').dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));await tick();assert.equal(calls.at(-1).args.p_search,'Founder');
+await view.open('fees');assert.match(root.textContent,/55.00 MIO/);assert.equal(root.querySelectorAll('.network-fee-card:disabled').length,2);root.querySelector('[data-fee-kind="proceed"]').click();await tick();assert.equal(calls.at(-1).args.p_kind,'proceed');
+await view.open('mio-price');root.querySelector('[name="price"]').value='290';root.querySelector('form').dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));await tick();assert.equal(rate,290);assert.match(root.querySelector('[data-network-value="mio-price"]').textContent,/290/);assert.match(root.textContent,/saved/);
+error='offline';await view.open('cash');assert.match(root.textContent,/Could not load records: offline/);error=null;
+admin=false;view.clear();assert.equal(root.querySelector('#networkQuickContent').textContent,'');assert.equal(root.querySelector('[data-network-value="members"]').textContent,'—');
+console.log('PASS initial open, six tiers, member search/pagination, fee detail, price save/refresh, escaped data, failure state and sign-out cleanup');w.close();
