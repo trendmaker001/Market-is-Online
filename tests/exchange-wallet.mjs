@@ -1,0 +1,36 @@
+import {PGlite} from '@electric-sql/pglite';
+import {readFile} from 'node:fs/promises';
+import assert from 'node:assert/strict';
+const db=new PGlite();const q=(sql,args=[])=>db.query(sql,args),one=async(sql,args=[])=>(await q(sql,args)).rows[0]?.v;
+await db.exec(`create schema private;create schema auth;create role anon;create role authenticated;
+create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('test.uid',true),'')::uuid$$;
+create table public.member_profiles(user_id uuid primary key,member_code text,referral_code text,full_name text,status text,terms_accepted_at timestamptz);
+create table public.package_activations(id uuid primary key default gen_random_uuid(),member_id uuid,package_code text,status text,base_value numeric,activated_at timestamptz,requested_at timestamptz default now());
+create function private.current_package_code(m uuid) returns text language sql stable as $$select package_code from public.package_activations where member_id=m and status='approved' order by base_value desc limit 1$$;
+create function private.require_transaction_pin(p text,m uuid default auth.uid()) returns void language plpgsql as $$begin if m is null or p is distinct from '1234' then raise exception 'Invalid PIN';end if;end$$;
+create function private.has_role(r text) returns boolean language sql as $$select false$$;
+create function private.require_recent_totp() returns void language sql as $$select$$;
+create table public.mio_wallet_accounts(member_id uuid primary key,balance numeric(20,4) check(balance>=0),updated_at timestamptz default now());
+create table public.mio_ledger(id uuid primary key default gen_random_uuid(),member_id uuid,amount numeric,action text,counterparty_id uuid,transfer_id uuid,reason text,idempotency_key text unique,created_at timestamptz default now());
+create function public.mio_transfer(p_recipient_id uuid,p_amount numeric,p_idempotency_key text,p_transaction_pin text) returns uuid language plpgsql security definer set search_path='' as $$begin perform private.require_transaction_pin(p_transaction_pin,auth.uid());return private.mio_transfer(p_recipient_id,p_amount,p_idempotency_key);end$$;
+`);
+await db.exec(await readFile('schema/platinum_exchange_wallet.sql','utf8'));
+await db.exec(await readFile('schema/exchange_transfer_receipts.sql','utf8'));
+const id=n=>`00000000-0000-0000-0000-${String(n).padStart(12,'0')}`,as=async n=>q("select set_config('test.uid',$1,false)",[n?id(n):'']);
+for(let i=1;i<=8;i++){await q('insert into member_profiles values($1,$2,$2,$3,$4,now())',[id(i),'MIO-'+i,'Member '+i,i===3?'inactive':'active']);await q('insert into mio_wallet_accounts values($1,100,now())',[id(i)]);}
+for(const [i,code] of [[1,'PREMIUM'],[2,'PREMIUM'],[4,'BASIC_1'],[5,'BASIC_2'],[6,'ADVANCED_1'],[7,'ADVANCED_2']])await q("insert into package_activations(member_id,package_code,status,base_value,activated_at) values($1,$2,'approved',500,now())",[id(i),code]);
+const fund=(amount,key='fund-123456789')=>one('select fund_exchange_wallet($1,$2,$3) v',[amount,key,'1234']);
+const send=(to,amount,key='send-123456789',pin='1234')=>one('select send_exchange_mio($1,$2,$3,$4,$5) v',['MIO-'+to,amount,key,pin,'Test']);
+const cash=(to,amount,key='cash-123456789')=>one('select mio_transfer($1,$2,$3,$4) v',[id(to),amount,key,'1234']);
+const balance=async(n,table='mio_wallet_accounts')=>Number(await one(`select balance v from ${table} where member_id=$1`,[id(n)]));
+await as(1);const first=await fund(40);assert.equal(await fund(40),first);assert.equal(await balance(1),60);assert.equal(await balance(1,'private.exchange_wallet_accounts'),40);await assert.rejects(fund(41),/different transfer/);await assert.rejects(cash(3,1),/Platinum members must fund/);await assert.rejects(send(3,100),/Insufficient/);await assert.rejects(send(3,1,'pin-test-12345','9999'),/Invalid PIN/);
+await send(3,10);assert.equal(await balance(3),110);assert.equal(await balance(1,'private.exchange_wallet_accounts'),30);await send(2,5,'send-pt-1234567');assert.equal(await balance(2),100);assert.equal(await balance(2,'private.exchange_wallet_accounts'),5);
+for(let i=3;i<=7;i++){await as(i);await assert.rejects(fund(1),/only to Platinum/);await assert.rejects(send(8,1),/only to Platinum/);await assert.rejects(cash(8,1),/only to a Platinum/);await assert.rejects(one('select my_exchange_wallet() v'),/only to Platinum/);await cash(1,2,'tier-send-123456');}
+await as(1);let state=await one('select my_exchange_wallet() v');assert.equal(state.balance,35);assert.equal(state.received,10);assert.equal(state.sent,15);assert.equal(state.funded,40);assert.equal(state.total,8);assert.equal((await one("select my_exchange_wallet(null,'received',0,2) v")).rows.length,2);assert.equal((await one("select my_exchange_wallet(2020) v")).received,0);
+const total=await one('select (select sum(balance) from mio_wallet_accounts)+(select sum(balance) from private.exchange_wallet_accounts) v');assert.equal(Number(total),800);
+for(const amount of [0,-1,1.12345,1000000001])await assert.rejects(fund(amount,'bad-amount-12345'),/Invalid MIO/);await assert.rejects(send(1,1),/Choose another/);const receipt=(await q('select * from lookup_mio_transfer_receipt($1)',[first])).rows[0];assert.equal(receipt.sender_id,id(1));assert.equal(receipt.recipient_id,id(1));await as(8);await assert.rejects(q('select * from lookup_mio_transfer_receipt($1)',[first]),/not found/);await as(null);await assert.rejects(one('select my_exchange_wallet() v'),/Sign in/);
+assert.equal(await one("select has_function_privilege('anon','public.my_exchange_wallet(integer,text,integer,integer)','execute') v"),false);
+assert.equal(await one("select has_function_privilege('authenticated','private.exchange_move(text,uuid,numeric,text,text)','execute') v"),false);
+assert.equal(await one("select has_table_privilege('authenticated','private.exchange_wallet_accounts','update') v"),false);
+console.log('PASS exchange routes for all tiers, free inactive sender, Platinum Cash block, self funding, Platinum-to-Platinum, totals, year/direction pagination, conservation, PIN, replay/mismatch, insufficient funds, role isolation');
+await db.close();
