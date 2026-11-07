@@ -8,6 +8,7 @@ create function private.has_role(text) returns boolean language sql as $$select 
 create function private.financial_reset_at() returns timestamptz language sql as $$select '2026-01-01'::timestamptz$$;
 create table public.member_profiles(user_id uuid primary key,member_code text,full_name text);
 create table public.member_income_wallets(member_id uuid primary key,proceed_mio numeric,shopping_points numeric,promotion_points numeric);
+create table private.exchange_wallet_accounts(member_id uuid primary key,balance numeric);
 create table public.mio_wallet_accounts(member_id uuid primary key,balance numeric);
 create table public.package_activations(id uuid,member_id uuid,package_code text,base_value numeric,status text,source text,company_fee numeric,activated_at timestamptz);
 create table public.proceed_wallet_conversions(id uuid,member_id uuid,fee_amount numeric,created_at timestamptz);
@@ -22,6 +23,7 @@ create table public.order_items(order_id uuid,product_id uuid,vendor_id uuid,qua
 await db.exec(await readFile('tests/fixtures/network-rate-triggers.sql','utf8'));
 await db.exec(await readFile('schema/network_control_reporting.sql','utf8'));
 await db.exec(await readFile('schema/network_control_exclude_company.sql','utf8'));
+await db.exec(await readFile('schema/network_control_exchange.sql','utf8'));
 const rates=await readFile('schema/network_control_mio_rate.sql','utf8');
 for(const name of ['formula_product_ppv','snapshot_item_ppv']){const start=rates.indexOf('CREATE OR REPLACE FUNCTION private.'+name+'(');const end=rates.indexOf('$function$;',start)+12;await db.exec(rates.slice(start,end));}
 await db.exec(`create trigger calc before insert or update on public.products for each row execute function private.formula_product_ppv();create trigger snapshot before insert on public.order_items for each row execute function private.snapshot_item_ppv();`);
@@ -50,6 +52,15 @@ page=await one("select admin_network_control_registered_members(0,25,null,'Found
 page=await one("select admin_network_control_registered_members(1000,25,null,'')");assert.equal(page.total,1009);assert.equal(page.rows.length,9);
 page=await one("select admin_network_control_registered_members(0,25,'ADVANCED_2','')");assert.equal(page.total,4);
 
+assert.equal((await one('select admin_network_control_summary()')).exchange,0);
+for(let n=1;n<=10;n++) await q('insert into private.exchange_wallet_accounts values($1,100)',[id(n)]);
+assert.equal((await one('select admin_network_control_summary()')).exchange,1000);
+let ex=await one('select admin_network_control_exchange(0,4)');assert.equal(ex.total,10);assert.equal(ex.rows.length,4);
+ex=await one("select admin_network_control_exchange(0,25,'Company')");assert.equal(ex.rows.length,1);assert.equal(ex.rows[0].exchange,100);
+await q('update private.exchange_wallet_accounts set balance=40 where member_id=$1',[id(1)]);
+assert.equal((await one('select admin_network_control_summary()')).exchange,940);
+await q("set test.admin='no'");await assert.rejects(one('select admin_network_control_exchange()'),/Admin access required/);await q("set test.admin='yes'");
+console.log('PASS Exchange totals: empty=0, ten times 100=1000, current balances=940, company included, pagination/search, admin-only');
 console.log('PASS 1009 members excluding company, founder retained, unchanged all-account wallets, current tiers, complete current balances, collected fees 50+5=55 and pagination');
 await q('insert into vendors values($1,.30,.25)',[id(1)]);
 await q("insert into products values($1,$1,3000,3000,null,null,'approved')",[id(1)]);
