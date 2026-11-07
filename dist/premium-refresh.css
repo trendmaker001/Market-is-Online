@@ -353,3 +353,27 @@ body:has(#page-shop:not(.hidden)) .top-main{padding-top:6px!important;padding-bo
 #page-shop .shop-market-nav{padding-top:4px!important;padding-bottom:4px!important}
 #page-shop .shop-market-nav button{min-height:34px!important;padding-top:8px!important;padding-bottom:8px!important}
 @media(max-width:620px){#page-shop #marketHero .hero-slide-track{height:auto!important;aspect-ratio:2/1!important}#productDetail .detail-price-row .detail-price{font-size:21px}}
+
+/* Compact network operations shortcuts and fee overview. */
+.network-quick-controls{margin:0 0 22px;min-width:0}
+.network-quick-controls .admin-widget-heading{margin-bottom:14px}
+.network-quick-controls h3{margin:4px 0;color:#143e2e}
+.network-quick-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.network-quick-card{appearance:none;position:relative;display:grid;grid-template-columns:1fr 18px;gap:12px;text-align:left;padding:18px 16px;background:#fff;border:1px solid #d6e4dd;border-radius:14px;min-height:126px;color:#164a36;font:inherit;cursor:pointer;box-shadow:0 2px 6px #0c392506;transition:border-color .15s,box-shadow .15s}
+.network-quick-card svg{width:27px;height:27px;grid-column:1/-1}
+.network-quick-card span{font-size:14px;font-weight:700;line-height:1.35;align-self:center}
+.network-quick-card b{color:#ed8512;align-self:center;font-size:21px}
+.network-quick-card:hover{border-color:#16855e;box-shadow:0 4px 12px #0c392511}
+.network-quick-card[aria-expanded=true]{border-color:#ed8512;background:#fffcf6;box-shadow:inset 0 0 0 1px #ed8512}
+.network-quick-card:focus-visible,.network-quick-detail button:focus-visible{outline:3px solid #f29b36;outline-offset:3px}
+.network-quick-detail{margin-top:16px;padding:22px;border:1px solid #d6e4dd;border-top:3px solid #ed8512;border-radius:14px;background:#fff}
+.network-quick-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.network-quick-heading h3{font-size:19px}.network-quick-heading h3:focus{outline:none}
+.network-fees-total{display:flex;align-items:center;flex-wrap:wrap;gap:10px 20px;padding-bottom:16px;border-bottom:1px solid #e4ece7;margin-bottom:16px;color:#486454}
+.network-fees-total strong{margin-left:auto;color:#14583b;font-size:22px}.network-fees-total small{flex-basis:100%;font-size:12px}
+.network-fee-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.network-fee-card{padding:16px;background:#f5f9f6;border:1px solid #e1eae4;border-radius:10px;display:flex;flex-direction:column;gap:12px}
+.network-fee-card span{font-size:13px;font-weight:600;color:#234c39}.network-fee-card strong{color:#cc6905;font-size:24px}
+.network-setup-note{padding:12px 0;color:#526c5d;line-height:1.6}
+@media(max-width:1100px){.network-quick-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.network-fee-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){.network-quick-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.network-quick-card{padding:14px 12px;min-height:108px;gap:9px}.network-quick-card span{font-size:13px}.network-quick-detail{padding:15px}.network-quick-heading{align-items:flex-start}.network-quick-heading h3{font-size:17px}.network-fee-card{padding:12px}.network-fee-card strong{font-size:22px}}
