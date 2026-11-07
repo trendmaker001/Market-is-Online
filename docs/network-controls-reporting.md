@@ -1,6 +1,6 @@
 # Network Controls reporting — 7 November 2026
 
-Cards aggregate all registered member profiles, including company and founder accounts. Wallet figures are current balances, not lifetime credits. Counts use the same current-package function as the network and include zero-balance members. Member and fee records use server pagination and admin-only RPCs.
+Member counts, package counts and the member directory exclude the company operational account and include the founder. Wallet cards and wallet breakdowns still aggregate all registered accounts, including company and founder. Wallet figures are current balances, not lifetime credits. Counts use the same current-package function as the network and include zero-balance members. Member and fee records use server pagination and admin-only RPCs.
 
 Company Fees reports actual gross company_fee on approved paid activations after the existing financial reset, excluding SHOPPING_PPV activations, plus recorded Proceed conversion fees. This report does not add a second wallet credit. Withdrawal and E-commerce categories remain unconfigured pending the owner’s rules; they are excluded from the combined figure.
 
@@ -22,3 +22,5 @@ Applied migration: network_control_totals_and_mio_rate. Source order:
 - Anonymous execution is denied. Security advisor’s three new authenticated-definer notices correspond to the intentionally admin-guarded report endpoints.
 - Existing Manager, Community, Proceed conversion, Rank and bonus-routing function hashes unchanged.
 - Browser verified unauthenticated admin redirect; authenticated browser QA was unavailable in this session.
+
+Follow-up migration: network_control_exclude_company (schema/network_control_exclude_company.sql). Uses the configured company ID, not account names or email addresses. Verified company excluded and founder retained, with wallet and fee figures unchanged.

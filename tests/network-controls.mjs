@@ -2,7 +2,7 @@ import {PGlite} from '@electric-sql/pglite';
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 const db=new PGlite(),q=(s,a=[])=>db.query(s,a),one=async(s,a=[])=>Object.values((await q(s,a)).rows[0])[0];
-await db.exec(`create schema auth;create schema private;create role anon;create role authenticated;
+await db.exec(`create schema auth;create schema private;create table private.network_foundation(singleton boolean,company_id uuid);create role anon;create role authenticated;
 create function auth.uid() returns uuid language sql as $$select '00000000-0000-0000-0000-000000000001'::uuid$$;
 create function private.has_role(text) returns boolean language sql as $$select coalesce(current_setting('test.admin',true),'yes')='yes'$$;
 create function private.financial_reset_at() returns timestamptz language sql as $$select '2026-01-01'::timestamptz$$;
@@ -21,11 +21,13 @@ create table public.order_items(order_id uuid,product_id uuid,vendor_id uuid,qua
 `);
 await db.exec(await readFile('tests/fixtures/network-rate-triggers.sql','utf8'));
 await db.exec(await readFile('schema/network_control_reporting.sql','utf8'));
+await db.exec(await readFile('schema/network_control_exclude_company.sql','utf8'));
 const rates=await readFile('schema/network_control_mio_rate.sql','utf8');
 for(const name of ['formula_product_ppv','snapshot_item_ppv']){const start=rates.indexOf('CREATE OR REPLACE FUNCTION private.'+name+'(');const end=rates.indexOf('$function$;',start)+12;await db.exec(rates.slice(start,end));}
 await db.exec(`create trigger calc before insert or update on public.products for each row execute function private.formula_product_ppv();create trigger snapshot before insert on public.order_items for each row execute function private.snapshot_item_ppv();`);
 await db.exec(await readFile('schema/network_control_mio_price_setter.sql','utf8'));
 const id=n=>`00000000-0000-0000-0000-${String(n).padStart(12,'0')}`;
+await q('insert into private.network_foundation values(true,$1)',[id(1)]);
 for(let i=1;i<=1010;i++)await q('insert into member_profiles values($1,$2,$3)',[id(i),'MIO-'+String(i).padStart(5,'0'),i===1?'Company':i===2?'Founder':'Member '+i]);
 for(let i=1;i<=10;i++){
  await q('insert into member_income_wallets values($1,10,2,1)',[id(i)]);await q('insert into mio_wallet_accounts values($1,5)',[id(i)]);
@@ -36,14 +38,19 @@ await q("insert into package_activations values($1,$1,'BASIC_1',10,'approved','S
 await q("insert into package_activations values($1,$1,'PREMIUM',500,'pending','MIO_POINTS',50,'2026-11-07')",[id(6)]);
 await q("insert into package_activations values($1,$1,'BASIC_1',10,'approved','MIO_POINTS',1,'2025-01-01')",[id(7)]);
 let summary=await one('select admin_network_control_summary()');
-assert.equal(summary.members,1010);assert.equal(summary.packages.ADVANCED_2,5);assert.equal(summary.packages.BASIC_1,1);assert.equal(summary.packages.free,1004);
+assert.equal(summary.members,1009);assert.equal(summary.packages.ADVANCED_2,4);assert.equal(summary.packages.BASIC_1,1);assert.equal(summary.packages.free,1004);
 assert.equal(summary.proceed,100);assert.equal(summary.cash,50);assert.equal(summary.shopping,20);assert.equal(summary.promotion,10);
 assert.deepEqual(summary.fees,{subscription:50,proceed:5,combined:55,withdrawal:null,orders:null});
 let page=await one("select admin_network_control_members(1000,25,null,'')");assert.equal(page.rows.length,10);assert.equal(page.total,1010);
 page=await one("select admin_network_control_members(0,25,'ADVANCED_2','')");assert.equal(page.total,5);
 page=await one("select admin_network_control_members(0,25,null,'Company')");assert.equal(page.rows[0].cash,5);
 assert.equal((await one("select admin_network_control_fees('subscription')")).total,5);
-console.log('PASS all 1010 registered members, current tiers, complete current balances, collected fees 50+5=55 and pagination');
+page=await one("select admin_network_control_registered_members(0,25,null,'Company')");assert.equal(page.total,0);assert.equal(page.rows.length,0);
+page=await one("select admin_network_control_registered_members(0,25,null,'Founder')");assert.equal(page.total,1);
+page=await one("select admin_network_control_registered_members(1000,25,null,'')");assert.equal(page.total,1009);assert.equal(page.rows.length,9);
+page=await one("select admin_network_control_registered_members(0,25,'ADVANCED_2','')");assert.equal(page.total,4);
+
+console.log('PASS 1009 members excluding company, founder retained, unchanged all-account wallets, current tiers, complete current balances, collected fees 50+5=55 and pagination');
 await q('insert into vendors values($1,.30,.25)',[id(1)]);
 await q("insert into products values($1,$1,3000,3000,null,null,'approved')",[id(1)]);
 await q('insert into orders values($1,300)',[id(1)]);
@@ -59,6 +66,6 @@ await one('select admin_set_mio_reference_price(290)');assert.equal(Number(await
 assert.ok(rates.includes('b*depth/300'));assert.ok(rates.includes('b/300,amount')); // Network percentages are not FX rates.
 for(const invalid of [0,-1,1.111,1000001])await assert.rejects(one('select admin_set_mio_reference_price($1)',[invalid]));
 await q("select set_config('test.admin','no',false)");
-for(const sql of ['select admin_network_control_summary()',"select admin_network_control_members()","select admin_network_control_fees('proceed')",'select admin_set_mio_reference_price(300)'])await assert.rejects(one(sql),/Admin access/);
+for(const sql of ['select admin_network_control_registered_members()','select admin_network_control_summary()',"select admin_network_control_members()","select admin_network_control_fees('proceed')",'select admin_set_mio_reference_price(300)'])await assert.rejects(one(sql),/Admin access/);
 console.log('PASS 300→290 current PPV and new snapshots, unchanged old order/PPV, audited rate save, unchanged network percentages and admin guards');
 await db.close();
