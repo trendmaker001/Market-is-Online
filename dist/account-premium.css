@@ -680,3 +680,20 @@
 #page-admin .admin-sidebar-brand>span{display:none!important}
 #page-admin .admin-sidebar-brand{grid-template-columns:1fr;gap:0;margin:0 0 12px;padding:0 0 12px}
 #page-admin .admin-sidebar-brand small{margin:0;text-align:left}
+
+/* Fit every activation allocation column into the report width. */
+#page-admin .package-report-scroll{width:100%;max-width:100%;min-width:0}
+#page-admin .package-report-table{width:100%;min-width:0;table-layout:fixed}
+#page-admin .package-report-table th,
+#page-admin .package-report-table td{min-width:0!important;padding:9px 4px!important;white-space:normal!important;overflow-wrap:anywhere;font-size:11px!important;line-height:1.45;text-align:right}
+#page-admin .package-report-table thead tr:first-child th{position:static;vertical-align:middle;text-align:center;font-size:10px!important;line-height:1.5}
+#page-admin .package-report-table thead tr:first-child th:nth-child(1){width:3%}
+#page-admin .package-report-table thead tr:first-child th:nth-child(2){width:8%}
+#page-admin .package-report-table thead tr:first-child th:nth-child(3){width:10%}
+#page-admin .package-report-table thead tr:first-child th:nth-child(4){width:7%}
+#page-admin .package-report-table .package-report-total th{position:static}
+#page-admin .package-report-table .package-report-total th:first-child,
+#page-admin .package-report-table .package-report-date th{text-align:left}
+#page-admin .package-report-table tbody td:nth-child(-n+4){text-align:left}
+#page-admin .package-report-table .package-report-pill{max-width:100%;white-space:normal;padding:3px 4px}
+#page-admin .package-report-table td small{font-size:9px;overflow-wrap:anywhere}
