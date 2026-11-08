@@ -41,3 +41,30 @@
  #adminMemberWorkspace .member-sidebar nav{display:block}
  #adminMemberWorkspace .member-sidebar nav button{min-height:44px}
 }
+
+/* Keep the member directory as one row per account on phones, like desktop. */
+@media(max-width:850px){
+ #page-admin #control-members .account-holders-toolbar{padding:8px 10px;gap:6px}
+ #page-admin #control-members .account-holders-toolbar h2{font-size:14px;line-height:1.25}
+ #page-admin #control-members .account-holders-card>.card-body{padding:10px}
+ #page-admin #control-members .account-holder-filters{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:8px 6px;align-items:end;margin-bottom:10px}
+ #page-admin #control-members .account-holder-filters>label,#page-admin #control-members .directory-country-picker{grid-column:span 4;min-width:0;gap:3px;font-size:11px}
+ #page-admin #control-members .directory-country-picker{display:flex;flex-direction:column}
+ #page-admin #control-members .account-holder-filters>.account-holder-search{grid-column:span 6}
+ #page-admin #control-members .account-holder-filters>.btn{grid-column:span 3;margin:0;padding:8px 4px;min-width:0;min-height:44px;font-size:12px}
+ #page-admin #control-members .account-holder-filters select{padding:7px 3px;font-size:12px}
+ #page-admin #control-members #memberCountryToggle{margin:0;width:100%;min-width:0;min-height:44px;padding:7px 3px;font-size:11px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+ #page-admin #control-members #memberSearch{padding:7px 8px;font-size:16px}
+ #page-admin #control-members .directory-country-menu{left:auto;right:0;width:260px;max-width:calc(100vw - 48px)}
+ #page-admin #control-members .account-holders-pagination{gap:8px;margin-top:8px;padding-top:10px}
+ #page-admin #control-members #workspaceMembers>.table-wrap{overflow-x:auto!important;overflow-y:hidden!important;overscroll-behavior-x:contain;scrollbar-width:auto;-webkit-overflow-scrolling:touch}
+ #page-admin #control-members table.account-holders-table{display:table!important;table-layout:fixed;width:100%!important;min-width:1730px!important;white-space:nowrap!important;border-collapse:collapse}
+ #page-admin #control-members .account-holders-table thead{display:table-header-group!important}
+ #page-admin #control-members .account-holders-table tbody{display:table-row-group!important;padding:0!important}
+ #page-admin #control-members .account-holders-table tbody tr{display:table-row!important;width:auto!important;padding:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:#fff!important}
+ #page-admin #control-members .account-holders-table tbody tr:nth-child(even){background:#f4f9f6!important}
+ #page-admin #control-members .account-holders-table tbody td{display:table-cell!important;padding:10px!important;border:0!important;border-bottom:1px solid #e2ece6!important;background:transparent!important;text-align:left!important;vertical-align:middle!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis;overflow-wrap:normal!important;font-size:12px}
+ #page-admin #control-members .account-holders-table tbody td.placement-cell{background:#edf8f2!important}
+ #page-admin #control-members .account-holders-table tbody td::before{display:none!important;content:none!important}
+ #page-admin #control-members .account-holders-table .btn{min-height:40px;padding:6px 8px;font-size:12px}
+}
