@@ -1,0 +1,97 @@
+import {PGlite} from '@electric-sql/pglite';
+import {readFile,readdir} from 'node:fs/promises';
+import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+const source=new URL('..',import.meta.url).pathname.replace(/\/$/,'');
+const db=new PGlite(),q=(sql,args=[])=>db.query(sql,args),one=async(sql,args=[])=>Object.values((await q(sql,args)).rows[0])[0];
+const uid=n=>{const h=createHash('sha256').update('manager-program:'+n).digest('hex').slice(0,32);return `${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20)}`};
+await db.exec(`create role anon;create role authenticated;create role service_role;create schema auth;
+create table auth.users(id uuid primary key,email text,raw_user_meta_data jsonb,raw_app_meta_data jsonb);
+create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
+alter default privileges grant execute on functions to anon,authenticated,service_role;
+grant usage on schema auth to anon,authenticated;grant execute on function auth.uid() to anon,authenticated;`);
+for(const file of (await readdir(source+'/schema')).filter(x=>/^\d+.*\.sql$/.test(x)).sort())await db.exec(await readFile(source+'/schema/'+file,'utf8'));
+for(const file of ['20261016023905_activation_offer_member_dashboard.sql','20261016203000_dynamic_welcome_bonus_switch.sql','20261016213000_welcome_bonus_extra_rate_and_admin_scope.sql','20261103161000_maintenance_foundation.sql','20261103162000_maintenance_payments.sql','20261103163000_maintenance_bonus_eligibility.sql','20261104100000_monthly_maintenance_company_leftover.sql','20261104150000_super_member_program.sql','20261105091030_country_gender_marketplace_controls.sql'])
+ await db.exec(await readFile(source+'/supabase/migrations/'+file,'utf8'));
+// Existing production helper predates the checked-in migration set.
+await db.exec(`create or replace function private.current_proceed_wallet_config() returns jsonb language sql stable security definer set search_path='' as $$ select '{"cash_rate":0.75,"fee_rate":0.05,"shopping_rate":0.10,"promotion_rate":0.10,"minimum_mio":10}'::jsonb||coalesce((select config_value from public.system_config where config_key='PROCEED_WALLET_CONFIG' and effective_from<=now() and(effective_to is null or effective_to>now()) order by version desc limit 1),'{}') $$`);
+await db.exec(await readFile(source+'/schema/admin_member_dashboard.sql','utf8'));
+const admin=uid(1),target=uid(2),other=uid(3),as=id=>q("select set_config('request.jwt.claim.sub',$1,false)",[id]);
+async function activate(id,key,code='PREMIUM'){await q(`insert into public.package_activations(member_id,package_code,package_version,source,base_value,company_fee,payable_price,ppv,bv,dp,gp,bp,brp,direct_rate,generation1_rate,binary_entitlement,status,activated_at,idempotency_key)
+ select $1,package_code,version,'ADMIN',base_value,company_fee,base_value+company_fee,ppv,bv,dp,gp,bp,brp,direct_rate,generation1_rate,binary_entitlement,'approved',now(),$2 from public.package_versions where package_code=$3 and is_active order by version desc limit 1`,[id,key,code]);}
+for(const [id,name] of [[admin,'Admin'],[target,'Target'],[other,'Other']]){
+const meta={full_name:name,phone:'00000000',terms_accepted:true};if(id!==admin)meta.referral_code=await one('select referral_code from public.member_profiles where user_id=$1',[admin]);await q("insert into auth.users(id,email,raw_user_meta_data,raw_app_meta_data) values($1,$2,$3,$4)",[id,id===admin?'m.shujaat1993@gmail.com':name.toLowerCase()+'@example.invalid',JSON.stringify(meta),JSON.stringify(id===admin?{provider:'google'}:{})]);await q("update public.member_profiles set status='active',terms_accepted_at=now() where user_id=$1",[id]);if(id===admin)await activate(admin,"support-admin-plan");
+}
+await q("insert into public.user_roles(user_id,role) values($1,'admin') on conflict do nothing",[admin]);
+await q('update public.mio_wallet_accounts set balance=17 where member_id=$1',[target]);
+await q('update public.mio_wallet_accounts set balance=999 where member_id=$1',[admin]);
+
+await db.exec(await readFile(source+'/schema/platinum_exchange_wallet.sql','utf8'));
+await db.exec(await readFile(source+'/schema/admin_member_profile.sql','utf8'));
+await db.exec(await readFile(source+'/tests/fixtures/production-shopping-mode.sql','utf8'));
+await db.exec(await readFile(source+'/tests/fixtures/production-qualification-triggers.sql','utf8'));
+await db.exec(await readFile(source+'/schema/maintenance_activation_start.sql','utf8'));
+await db.exec(await readFile(source+'/tests/fixtures/production-binary-qualification.sql','utf8'));
+await db.exec(await readFile(source+'/schema/admin_member_management.sql','utf8'));
+await db.exec(await readFile(source+'/schema/admin_member_provisioning.sql','utf8'));
+await db.exec(await readFile(source+'/schema/admin_member_snapshot_imports.sql','utf8'));
+await as(admin);
+await db.exec(`create or replace function private.require_recent_totp() returns void language plpgsql as $$begin if current_setting('test.totp',true) is distinct from 'yes' then raise exception 'Authenticator required';end if;end$$; set test.totp='yes';`);
+const state=async(id=target)=>(await one('select public.admin_member_management($1)',[id])).state;
+const save=async(section,values,expected,key=crypto.randomUUID(),id=target)=>one('select public.admin_save_member_state($1,$2,$3,$4,$5,$6)',[id,section,JSON.stringify(values),JSON.stringify(expected??(await state(id))[section]),key,'Verified migration opening values']);
+const original=await state();
+await save('earnings',{direct:400,generation:300,binary_pool_share:300});
+assert.equal(Number(await one('select sum(amount) from public.member_opening_earnings where member_id=$1',[target])),1000);
+assert.equal(Number(await one('select balance from public.mio_wallet_accounts where member_id=$1',[target])),17);
+const key=crypto.randomUUID();const oldWallet=(await state()).wallets;
+await save('wallets',{cash:25,shopping:70,promotion:80,proceed:10},oldWallet,key);
+await save('wallets',{cash:25,shopping:70,promotion:80,proceed:10},oldWallet,key);
+assert.equal(Number(await one('select balance from public.mio_wallet_accounts where member_id=$1',[target])),25);
+await assert.rejects(save('wallets',{cash:30},oldWallet),/data changed/);
+await assert.rejects(save('wallets',{cash:-1}),/nonnegative/);
+await save('account',{package_code:'ADVANCED_2',rank:'leader',status:'active'});
+assert.equal(await one('select private.current_package_code($1)',[target]),'ADVANCED_2');
+assert.equal(Number(await one('select promotion_points from public.member_income_wallets where member_id=$1',[target])),80);
+assert.equal(Number(await one('select count(*) from public.bonus_transactions where beneficiary_id=$1',[target])),0);
+await save('maintenance',{monthly_days:90,annual_days:210});
+assert.equal(Number(await one('select round(extract(epoch from monthly_due_at-now())/86400) from public.member_maintenance where member_id=$1',[target])),90);
+await save('points',{ppv:75,gp:500,bp_left:1000,bp_right:700,carry_left:200,carry_right:100,brp_left:100,brp_right:50,direct_points:400,tngp:900,left_dp:50,right_dp:40,left_gp:100,right_gp:70});
+const updated=await state();assert.equal(updated.points.ppv,75);assert.equal(updated.points.carry_left,200);assert.equal(updated.points.carry_right,100);assert.equal(updated.points.direct_points,400);assert.equal(updated.points.tngp,900);assert.equal(updated.points.left_dp,50);assert.equal(updated.points.right_gp,70);
+await assert.rejects(save('points',{carry_left:2000}),/exceed/);
+// Opening summary stays separate while new funded earnings accumulate.
+const sourceActivation=await one("select id from public.package_activations where member_id=$1 and status='approved' limit 1",[admin]);
+await q(`insert into public.bonus_transactions(beneficiary_id,method,source_activation_id,generation,qualifying_base,rate,gross_amount,payable_amount,currency,formula_version,calculation_trace,status,idempotency_key) values($1,'direct',$2,1,100,0.3,30,30,'MIO','test-funded','{}','posted','test-new-thirty')`,[target,sourceActivation]);
+const snap=await one('select public.admin_member_dashboard($1)',[target]);assert.equal(snap.financial.earned,1030);
+const tree=await one("select public.my_network('binary',$1,1)",[await one('select member_code from member_profiles where user_id=$1',[target])]);
+const node=tree.nodes.find(n=>n.id===target);assert.equal(Number(node.left_bp),200);assert.equal(Number(node.right_bp),100);
+await save('account',{package_code:'BASIC_1'});assert.equal(await one('select private.current_package_code($1)',[target]),'BASIC_1');
+await save('account',{package_code:null});assert.equal(await one('select private.current_package_code($1)',[target]),null);assert.equal(await one('select private.package_eligible($1)',[target]),false);
+await save('account',{package_code:'ADVANCED_2',status:'active'});
+const targetCode=await one('select member_code from member_profiles where user_id=$1',[target]);
+const otherCode=await one('select member_code from member_profiles where user_id=$1',[other]);
+const details={email:'import@example.invalid',full_name:'Imported Member',phone:'03001234567',country:'PK',gender:'female',sponsor_code:targetCode,placement_code:targetCode,side:'LEFT'};
+const reservationKey=crypto.randomUUID();const reserve=()=>one('select public.admin_prepare_member($1,$2,$3)',[reservationKey,JSON.stringify(details),'Verified old member placement']);
+const reservation=await reserve();assert.equal((await reserve()).token,reservation.token);
+const imported=uid(88);
+await q('insert into auth.users(id,email,raw_user_meta_data,raw_app_meta_data) values($1,$2,$3,$4)',[imported,details.email,JSON.stringify({full_name:details.full_name,phone:details.phone}),JSON.stringify({admin_provisioning:reservation.token})]);
+assert.equal((await reserve()).member_id,imported);assert.equal(await one('select gender from member_profiles where user_id=$1',[imported]),'female');
+assert.equal(await one('select terms_accepted_at from member_profiles where user_id=$1',[imported]),null);
+assert.equal(await one('select side from binary_placements where member_id=$1',[imported]),'LEFT');
+assert.equal((await one('select public.admin_member_dashboard($1)',[imported])).member_id,imported);
+await assert.rejects(one('select public.admin_prepare_member($1,$2,$3)',[crypto.randomUUID(),JSON.stringify({...details,email:'different@example.invalid'}),'Another member same position']),/occupied/);
+await assert.rejects(save('placement',{sponsor_code:targetCode,placement_code:targetCode,side:'LEFT'},undefined,crypto.randomUUID(),other),/occupied/);
+const importedCode=await one('select member_code from member_profiles where user_id=$1',[imported]);
+await assert.rejects(save('placement',{sponsor_code:importedCode,placement_code:importedCode,side:'RIGHT'}),/cycle/);
+await assert.rejects(q('insert into auth.users(id,email,raw_user_meta_data,raw_app_meta_data) values($1,$2,$3,$4)',[uid(89),'forged@example.invalid','{}',JSON.stringify({admin_provisioning:reservation.token})]),/reservation/);
+await as(imported);await assert.rejects(one('select public.complete_admin_member_join(true)'),/Verify your email/);
+await db.exec('alter table auth.users add column email_confirmed_at timestamptz');await q('update auth.users set email_confirmed_at=now() where id=$1',[imported]);await one('select public.complete_admin_member_join(true)');
+assert.ok(await one('select terms_accepted_at from member_profiles where user_id=$1',[imported]));
+await as(admin);
+await save('account',{package_code:'BASIC_1',status:'active'},undefined,crypto.randomUUID(),imported);
+await save('placement',{sponsor_code:targetCode,placement_code:targetCode,side:'RIGHT'},undefined,crypto.randomUUID(),other);
+await save('account',{package_code:'BASIC_1',status:'active'},undefined,crypto.randomUUID(),other);
+assert.equal(await one('select exists(select 1 from private.binary_qualifications where member_id=$1)',[target]),true);
+const liveShares=await q('select * from private.binary_live_shares(now()) where member_id=$1',[target]);assert.equal(Number(liveShares.rows[0].left_available),200);assert.equal(Number(liveShares.rows[0].right_available),100);
+await db.exec("set test.totp='no'");await assert.rejects(save('earnings',{direct:900}),/Authenticator/);await db.exec("set test.totp='yes'");
+await as(other);await assert.rejects(state(),/Admin/);await as('');await assert.rejects(state(),/Admin/);
+console.log('PASS audited/idempotent migration balances, opening earnings isolation, package/rank no payout, countdowns, point carry and authority');await db.close();

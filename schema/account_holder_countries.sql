@@ -19,8 +19,8 @@ begin
  ), selected as (
   select m.* from matching m order by m.created_at,m.user_id limit 50 offset (select (page-1)*50 from paging)
  ), detailed as (
-  select m.*,s.full_name sponsor_name,s.member_code sponsor_code,r.display_name rank_name,private.current_package_code(m.user_id) package_code
-  from selected m left join public.member_profiles s on s.user_id=m.sponsor_id left join public.leadership_rank_definitions r on r.rank_code=m.achieved_rank
+  select m.*,bp.parent_id placement_id,pl.full_name placement_name,pl.member_code placement_code,bp.side placement_side,s.full_name sponsor_name,s.member_code sponsor_code,r.display_name rank_name,private.current_package_code(m.user_id) package_code
+  from selected m left join public.binary_placements bp on bp.member_id=m.user_id left join public.member_profiles pl on pl.user_id=bp.parent_id left join public.member_profiles s on s.user_id=m.sponsor_id left join public.leadership_rank_definitions r on r.rank_code=m.achieved_rank
  ) select jsonb_build_object('total',p.total,'page',p.page,'pages',p.pages,'page_size',50,
   'rows',coalesce((select jsonb_agg(to_jsonb(d) order by d.created_at,d.user_id) from detailed d),'[]'::jsonb),
   'ranks',coalesce((select jsonb_agg(jsonb_build_object('code',r.rank_code,'name',r.display_name) order by r.sort_order) from public.leadership_rank_definitions r),'[]'::jsonb)) into result from paging p;

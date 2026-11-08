@@ -16,9 +16,6 @@ begin
  or (p_gender is not null and p_gender not in ('male','female'))
  or (p_date_of_birth is not null and (p_date_of_birth<date '1900-01-01' or p_date_of_birth>current_date))
  then raise exception 'Check name, phone, country, gender, date of birth and reason';end if;
- if exists(select 1 from public.user_roles where user_id=p_member_id and role='admin')
- or exists(select 1 from private.network_foundation where founder_id=p_member_id)
- then raise exception 'Company and founder accounts are protected';end if;
  select * into old_profile from public.member_profiles where user_id=p_member_id for update;
  if not found then raise exception 'Member not found';end if;
  update public.member_profiles set full_name=trim(p_name),phone=trim(p_phone),country_code=upper(p_country),

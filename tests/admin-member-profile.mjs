@@ -20,9 +20,9 @@ const audit=(await db.query('select after_data from audit_logs')).rows[0].after_
 await assert.rejects(save({3:'ZZ'}),/Check/);await assert.rejects(save({5:'2999-01-01'}),/Check/);await assert.rejects(save({6:'short'}),/Check/);
 await db.exec("set test.totp='no'");await assert.rejects(save(),/Authenticator/);await db.exec("set test.totp='yes';set test.admin='no'");await assert.rejects(save(),/Admin access/);
 await db.exec("set test.admin='yes';set test.uid=''");await assert.rejects(save(),/Admin access/);
-await db.exec("set test.uid='00000000-0000-0000-0000-000000000001';insert into private.network_foundation values('00000000-0000-0000-0000-000000000002')");await assert.rejects(save(),/protected/);
-await db.exec("delete from private.network_foundation;insert into user_roles values('00000000-0000-0000-0000-000000000002','admin')");await assert.rejects(save(),/protected/);
-assert.equal((await db.query('select count(*)::int n from audit_logs')).rows[0].n,1);
+await db.exec("set test.uid='00000000-0000-0000-0000-000000000001';insert into private.network_foundation values('00000000-0000-0000-0000-000000000002')");await save();
+await db.exec("delete from private.network_foundation;insert into user_roles values('00000000-0000-0000-0000-000000000002','admin')");await save();
+assert.equal((await db.query('select count(*)::int n from audit_logs')).rows[0].n,3);
 assert.equal((await db.query("select has_function_privilege('anon','public.admin_save_member_profile(uuid,text,text,text,text,date,text)','execute') ok")).rows[0].ok,false);
 assert.equal((await db.query("select prosecdef from pg_proc where oid='public.admin_save_member_profile(uuid,text,text,text,text,date,text)'::regprocedure")).rows[0].prosecdef,false);
-await db.close();console.log('PASS profile save, validation, immutable status, before/after audit, admin/auth/TOTP guards, protected accounts and anonymous denial');
+await db.close();console.log('PASS profile save, validation, immutable status, before/after audit, admin/auth/TOTP guards, founder/admin contact edits and anonymous denial');
