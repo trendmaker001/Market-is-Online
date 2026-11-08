@@ -23,3 +23,19 @@ body.admin-member-support-active .top .search,body.admin-member-support-active .
 
 .account-holders-table{min-width:1500px}.account-holders-table .placement-heading{background:#075e45}.account-holders-table .placement-cell{background:#edf8f2}.admin-support-content #treeCard{margin-top:0}.admin-support-content .tree-scroll{min-height:520px}.tree-admin-actions{padding:12px;border-top:1px solid #d9e8df}.tree-admin-actions .btn{margin:4px}
 .member-management-controls{padding:12px 18px;background:#edf7f1;border-bottom:1px solid #d4e5dc}.member-management-controls summary{font-weight:700;cursor:pointer;color:#075c42}.member-management-controls>div{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.member-management-dialog{width:min(760px,94vw);max-height:90dvh;overflow:auto;border:1px solid #d7e7df;border-radius:16px;padding:22px;color:#173b2b;background:#fff}.member-management-dialog::backdrop{background:#092c236b}.member-management-dialog header{display:flex;align-items:center;justify-content:space-between;gap:16px}.member-management-dialog header h2{font-size:21px}.member-management-dialog header button{border:0;background:transparent;font-size:28px;cursor:pointer}.management-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.member-management-dialog label{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600;margin-bottom:12px}.member-management-dialog input,.member-management-dialog select,.member-management-dialog textarea{box-sizing:border-box;width:100%;border:1px solid #cadcd2;border-radius:8px;padding:10px;font:inherit;background:#fff;color:#18382b}.member-management-dialog textarea{min-height:75px}.member-management-dialog .setup-email-option{flex-direction:row;align-items:center}.setup-email-option input{width:auto}.opening-total{padding:12px;background:#edf8f2;font-weight:700}.member-management-dialog [data-status]{color:#9a3c22;white-space:pre-wrap}.admin-support-content #treeCard.hidden{display:block!important}@media(max-width:600px){.management-fields{grid-template-columns:1fr}.member-management-dialog{padding:16px}}
+
+/* Keep the shared tree controls compact so its root is visible on opening. */
+.admin-support-content #treeCard>.card-head{padding:12px 16px}
+.admin-support-content #treeCard>.card-body{padding:14px}
+.admin-support-content #treeCard .network-tree-tabs{margin:0 0 10px;padding:0 0 10px}
+.admin-support-content #treeCard .network-tree-tab{padding:9px 12px;font-size:12px}
+.admin-support-content #treeCard .tree-toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0}
+.admin-support-content #networkExplanation{flex:1 1 100%;margin:0;font-size:11px}
+.admin-support-content #treeCard .tree-controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.admin-support-content #treeCard .tree-control-group{display:flex;gap:6px;align-items:center;padding:5px 8px;min-width:0}
+.admin-support-content #treeCard .tree-control-group>span,.admin-support-content #treeCard .tree-control-group>label{font-size:10px;margin:0}
+.admin-support-content #treeCard .tree-control-group select{padding:5px;min-height:30px;font-size:11px}
+.admin-support-content #treeCard .tree-control-group .btn{padding:5px 8px;min-height:30px;font-size:11px}
+.admin-support-content #treeCard .tree-tools{margin:0;gap:4px}
+.admin-support-content #treeCard .tree-legend{margin:10px 0;gap:12px}
+.admin-support-content #treeCard .tree-legend span{font-size:11px}

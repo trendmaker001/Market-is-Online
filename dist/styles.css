@@ -3187,3 +3187,8 @@ body.admin-workspace-active #marketplaceFooter,body.admin-workspace-active #acco
  .tree-workspace,.tree-canvas-column{min-width:0;max-width:100%}
 }
 @media(max-width:620px){.country-badge{font-size:10px}.network-tree-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.network-tree-tab{min-width:0}.tree-member-card .country-badge{margin-top:7px}.tree-scroll{height:min(62dvh,620px)}}
+
+/* Shared tree canvas works in both the member page and the admin member workspace. */
+#treeCard #networkVisual.tree-scroll{padding:0!important;min-width:0;overflow:auto!important;position:relative}
+#treeCard #networkVisual .tree-pan-surface{position:relative;display:block;min-width:0!important;min-height:0!important;background:radial-gradient(#dfe8e2 1px,transparent 1px);background-size:22px 22px;touch-action:none}
+#treeCard #networkVisual .tree-pan-surface>svg.genealogy-canvas{position:absolute;left:50%;top:50%;margin:0!important;transform:translate(-50%,-50%);transform-origin:center center;max-width:none}

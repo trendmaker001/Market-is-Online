@@ -805,3 +805,27 @@
 #page-admin #control-members .account-holders-table th:nth-child(12){width:5%}
 @media(max-width:1050px){#page-admin .account-holder-filters{flex-wrap:wrap}#page-admin .account-holder-search{flex-basis:100%}}
 @media(max-width:850px){#page-admin .directory-country-picker{flex:1 1 100%}#page-admin .directory-country-menu{width:100%;box-sizing:border-box}}
+
+/* Account directory: independent columns stay readable at laptop and mobile widths. */
+#page-admin #control-members #workspaceMembers{min-width:0;max-width:100%}
+#page-admin #control-members #workspaceMembers>.table-wrap{overflow-x:auto;max-width:100%;scrollbar-width:thin}
+#page-admin #control-members .account-holders-table{width:100%;min-width:1730px;table-layout:fixed;font-size:12px}
+#page-admin #control-members .account-holders-table th{white-space:normal;overflow-wrap:normal;word-break:normal;vertical-align:middle;line-height:1.4;padding:14px 10px;font-size:12px}
+#page-admin #control-members .account-holders-table td{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal;padding:12px 10px}
+#page-admin #control-members .account-holders-table th:nth-child(1){width:45px}
+#page-admin #control-members .account-holders-table th:nth-child(2){width:160px}
+#page-admin #control-members .account-holders-table th:nth-child(3){width:115px}
+#page-admin #control-members .account-holders-table th:nth-child(4){width:155px}
+#page-admin #control-members .account-holders-table th:nth-child(5){width:115px}
+#page-admin #control-members .account-holders-table th:nth-child(6){width:155px}
+#page-admin #control-members .account-holders-table th:nth-child(7){width:125px}
+#page-admin #control-members .account-holders-table th:nth-child(8){width:90px}
+#page-admin #control-members .account-holders-table th:nth-child(9){width:125px}
+#page-admin #control-members .account-holders-table th:nth-child(10){width:190px}
+#page-admin #control-members .account-holders-table th:nth-child(11){width:115px}
+#page-admin #control-members .account-holders-table th:nth-child(12){width:85px}
+#page-admin #control-members .account-holders-table th:nth-child(13){width:105px}
+#page-admin #control-members .account-holders-table th:nth-child(14){width:85px}
+#page-admin #control-members .account-holders-table th:nth-child(15){width:65px}
+#page-admin #control-members .account-holders-table .placement-heading{background:#075e45}
+.placement-side{display:inline-flex;align-items:center;justify-content:center;min-width:44px;padding:4px 9px;border-radius:999px;background:#def3e7;color:#176044;font-size:11px;font-weight:650}
