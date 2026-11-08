@@ -705,3 +705,21 @@
 #page-admin .admin-sidebar-toggle[hidden]{display:none!important}
 #page-admin .control-panel>h2:has(>.admin-sidebar-toggle){display:flex;align-items:center;gap:0}
 @media(max-width:850px){#page-admin .admin-sidebar-toggle{display:none!important}}
+
+/* Compact report toolbar and a neutral loading state during session restoration. */
+#routeLoading{display:none}.route-restoring #routeLoading{display:grid;place-items:center;position:fixed;inset:80px 0 0;background:#f5f8f6;color:#087950;z-index:90;font:600 16px system-ui}.route-restoring #main-content{visibility:hidden}
+#control-package-report>h2,#control-package-report>.control-help{display:none!important}
+#page-admin #control-package-report .enrollment-report-head{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 16px!important;min-height:62px}
+#page-admin .report-toolbar-title{display:flex;align-items:center;gap:10px;min-width:0}
+#page-admin .report-toolbar-title h3{font-size:18px!important;line-height:1.3;margin:0!important;color:#fff!important}
+#page-admin .report-toolbar-title .admin-sidebar-toggle{margin:0;background:#ffffff18!important;color:white!important;border-color:#ffffff60;width:34px;min-width:34px;height:34px}
+#page-admin .enrollment-date-form{margin:0!important;min-width:0}
+#page-admin .enrollment-date-form>div{display:flex;align-items:center;gap:7px}
+#page-admin .enrollment-date-form :is(input,.btn){min-height:34px!important;height:34px;padding:5px 10px!important;font-size:12px!important;border-radius:7px}
+#page-admin .enrollment-date-form input{width:142px;color:#164d39;background:#fff;color-scheme:light}
+#page-admin .enrollment-report-summary>div{padding:10px 14px!important}
+#page-admin .enrollment-report-summary b{font-size:15px!important;margin-top:3px!important}
+#page-admin .admin-sidebar-toggle svg{width:18px;height:18px;flex-shrink:0}
+@media(max-width:600px){#page-admin #control-package-report .enrollment-report-head{flex-wrap:wrap;gap:10px;padding:12px!important}#page-admin .report-toolbar-title h3{font-size:16px!important}#page-admin .enrollment-date-form{width:100%}#page-admin .enrollment-date-form>div{width:100%}#page-admin .enrollment-date-form input{flex:1;min-width:0}#page-admin .enrollment-report-summary>div{padding:8px!important}}
+@media(max-width:850px){#page-admin .control-shell{grid-template-rows:auto 1fr!important;align-content:start}#page-admin .admin-mobile-bar{align-self:start}#page-admin .control-body{align-self:start}}
+@media(max-width:600px){#page-admin .enrollment-date-form .btn{width:auto!important;min-width:0!important;flex:0 0 auto!important}#page-admin .report-toolbar-title{width:100%;justify-content:flex-start;text-align:left}#page-admin .enrollment-report-summary{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important}#page-admin .enrollment-report-summary>div{grid-column:auto!important;text-align:left!important}}
