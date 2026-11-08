@@ -723,3 +723,11 @@
 @media(max-width:600px){#page-admin #control-package-report .enrollment-report-head{flex-wrap:wrap;gap:10px;padding:12px!important}#page-admin .report-toolbar-title h3{font-size:16px!important}#page-admin .enrollment-date-form{width:100%}#page-admin .enrollment-date-form>div{width:100%}#page-admin .enrollment-date-form input{flex:1;min-width:0}#page-admin .enrollment-report-summary>div{padding:8px!important}}
 @media(max-width:850px){#page-admin .control-shell{grid-template-rows:auto 1fr!important;align-content:start}#page-admin .admin-mobile-bar{align-self:start}#page-admin .control-body{align-self:start}}
 @media(max-width:600px){#page-admin .enrollment-date-form .btn{width:auto!important;min-width:0!important;flex:0 0 auto!important}#page-admin .report-toolbar-title{width:100%;justify-content:flex-start;text-align:left}#page-admin .enrollment-report-summary{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important}#page-admin .enrollment-report-summary>div{grid-column:auto!important;text-align:left!important}}
+
+/* Two inclusive report dates, with compact visible labels. */
+#page-admin .enrollment-date-form>div{align-items:flex-end}
+#page-admin .enrollment-date-form .report-date-field{display:grid;gap:3px;margin:0;min-width:0;color:#fff;font-size:10px;line-height:1.2}
+#page-admin .enrollment-date-form .report-date-field span{color:#fff}
+#page-admin .enrollment-date-form .report-date-field input{width:140px;max-width:100%;flex:none}
+@media(max-width:1050px){#page-admin #control-package-report .enrollment-report-head{flex-wrap:wrap}}
+@media(max-width:600px){#page-admin .enrollment-date-form>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}#page-admin .enrollment-date-form .report-date-field input{width:100%}#page-admin .enrollment-date-form .btn{width:100%!important}}
