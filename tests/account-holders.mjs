@@ -22,6 +22,10 @@ d=await query(3,'','leader','active');assert.equal(d.total,502);assert.equal(d.p
 assert.equal((await query(1,'','unranked','inactive')).total,503);
 d=await query(10,'NO MATCH');assert.equal(d.total,0);assert.equal(d.rows.length,0);assert.equal(d.page,1);
 assert.equal((await db.query("select has_function_privilege('anon','public.admin_account_holders(integer,text,text,text)','execute') permitted")).rows[0].permitted,false);
+await db.exec("alter table public.member_profiles add column country_code char(2);update public.member_profiles set country_code=case when member_code='MIO-00001005' then 'PK' else 'AE' end;");
+await db.exec(await readFile('schema/account_holder_countries.sql','utf8'));
+let countryPage=(await db.query("select public.admin_account_holders(1,'','','','PK') d")).rows[0].d;assert.equal(countryPage.total,1);assert.equal(countryPage.rows[0].country_code,'PK');assert.equal(countryPage.rows[0].member_code,'MIO-00001005');
+assert.equal((await db.query("select public.admin_account_holders(1,'','leader','active','PK') d")).rows[0].d.total,0);
 await db.exec("set test.admin='no'");await assert.rejects(query(),/Workspace access required/);
 await db.exec(`set test.admin='yes';create type public.account_status as enum('active','inactive','suspended');alter table public.member_profiles add column updated_at timestamptz;
 create table public.user_roles(user_id uuid,role text);create table private.network_foundation(founder_id uuid);
