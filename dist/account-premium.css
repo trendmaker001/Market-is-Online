@@ -675,3 +675,8 @@
 #page-admin .control-nav .btn:not(.active){color:#fff!important}
 .member-sidebar nav button:not(.active) svg,
 #page-admin .control-nav .btn:not(.active) svg{color:currentColor;opacity:1}
+
+/* A compact admin sidebar heading without a duplicate logo panel. */
+#page-admin .admin-sidebar-brand>span{display:none!important}
+#page-admin .admin-sidebar-brand{grid-template-columns:1fr;gap:0;margin:0 0 12px;padding:0 0 12px}
+#page-admin .admin-sidebar-brand small{margin:0;text-align:left}
