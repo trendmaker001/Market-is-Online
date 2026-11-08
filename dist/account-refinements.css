@@ -10,7 +10,7 @@
 .dashboard-offer .offer-visual{width:34px;height:34px;flex:0 0 34px;background:#ffffff15;border:1px solid #ffffff40;border-radius:10px;color:#ffbb51}
 .dashboard-offer .offer-visual svg{width:21px;height:21px}
 .dashboard-offer h2{font-size:12px;margin:0 0 4px;color:#fff}.dashboard-offer p,.dashboard-offer small{color:#e4f5eb;font-size:10px;line-height:1.45;margin:0}
-.dashboard-offer #dashboardOfferTimer{display:block;font-size:18px;line-height:1.3;color:#ffc36a;margin:6px 0;font-variant-numeric:tabular-nums}
+.dashboard-offer :is(#dashboardOfferTimer,[data-dashboard-id="dashboardOfferTimer"]){display:block;font-size:18px;line-height:1.3;color:#ffc36a;margin:6px 0;font-variant-numeric:tabular-nums}
 .dashboard-offer-row .dashboard-maintenance-card{min-height:0;border-radius:13px;border:1px solid #23966c;background:linear-gradient(120deg,#0c8055,#075a3d);box-shadow:0 4px 12px #0a613b12}
 .dashboard-offer-row .dashboard-maintenance-card>summary{grid-template-columns:minmax(0,1fr);gap:9px;padding:12px;cursor:pointer}
 .dashboard-maintenance-card .maintenance-card-heading{gap:8px}.dashboard-maintenance-card .dashboard-future-icon{width:32px;height:32px;flex-basis:32px;border-radius:10px;color:#ffbb51;background:#ffffff15;border-color:#ffffff40}
@@ -19,7 +19,7 @@
 .dashboard-maintenance-card .maintenance-countdown{grid-template-columns:minmax(0,1.3fr) auto minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1fr);padding:7px 6px;gap:3px;border-radius:9px;background:#034830;border-color:#79c8a94d}
 .dashboard-maintenance-card .maintenance-countdown b{font-size:19px;color:#ffbd53}.dashboard-maintenance-card .maintenance-countdown small{font-size:7px;color:#fff;letter-spacing:.04em}.dashboard-maintenance-card .maintenance-countdown i{font-size:14px;color:#99d5b7}
 .dashboard-maintenance-card .maintenance-card-details{padding:10px 12px 12px}.dashboard-maintenance-card .maintenance-card-details p{color:#e5f4eb;line-height:1.6}
-.member-account-shell[data-theme="dark"] .dashboard-offer :is(p,small),.member-account-shell[data-theme="dark"] .maintenance-card-meta small{color:#e4f5eb}.member-account-shell[data-theme="dark"] .dashboard-offer #dashboardOfferTimer{color:#ffc36a}
+.member-account-shell[data-theme="dark"] .dashboard-offer :is(p,small),.member-account-shell[data-theme="dark"] .maintenance-card-meta small{color:#e4f5eb}.member-account-shell[data-theme="dark"] .dashboard-offer :is(#dashboardOfferTimer,[data-dashboard-id="dashboardOfferTimer"]){color:#ffc36a}
 @media(max-width:900px){
  .member-sidebar .member-sidebar-close{display:grid;place-items:center;width:34px;height:34px;flex:0 0 34px}
  .member-sidebar .sidebar-heading{padding:4px 8px 12px;margin-bottom:8px}.member-sidebar .sidebar-heading strong{font-size:15px}
@@ -29,7 +29,7 @@
 }
 @media(max-width:720px){
  .dashboard-offer-row,.dashboard-offer-row.no-activation-offer{grid-template-columns:1fr;gap:8px}
- .dashboard-offer-row .dashboard-offer{grid-column:auto;padding:10px 12px}.dashboard-offer #dashboardOfferTimer{font-size:17px;margin:4px 0}.dashboard-offer small{font-size:9px}
+ .dashboard-offer-row .dashboard-offer{grid-column:auto;padding:10px 12px}.dashboard-offer :is(#dashboardOfferTimer,[data-dashboard-id="dashboardOfferTimer"]){font-size:17px;margin:4px 0}.dashboard-offer small{font-size:9px}
  .dashboard-offer-row .dashboard-maintenance-card>summary{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:9px;padding:11px 10px}
  .dashboard-maintenance-card .maintenance-card-heading{gap:6px}.dashboard-maintenance-card h3{font-size:11px}.dashboard-maintenance-card .dashboard-future-icon{width:27px;height:27px;flex-basis:27px}.dashboard-maintenance-card .dashboard-future-icon svg{width:18px;height:18px}
  .maintenance-card-meta{gap:2px}.maintenance-card-meta>*{display:block;width:100%}.dashboard-maintenance-card .maintenance-card-meta small,.maintenance-open{font-size:9px}

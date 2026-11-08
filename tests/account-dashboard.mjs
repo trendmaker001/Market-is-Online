@@ -3,7 +3,7 @@ import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 // Reuse the repository's Supabase test double; do not call the real service.
 let setup=(await readFile('tests/interface.mjs','utf8')).split('const q=w.qa;')[0];
-setup=setup.replace(/^import .*;\n/gm,'').replace('w.eval(source+','w.eval(await readFile("dist/account-dashboard.js","utf8"));\nw.eval(source+');
+setup=setup.replace(/^import .*;\n/gm,'').replace('w.eval(source.replace','w.eval(await readFile("dist/account-dashboard.js","utf8"));\nw.eval(source.replace');
 const AsyncFunction=Object.getPrototypeOf(async function(){}).constructor;
 const {w,q}=await new AsyncFunction('JSDOM','readFile','assert',setup+';return {w,q:w.qa};')(JSDOM,readFile,assert);
 await new Promise(r=>setTimeout(r,60));
