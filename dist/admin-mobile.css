@@ -1,0 +1,43 @@
+/* The phone admin uses the same navigation groups as desktop in a dismissible drawer. */
+#page-admin .admin-mobile-close,#page-admin .admin-mobile-backdrop{display:none}
+@media(min-width:851px) and (max-width:900px){
+ #page-admin #adminTaskSidebar .control-nav-group:not(.hidden){display:block}
+ #page-admin #workspaceJump{display:none}
+}
+@media(max-width:850px){
+ body.admin-mobile-menu-open,body.admin-support-menu-open{overflow:hidden}
+ body.admin-workspace-active .top .top-main{padding:8px 12px;gap:8px;flex-wrap:wrap}
+ body.admin-workspace-active .top .logo{min-width:0;flex:1}
+ body.admin-workspace-active .top .logo img{max-width:145px;width:100%;height:38px}
+ body.admin-workspace-active #signOutBtn{display:inline-flex!important}
+ body.admin-workspace-active .top .actions{gap:6px;flex-wrap:wrap}
+ body.admin-workspace-active .top .actions .btn{min-height:40px;padding:7px 10px;font-size:11px}
+ #page-admin{width:100%!important;max-width:100%!important;margin:0!important}
+ #page-admin .control-shell,#page-admin .control-shell.admin-sidebar-collapsed{grid-template-columns:minmax(0,1fr)!important;min-width:0}
+ #page-admin .control-body{min-width:0!important;max-width:100%;padding:14px 12px 28px}
+ #page-admin .control-panel{min-width:0;max-width:100%}
+ #page-admin .control-panel .table-wrap{max-width:100%;overflow-x:auto}
+ #page-admin .control-panel :is(input,select,textarea){max-width:100%;min-width:0;box-sizing:border-box;font-size:16px}
+ #page-admin .control-panel .form{min-width:0;max-width:100%}
+ #page-admin .admin-mobile-bar{display:flex!important;position:sticky;top:64px;z-index:60;align-items:center;gap:10px;padding:10px 12px;min-width:0;background:#f0f8f3}
+ #page-admin #mobileAdminMenu{display:inline-flex;align-items:center;justify-content:center;gap:6px;width:auto;min-width:78px;min-height:44px;padding:8px 10px;font-size:12px;font-weight:700;flex-shrink:0}
+ #page-admin #mobileAdminTitle{flex:1;min-width:0;font-size:13px;line-height:1.4;color:#174d37;overflow-wrap:anywhere}
+ #page-admin .admin-mobile-bar>button:last-of-type{min-width:42px;min-height:44px;flex-shrink:0}
+ #page-admin #mobileAdminTask,#page-admin #workspaceJump{display:none!important}
+ #page-admin .control-shell>#adminTaskSidebar.control-nav{display:none!important}
+ body.admin-mobile-menu-open #page-admin .control-shell>#adminTaskSidebar.control-nav{display:flex!important;flex-direction:column;position:fixed!important;inset:0 auto 0 0!important;z-index:210;width:min(290px,85vw)!important;height:100dvh!important;max-height:100dvh!important;box-sizing:border-box;padding:18px 16px calc(24px + env(safe-area-inset-bottom))!important;overflow-y:auto!important;overscroll-behavior:contain;box-shadow:8px 0 30px #073b2966!important}
+ #page-admin #adminTaskSidebar .admin-mobile-close{display:flex;align-items:center;justify-content:center;align-self:flex-end;flex-shrink:0;width:44px;height:44px;margin:0 0 8px;border:1px solid #ffffff55;border-radius:10px;background:#ffffff12;color:#fff;font-size:28px;cursor:pointer}
+ #page-admin #adminTaskSidebar .control-nav-group:not(.hidden){display:block!important}
+ #page-admin #adminTaskSidebar .admin-home-nav:not(.hidden){display:grid!important;grid-template-columns:1fr}
+ #page-admin #adminTaskSidebar :is(.control-nav-group,.admin-home-nav,.admin-sidebar-brand,.admin-sidebar-home){flex-shrink:0}
+ #page-admin #adminTaskSidebar .control-nav-group button,#page-admin #adminTaskSidebar .admin-home-nav button{width:100%;min-height:44px;text-align:left;white-space:normal;font-size:13px;padding:11px 12px}
+ #page-admin #adminTaskSidebar .control-nav-group>p{margin:18px 12px 7px;font-size:10px}
+ body.admin-mobile-menu-open #page-admin .admin-mobile-backdrop{display:block;position:fixed;inset:0;z-index:200;width:100%;height:100dvh;border:0;border-radius:0;background:#082c2866;cursor:pointer}
+ #page-admin .account-holder-filters{gap:10px}
+ #page-admin .account-holder-filters :is(input,select),#page-admin .account-holder-country>button{min-height:44px}
+ #page-admin .control-panel .card-body{padding:14px}
+ #adminMemberWorkspace .sidebar-open .member-sidebar{position:fixed!important;inset:0 auto 0 0!important;width:min(280px,85vw)!important;height:100dvh!important;max-height:100dvh!important;z-index:210;overflow-y:auto;padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+ #adminMemberWorkspace .sidebar-open .member-sidebar-backdrop{position:fixed!important;inset:0!important;z-index:200;background:#082c2866;width:100%;height:100dvh}
+ #adminMemberWorkspace .member-sidebar nav{display:block}
+ #adminMemberWorkspace .member-sidebar nav button{min-height:44px}
+}
