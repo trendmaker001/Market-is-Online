@@ -697,3 +697,11 @@
 #page-admin .package-report-table tbody td:nth-child(-n+4){text-align:left}
 #page-admin .package-report-table .package-report-pill{max-width:100%;white-space:normal;padding:3px 4px}
 #page-admin .package-report-table td small{font-size:9px;overflow-wrap:anywhere}
+
+/* The menu toggle remains reachable when the admin rail is collapsed. */
+#page-admin .control-shell.admin-sidebar-collapsed{grid-template-columns:minmax(0,1fr)!important}
+#page-admin .control-shell.admin-sidebar-collapsed>.control-nav{display:none!important}
+#page-admin .admin-sidebar-toggle{display:inline-flex!important;align-items:center;justify-content:center;width:38px;height:36px;min-width:38px;padding:0!important;font-size:26px;line-height:1;cursor:pointer;margin:0 12px 0 0;vertical-align:middle;background:#fff!important;color:#087950!important;border:1px solid #cbded4;border-radius:9px}
+#page-admin .admin-sidebar-toggle[hidden]{display:none!important}
+#page-admin .control-panel>h2:has(>.admin-sidebar-toggle){display:flex;align-items:center;gap:0}
+@media(max-width:850px){#page-admin .admin-sidebar-toggle{display:none!important}}
