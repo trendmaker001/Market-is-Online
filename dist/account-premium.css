@@ -731,3 +731,12 @@
 #page-admin .enrollment-date-form .report-date-field input{width:140px;max-width:100%;flex:none}
 @media(max-width:1050px){#page-admin #control-package-report .enrollment-report-head{flex-wrap:wrap}}
 @media(max-width:600px){#page-admin .enrollment-date-form>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}#page-admin .enrollment-date-form .report-date-field input{width:100%}#page-admin .enrollment-date-form .btn{width:100%!important}}
+
+/* The visible date format stays DD/MM/YYYY regardless of browser locale. */
+#page-admin .report-date-field>label{margin:0;color:#fff;font-size:10px;line-height:1.2}
+#page-admin .report-date-input{position:relative;display:flex;width:148px;max-width:100%;background:#fff;border-radius:7px}
+#page-admin .enrollment-date-form .report-date-input input[type=text]{width:100%;padding-right:32px!important;font-variant-numeric:tabular-nums;color:#164d39;background:#fff}
+#page-admin .report-calendar-button{position:absolute;right:1px;top:1px;width:30px!important;min-width:30px!important;height:32px;padding:6px;border:0;border-radius:6px;background:transparent;color:#164d39;cursor:pointer}
+#page-admin .report-calendar-button svg{width:17px;height:17px;display:block}
+#page-admin .enrollment-date-form .report-native-date{position:absolute;right:0;bottom:0;width:1px!important;height:1px!important;min-height:0!important;padding:0!important;border:0;opacity:0;pointer-events:none}
+@media(max-width:600px){#page-admin .report-date-input{width:100%}}
