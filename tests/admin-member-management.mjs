@@ -58,6 +58,9 @@ assert.equal(Number(await one('select round(extract(epoch from monthly_due_at-no
 await save('points',{ppv:75,gp:500,bp_left:1000,bp_right:700,carry_left:200,carry_right:100,brp_left:100,brp_right:50,direct_points:400,tngp:900,left_dp:50,right_dp:40,left_gp:100,right_gp:70});
 const updated=await state();assert.equal(updated.points.ppv,75);assert.equal(updated.points.carry_left,200);assert.equal(updated.points.carry_right,100);assert.equal(updated.points.direct_points,400);assert.equal(updated.points.tngp,900);assert.equal(updated.points.left_dp,50);assert.equal(updated.points.right_gp,70);
 await assert.rejects(save('points',{carry_left:2000}),/exceed/);
+await save('points',{bp_left:1200});assert.equal((await state()).points.carry_left,200);
+await assert.rejects(save('points',{bp_left:100}),/exceed/);
+await save('points',{bp_left:1000});assert.equal((await state()).points.carry_left,200);
 // Opening summary stays separate while new funded earnings accumulate.
 const sourceActivation=await one("select id from public.package_activations where member_id=$1 and status='approved' limit 1",[admin]);
 await q(`insert into public.bonus_transactions(beneficiary_id,method,source_activation_id,generation,qualifying_base,rate,gross_amount,payable_amount,currency,formula_version,calculation_trace,status,idempotency_key) values($1,'direct',$2,1,100,0.3,30,30,'MIO','test-funded','{}','posted','test-new-thirty')`,[target,sourceActivation]);

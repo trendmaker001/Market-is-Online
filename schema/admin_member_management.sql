@@ -201,7 +201,7 @@ begin
    amount:=(v.value#>>'{}')::numeric;delta:=amount-coalesce((before_state->>v.key)::numeric,0);if delta=0 then continue;end if;
    insert into public.point_ledger(member_id,point_type,side,amount,entry_kind,admin_change_id,idempotency_key) values(p_member,upper(split_part(v.key,'_',1)),nullif(upper(split_part(v.key,'_',2)),''),delta,'credit',change_id,'member-points:'||change_id||':'||v.key);
   end loop;
-  for v in select * from jsonb_each(p_values) where key in('carry_left','carry_right') loop
+  for v in select * from jsonb_each(before_state||p_values) where key in('carry_left','carry_right') and (p_values ? key or p_values ? replace(key,'carry_','bp_')) loop
    amount:=(v.value#>>'{}')::numeric;
    select coalesce(sum(pl.amount),0) into current_amount from public.point_ledger pl where member_id=p_member and point_type='BP' and side=upper(split_part(v.key,'_',2)) and created_at>private.financial_reset_at();
    if amount>current_amount then raise exception 'Carry-forward cannot exceed lifetime BP';end if;
