@@ -1,0 +1,12 @@
+import {JSDOM} from 'jsdom';import {readFile} from 'node:fs/promises';import assert from 'node:assert/strict';
+const dom=new JSDOM(await readFile('dist/index.html','utf8'),{url:'https://example.test',runScripts:'outside-only'}),w=dom.window,d=w.document,tick=()=>new Promise(r=>setTimeout(r,10));
+w.HTMLDialogElement.prototype.showModal=function(){this.open=true};w.HTMLDialogElement.prototype.close=function(){this.open=false;this.dispatchEvent(new w.Event('close'))};
+w.eval(await readFile('dist/account-dashboard.js','utf8'));let setups=[],fail=true;
+w.MioDashboard.mount({signedIn:()=>false,go:()=>{},rpc:async()=>({data:{}}),setupPin:async(pin,password)=>{setups.push({pin,password});if(fail)throw Error('Password verification failed.');},error:()=>{},safeImage:()=>null});
+const form=d.getElementById('transactionPinDialogForm'),field=d.getElementById('transactionPinDialogValue'),confirm=d.getElementById('transactionPinDialogConfirm'),password=d.getElementById('transactionPinDialogPassword');
+const pending=w.MioDashboard.requestTransactionPin('proceeding 25 MIO');assert.equal(form.dataset.mode,'setup');assert.equal(password.required,true);assert.equal(field.maxLength,4);
+field.value='1234';confirm.value='5678';password.value='test-password';form.dispatchEvent(new w.Event('submit',{cancelable:true}));await tick();assert.equal(setups.length,0);assert.match(d.getElementById('transactionPinDialogStatus').textContent,/do not match/);
+confirm.value='1234';form.dispatchEvent(new w.Event('submit',{cancelable:true}));await tick();assert.equal(setups.length,1);assert.equal(w.MioDashboard.hasTransactionPin(),false);assert.equal(password.value,'');assert.match(d.getElementById('transactionPinDialogStatus').textContent,/Password verification failed/);
+fail=false;password.value='test-password';form.dispatchEvent(new w.Event('submit',{cancelable:true}));await tick();assert.equal(w.MioDashboard.hasTransactionPin(),true);assert.equal(form.dataset.mode,'verify');assert.equal(password.required,false);assert.equal(password.value,'');assert.equal(field.value,'');field.value='1234';form.dispatchEvent(new w.Event('submit',{cancelable:true}));assert.equal(await pending,'1234');assert.equal(field.value,'');
+const cancelled=w.MioDashboard.requestTransactionPin('transfer');d.getElementById('transactionPinDialogCancel').click();assert.equal(await cancelled,null);
+console.log('PASS wallet PIN setup requires matching four-digit PIN and password verification; failure, secure clearing, confirmation and cancellation');dom.window.close();

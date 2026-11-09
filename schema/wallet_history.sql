@@ -6,7 +6,7 @@ declare result jsonb; current_balance numeric;
 begin
  if uid is null then raise exception 'Sign in required';end if;
  if p_wallet is null or p_wallet not in('cash','proceed','shopping','promotion') then raise exception 'Invalid wallet';end if;
- if p_filter is null or p_filter not in('all','received','sent','package','other') then raise exception 'Invalid activity filter';end if;
+ if p_filter is null or p_filter not in('all','received','sent','package','other','proceeded') then raise exception 'Invalid activity filter';end if;
  if p_page is null or p_page<1 or p_page>100000 or p_limit is null or p_limit<1 or p_limit>100 then raise exception 'Invalid page';end if;
  if p_from is not null and p_to is not null and p_from>p_to then raise exception 'From date must not follow To date';end if;
  if p_wallet='cash' then select balance into current_balance from public.mio_wallet_accounts where member_id=uid;
@@ -34,7 +34,7 @@ begin
   select l.*,current_balance-coalesce(sum(l.amount) over(order by l.created_at desc,l.id desc rows between unbounded preceding and 1 preceding),0) balance_after
   from movements l
  ), filtered as (
-  select * from ledger where (p_filter='all' or activity_type=p_filter or(p_filter='other' and action not in('transfer_in','transfer_out','package_activation')))
+  select * from ledger where (p_filter='all' or (p_filter='proceeded' and p_wallet='proceed' and conversion_id is not null and amount<0) or activity_type=p_filter or(p_filter='other' and action not in('transfer_in','transfer_out','package_activation')))
    and(p_from is null or created_at>=p_from::timestamp at time zone 'Asia/Karachi')
    and(p_to is null or created_at<(p_to+1)::timestamp at time zone 'Asia/Karachi')
  ), totals as(select count(*) total,coalesce(sum(amount)filter(where amount>0),0) credited,coalesce(-sum(amount)filter(where amount<0),0) debited from filtered),

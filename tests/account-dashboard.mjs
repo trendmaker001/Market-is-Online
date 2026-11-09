@@ -88,7 +88,7 @@ w.MioDashboard.mount; // Already mounted by app.js.
 // Substitute only the dashboard RPC boundary through a fresh test instance.
 const script=await readFile('dist/account-dashboard.js','utf8');
 const dom2=new JSDOM(await readFile('dist/index.html','utf8'),{runScripts:'outside-only',url:'https://mio.test'});
-const ww=dom2.window;ww.HTMLElement.prototype.scrollIntoView=()=>{};ww.eval(script);
+const ww=dom2.window;ww.HTMLDialogElement.prototype.close=function(){this.open=false};ww.HTMLDialogElement.prototype.showModal=function(){this.open=true};ww.HTMLElement.prototype.scrollIntoView=()=>{};ww.eval(script);ww.eval(await readFile('dist/cash-wallet-history.js','utf8'));ww.eval(await readFile('dist/wallet-hub.js','utf8'));
 let signedIn=true;
 const dashboardData={full_name:'QA Member',member_code:'MIO-QA',enrolled_at:'2026-10-15',package_code:'ADVANCED_2',package_name:'Gold',package_active:true,generation,binary:{left_bp:20,right_bp:10,total_left_bp:60,total_right_bp:50,left_team_count:2,right_team_count:1},share_points_each_side:100,pending_shares:.1,personal_gp:50,personal_bp:0,server_now:new Date().toISOString(),activation_offer:{enabled:true,eligible:true,welcome_rate:.10,ends_at:new Date(Date.now()+86400000).toISOString(),normal_rate:.26}};
 const managerData={qualified:false,team_manager_badge_url:'https://photos.example.test/team-manager.webp',manager_track_points:10,manager_network_generation_points:20,progress_percent:46,criteria_progress:{package:100,directs:50,direct_dp:40,tngp:30,qualified_lines:10},line_breakdown:[{position:1,member_code:'MIO-LINE-1',full_name:'First Line',tngp:600,required_tngp:1000,progress_percent:60,qualified:false},{position:2,member_code:null,full_name:null,tngp:0,required_tngp:1000,progress_percent:0,qualified:false}],directs:5,direct_dp:400,tngp:3000,qualified_lines:1,package:'ADVANCED_2',rules:{minimum_package:'ADVANCED_2',required_directs:10,required_direct_dp:1000,required_tngp:10000,required_qualified_lines:10,per_line_tngp:1000,validity_cycles:12},leadership_rank:{code:'leader',name:'Leader',theme:'emerald',badge_url:'https://photos.example.test/leader.webp'}};
@@ -99,6 +99,7 @@ const notificationData={unread:2,rows:[{id:'n1',category:'rank',title:'New rank 
 const guaranteeData=[{order_id:'order-1',order_code:'MIO-100',buyer_name:'Direct Member',total_pkr:1000,status:'pending_sponsor',mio_rate_snapshot:300,sponsor_cash_mio:2,sponsor_shopping_points:600,requested_at:'2026-10-16'}];
 const maintenanceData={package:'ADVANCED_2',monthly_due_at:new Date(Date.now()+180*86400000).toISOString(),annual_due_at:new Date(Date.now()+365*86400000).toISOString(),monthly_active:true,annual_active:true,monthly_progress_ppv:2,monthly_required_ppv:10,rules:{enabled:true,monthly_levels:{ADVANCED_2:8},annual_fee_mio:20,annual_company_rate:.5}};
 const walletRpcCalls=[];ww.MioDashboard.mount({signedIn:()=>signedIn,rpc:async(name,args)=>{walletRpcCalls.push([name,args]);return{data:name==='my_exchange_wallet'?{balance:'123.4567'}:name==='my_income_wallets'?incomeData:name==='my_manager_status'?managerData:name==='my_community_share_status'?communityData:name==='my_super_member_status'?superMemberData:name==='my_notifications'?notificationData:name==='my_cod_guarantee_requests'?guaranteeData:name==='my_maintenance_status'?maintenanceData:dashboardData}},go:()=>{},renderNetwork:async()=>{},error:e=>{throw e},notify:()=>{},idKey:()=> 'wallet-test-key',safeImage:v=>v,planName:code=>({BASIC_2:'Basic',ADVANCED_1:'Silver',ADVANCED_2:'Gold'}[code]||'Free'),tierImage:()=>'/assets/tree-plan-advanced-2.svg'});
+ww.MioWalletHub.mount({identity:()=>signedIn?'qa':null,rpc:async(name)=>({data:name==='my_income_wallets'?incomeData:{balance:0,total:0,rows:[]}}),pin:async()=>null,idKey:()=> 'test-key',go:()=>{}});
 ww.MioDashboard.setFinancial({balance:12,ppv:8,earned:40,held:2});await ww.MioDashboard.refresh();
 const dd=ww.document;
 assert.equal(dd.querySelectorAll('.dashboard-maintenance-card').length,2);
@@ -118,7 +119,7 @@ assert.equal(dd.querySelector('#dashboardNotificationList').hidden,false);
 assert.match(dd.querySelector('#dashboardNotificationList').textContent,/MIO-102/);
 assert.equal(dd.querySelector('#dashboardGeneralNotifications .dashboard-notification-badge').textContent,'2');
 dd.querySelector('#dashboardGeneralNotifications').click();await new Promise(r=>setTimeout(r,0));assert.match(dd.querySelector('#dashboardGeneralNotificationList').textContent,/New rank achieved/);assert.match(dd.querySelector('#dashboardGeneralNotificationList').textContent,/Use Shopping Points/);
-assert.ok(dd.querySelector('.income-wallet-card[data-wallet-history="shopping"]'));assert.doesNotMatch(dd.querySelector('.income-wallet-grid').textContent,/usage locked/i);
+assert.ok(dd.querySelector('.income-wallet-card[data-wallet-history="shopping"]'));assert.doesNotMatch(dd.querySelector('.wallet-hub-cards').textContent,/usage locked/i);
 ww.MioDashboard.setRewardPreference({eligible:true,mode:'MIO'});
 assert.equal(dd.querySelector('#dashboardRewardSwitch [data-reward-mode="MIO"]').getAttribute('aria-pressed'),'true');
 assert.equal(dd.querySelector('#dashboardRewardSwitch [data-reward-mode="PPV"]').getAttribute('aria-pressed'),'false');
@@ -176,7 +177,7 @@ Object.assign(communityData,{eligible_package:false,package:'BASIC_2',directs:1,
 assert.match(dd.querySelector('.community-share-card>summary').textContent,/Not qualified/);
 assert.equal(dd.querySelector('[data-community-share-progress]').textContent.trim(),'13.33%');
 dd.querySelector('.community-share-card').open=true;assert.match(dd.querySelector('.community-empty').textContent,/No active shares yet/);
-ww.MioDashboard.navigate('wallet',true);assert.match(dd.querySelector('#incomeWalletHub').textContent,/Proceed Wallet.*40\.00 MIO/s);assert.match(dd.querySelector('#incomeWalletHub').textContent,/Cash Wallet.*12\.00 MIO/s);assert.doesNotMatch(dd.querySelector('#incomeWalletHub').textContent,/Generation bonus/);assert.equal(dd.querySelector('#proceedWithdrawalAmount').min,'10');
+ww.MioDashboard.navigate('wallet',true);assert.match(dd.querySelector('#incomeWalletHub').textContent,/Proceed Wallet.*40\.00 MIO/s);assert.match(dd.querySelector('#incomeWalletHub').textContent,/Cash Wallet.*12\.00 MIO/s);assert.doesNotMatch(dd.querySelector('#incomeWalletHub').textContent,/Generation bonus/);assert.equal(dd.querySelector('#proceedWithdrawalAmount'),null);assert.ok(dd.querySelector('[data-hub-proceed]'));
 assert.equal(dd.querySelector('.dashboard-member-code .copy-code').dataset.copy,'MIO-QA');
 assert.equal(dd.querySelector('.dashboard-identity .rank-sticker img').src,'https://photos.example.test/leader.webp');
 assert.equal(dd.querySelector('#dashboardProfile .rank-sticker img').src,'https://photos.example.test/leader.webp');
@@ -205,7 +206,8 @@ d.querySelector('#earningsTable [data-earning-total-receipt]').click();
 assert.match(d.querySelector('#historyRecordDialog .record-print-area').textContent,/Total credited.*4\.00 MIO/s);
 assert.match(d.querySelector('#historyRecordDialog .record-print-area').textContent,/MIO-QA|Member/);
 console.log('PASS e-commerce stays isolated on desktop while mobile consolidated history includes its category');
-signedIn=true;ww.MioDashboard.updateAuth(true,false,false,true);ww.MioDashboard.setFinancial({balance:12,ppv:8,earned:40,held:2});
+signedIn=true;ww.MioDashboard.updateAuth(true,false,false,true);ww.MioWalletHub.mount({identity:()=>signedIn?'qa':null,rpc:async(name)=>({data:name==='my_income_wallets'?incomeData:{balance:0,total:0,rows:[]}}),pin:async()=>null,idKey:()=> 'test-key',go:()=>{}});
+ww.MioDashboard.setFinancial({balance:12,ppv:8,earned:40,held:2});
 dashboardData.package_code=null;dashboardData.package_active=false;dashboardData.activation_offer={feature_enabled:false,enabled:false};
 await ww.MioDashboard.refresh();
 assert.equal(dd.querySelectorAll('.dashboard-maintenance-card').length,0);
