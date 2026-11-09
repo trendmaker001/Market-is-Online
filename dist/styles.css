@@ -3192,3 +3192,60 @@ body.admin-workspace-active #marketplaceFooter,body.admin-workspace-active #acco
 #treeCard #networkVisual.tree-scroll{padding:0!important;min-width:0;overflow:auto!important;position:relative}
 #treeCard #networkVisual .tree-pan-surface{position:relative;display:block;min-width:0!important;min-height:0!important;background:radial-gradient(#dfe8e2 1px,transparent 1px);background-size:22px 22px;touch-action:none}
 #treeCard #networkVisual .tree-pan-surface>svg.genealogy-canvas{position:absolute;left:50%;top:50%;margin:0!important;transform:translate(-50%,-50%);transform-origin:center center;max-width:none}
+
+/* The desktop earning ledger has its own date filters and leaves the mobile view intact. */
+@media(min-width:761px){
+ [data-page="earnings"] .earning-mobile-label,#accountPageTitle .earning-mobile-label{display:none}
+ #page-earnings.earning-daily-mode>.heading,
+ #page-earnings.earning-daily-mode>#earningOverview,
+ #page-earnings.earning-daily-mode:not(.earning-options-open)>.earning-source-tabs,
+ #page-earnings.earning-daily-mode>section:has(>#earningsTable)>.card-head,
+ #page-earnings.earning-daily-mode #earningsTable>.earning-total-action{display:none}
+ #page-earnings.earning-daily-mode>section:has(>#earningsTable){margin-top:0;border:0;background:transparent;box-shadow:none;overflow:visible}
+ #page-earnings.earning-daily-mode #earningsTable{padding:0;border:0;background:transparent}
+ #page-earnings .earning-desktop-name{display:inline}
+ .desktop-earning-heading{display:flex;align-items:flex-end;gap:12px;margin:0 0 12px;min-width:0}
+ .desktop-earning-heading h1{font-size:clamp(20px,2.2vw,32px);line-height:1.08;margin:0 auto 0 0}
+ .desktop-earning-heading .history-date-form{display:flex;align-items:flex-end;gap:5px;margin:0;padding:0;background:transparent;border:0;box-shadow:none;flex-wrap:nowrap;min-width:0}
+ .desktop-earning-heading .history-date-form label{flex:0 1 auto;min-width:0;font-size:11px}
+ .desktop-earning-heading .history-date-form input{width:clamp(94px,9vw,142px);min-width:0;min-height:34px;padding:5px;font-size:11px}
+ .desktop-earning-heading .history-date-form .btn{min-height:34px;padding:5px 8px;white-space:nowrap;font-size:11px}
+ .desktop-earning-heading .history-date-form small{display:none}
+ .desktop-earning-total{display:grid;gap:2px;min-width:100px;padding:8px 10px;border-radius:9px;background:#103e30;color:#fff}
+ .desktop-earning-total small{font-size:10px;color:#dcf1e7}
+ .desktop-earning-total strong{font-size:15px;overflow-wrap:anywhere}
+ .desktop-earning-card{min-width:0;border:1px solid var(--line,#dce8e0);border-radius:11px;overflow:hidden;scroll-margin-top:80px}
+ .desktop-earning-table{width:100%;min-width:0;border-collapse:collapse;table-layout:fixed;margin:0;background:var(--panel,#fff)}
+ .desktop-earning-table th,.desktop-earning-table td{padding:7px 4px;font-size:12px;line-height:1.25;text-align:center;overflow-wrap:anywhere;border-bottom:1px solid var(--line,#e1ece5)}
+ .desktop-earning-table thead th{background:#e2efe7;color:#214d3a;font-size:11px;vertical-align:middle}
+ .desktop-earning-table th:first-child{text-align:left;padding-left:10px}
+ .desktop-earning-table th small{display:block;margin-top:2px;font-size:10px;font-weight:500}
+ .desktop-earning-table .earning-date-col{width:13%}
+ .desktop-earning-table .earning-total-col{width:10%}
+ .desktop-earning-table .earning-action-col{width:11%}
+ .desktop-earning-table .earning-day-total{font-weight:700}
+ .desktop-earning-table .btn{min-width:0;max-width:100%;min-height:27px;padding:3px 6px;font-size:11px}
+ .desktop-earning-table .earning-selected-date>*,.desktop-earning-table .earning-expanded-row>td>section>header{background:#edf7f1;color:#174535}
+ .desktop-earning-table .earning-expanded-row>td{padding:0}
+ .earning-expanded-row header{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:9px 10px}
+ .earning-expanded-row h2{font-size:14px;margin:0;text-align:left}
+ .earning-expanded-row header div,.desktop-earning-pagination,.desktop-earning-pagination>div{display:flex;align-items:center;gap:6px}
+ .earning-expanded-row header div{justify-content:flex-end;flex-wrap:wrap}
+ .earning-expanded-row header div>*{padding:4px 7px;border:1px solid #cbdfd2;border-radius:20px;font-size:10px}
+ .desktop-earning-pagination{justify-content:space-between;gap:8px;padding:8px 10px;flex-wrap:wrap;font-size:12px}
+ .desktop-earning-pagination>div{margin-left:auto}
+ .desktop-earning-pagination .btn{min-height:30px}
+ .desktop-earning-receipt,.desktop-earning-options{margin-top:8px;margin-right:8px}
+ [data-member-theme="dark"] .desktop-earning-table{background:#13271e;color:#e0f1e7}
+ [data-member-theme="dark"] .desktop-earning-table thead th,
+ [data-member-theme="dark"] .desktop-earning-table .earning-selected-date>*,
+ [data-member-theme="dark"] .desktop-earning-table .earning-expanded-row>td>section>header{background:#214235;color:#e0f1e7}
+}
+@media(min-width:761px) and (max-width:1100px){
+ .desktop-earning-heading{flex-wrap:wrap}
+ .desktop-earning-table th,.desktop-earning-table td{font-size:11px;padding-inline:3px}
+ .desktop-earning-table thead th{font-size:10px}
+}
+@media(max-width:760px){
+ [data-page="earnings"] .earning-desktop-name,#accountPageTitle .earning-desktop-name{display:none}
+}
