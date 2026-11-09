@@ -3315,3 +3315,38 @@ body.admin-workspace-active #marketplaceFooter,body.admin-workspace-active #acco
 }
 
 @media(min-width:761px){#memberAccountShell #page-earnings.earning-daily-mode>section:has(>#earningsTable){margin-top:0;border:0;background:transparent;box-shadow:none;overflow:visible}}
+
+/* Keep the date popup visible even when a filtered statement has zero or one row. */
+@media(min-width:761px){
+ #memberAccountShell #page-earnings.earning-daily-mode #earningsTable.history-panel{overflow:visible}
+ #memberAccountShell #page-earnings #desktopEarningHistory{border-color:#cfe2d8;box-shadow:0 2px 8px #123e2909}
+ #memberAccountShell #page-earnings .desktop-earning-heading{background:#087950;padding:16px 20px}
+ #memberAccountShell #page-earnings .desktop-earning-heading h1{letter-spacing:-.35px}
+ #memberAccountShell #page-earnings .desktop-earning-table thead th{background:#e6f3ec;color:#204f39;font-size:12px;font-weight:700;line-height:1.35;padding:11px 6px}
+ #memberAccountShell #page-earnings .desktop-earning-table tbody :is(th,td){font-size:13px;line-height:1.45;color:#254536;padding:12px 6px}
+ #memberAccountShell #page-earnings .desktop-earning-table tbody th{font-weight:500;background:#fff}
+ #memberAccountShell #page-earnings .desktop-earning-table .earning-day-total{background:#edf8f1;color:#07663f;font-weight:750}
+ #memberAccountShell #page-earnings .desktop-earning-table tbody>tr:not(.earning-expanded-row):hover>:not(.earning-day-total){background:#f6faf8}
+ #memberAccountShell #page-earnings .desktop-earning-table .btn{font-size:12px;min-height:32px;padding:5px 9px;border-color:#c5dbcf;color:#18563a}
+ #memberAccountShell #page-earnings .desktop-earning-table .earning-date-col{width:12%}
+ #memberAccountShell #page-earnings .desktop-earning-table .earning-action-col{width:9%}
+ #memberAccountShell #page-earnings .desktop-earning-pagination{padding:10px 16px;min-height:50px;box-sizing:border-box}
+ #memberAccountShell #page-earnings .desktop-earning-pagination small{font-size:12px;color:#557064}
+ #memberAccountShell #page-earnings .desktop-earning-heading .earning-range-panel{width:320px;max-height:calc(100dvh - 250px);overflow-y:auto;overscroll-behavior:contain;box-shadow:0 12px 30px #163c2926}
+ #memberAccountShell #page-earnings .earning-range-panel>strong{font-size:16px}
+ #memberAccountShell #page-earnings .earning-range-panel>small{font-size:12px;line-height:1.4}
+ #memberAccountShell #page-earnings .earning-range-month select{font-size:13px}
+ #memberAccountShell #page-earnings .earning-range-grid button{font-size:13px;height:34px}
+ #memberAccountShell #page-earnings .earning-range-grid .weekday{font-size:12px}
+ #memberAccountShell #page-earnings .earning-range-selection{font-size:11px}
+ #memberAccountShell #page-earnings .earning-range-selection b{font-size:12px}
+ #memberAccountShell #page-earnings .earning-range-actions .btn{min-height:34px;font-size:12px}
+ [data-member-theme="dark"] #page-earnings .desktop-earning-table tbody :is(th,td){color:#e1f1e8!important;background:#162c22!important}
+ [data-member-theme="dark"] #page-earnings .desktop-earning-table thead th{color:#e1f1e8!important;background:#214735!important}
+}
+@media(min-width:761px) and (max-width:1100px){
+ #memberAccountShell #page-earnings .desktop-earning-heading{padding:12px}
+ #memberAccountShell #page-earnings .desktop-earning-table thead th{font-size:11px;padding-inline:4px}
+ #memberAccountShell #page-earnings .desktop-earning-table tbody :is(th,td){font-size:12px;padding-inline:4px}
+}
+@media(min-width:761px) and (max-width:1350px){#memberAccountShell #page-earnings .desktop-earning-table thead th{font-size:11px;padding-inline:4px}}

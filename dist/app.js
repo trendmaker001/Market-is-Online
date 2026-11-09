@@ -1167,14 +1167,25 @@ function drawEarningRange(form,month){
  form.querySelector('[data-range-to]').textContent=earningRangeLabel(to);
  form.querySelector('[data-range-apply]').disabled=!from||!to;
  form.querySelector('[data-range-instruction]').textContent=form.dataset.next==='end'?'Select an end date':'Select a start date, then an end date';
+ if(form.closest('.earning-range').open)positionEarningRange(form.closest('.earning-range'));
 }
 function resetEarningRange(form){const {from,to}=historyFilters.desktopEarnings;form.elements.from.value=from;form.elements.to.value=to;form.dataset.next='start';drawEarningRange(form,(from||historyDay(new Date())).slice(0,7))}
+function positionEarningRange(control){
+ if(!control.open)return;
+ const panel=control.querySelector('.earning-range-panel'),anchor=control.querySelector('summary').getBoundingClientRect(),width=Math.min(320,window.innerWidth-24);
+ Object.assign(panel.style,{position:'fixed',width:width+'px',maxHeight:Math.max(100,window.innerHeight-24)+'px',right:'auto',left:Math.max(12,Math.min(anchor.right-width,window.innerWidth-width-12))+'px'});
+ const height=panel.getBoundingClientRect().height;
+ panel.style.top=Math.max(12,Math.min(anchor.bottom+8,window.innerHeight-height-12))+'px';
+}
+function placeOpenEarningRanges(){document.querySelectorAll('.earning-range[open]').forEach(positionEarningRange)}
+window.addEventListener('resize',placeOpenEarningRanges,{passive:true});
+window.addEventListener('scroll',placeOpenEarningRanges,{passive:true,capture:true});
 document.addEventListener('click',event=>{
  const control=event.target.closest('.earning-range');
  document.querySelectorAll('.earning-range[open]').forEach(node=>{if(node!==control)node.open=false});
  if(!control)return;
  const form=control.querySelector('form');
- if(event.target.closest('[data-earning-range-toggle]')&&!control.open){resetEarningRange(form);return}
+ if(event.target.closest('[data-earning-range-toggle]')&&!control.open){event.preventDefault();control.open=true;resetEarningRange(form);positionEarningRange(control);return}
  if(event.target.closest('[data-range-cancel]')){control.open=false;resetEarningRange(form);control.querySelector('summary').focus();return}
  const step=event.target.closest('[data-range-month-step]');
  if(step){const d=new Date(form.dataset.month+'-01T00:00:00Z');d.setUTCMonth(d.getUTCMonth()+Number(step.dataset.rangeMonthStep));drawEarningRange(form,d.toISOString().slice(0,7));form.querySelector(`[data-range-month-step="${step.dataset.rangeMonthStep}"]`).focus();return}
@@ -1219,7 +1230,7 @@ function renderDesktopEarnings(){
  const held=sumEarnings(entries.map(({row})=>row).filter(isHeldEarning));
  target.innerHTML=`<div class="desktop-earning-heading"><h1><span class="earning-title-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 20h18M5 17v-4m5 4V9m5 8v-6m5 6V5M4 9l6-5 5 3 6-5m-5 0h5v5"/></svg></span>Earning History</h1>${earningRangeControl()}<div class="desktop-earning-total" aria-live="polite"><small>Total credited</small><strong>${moneyText(sumEarnings(credited(entries)))} MIO</strong>${held?`<small>${moneyText(held)} MIO on hold</small>`:''}</div></div>
  <div class="desktop-earning-card"><table class="desktop-earning-table" aria-label="Daily earning history">${cols}${header('Date','Action')}<tbody>${dailyRows||'<tr><td colspan="11">No earnings in this date range.</td></tr>'}</tbody></table>
- <nav class="desktop-earning-pagination" aria-label="Earning history pages">${entries.length?'<button class="btn small desktop-earning-receipt" type="button" data-desktop-earning-receipt>Total earnings receipt</button>':''}<small>Amounts in MIO · Pakistan time</small><div><small>50 dates per page</small><button class="btn small" type="button" data-history-page="desktopEarnings" data-page-delta="-1" ${page===1?'disabled':''}>Previous</button><span aria-live="polite">${range}</span><button class="btn small" type="button" data-history-page="desktopEarnings" data-page-delta="1" ${page===pages?'disabled':''}>Next</button></div></nav></div>`;
+ <nav class="desktop-earning-pagination" aria-label="Earning history pages"><small>50 dates per page</small><div><button class="btn small" type="button" data-history-page="desktopEarnings" data-page-delta="-1" ${page===1?'disabled':''}>Previous</button><span aria-live="polite">${range}</span><button class="btn small" type="button" data-history-page="desktopEarnings" data-page-delta="1" ${page===pages?'disabled':''}>Next</button></div></nav></div>`;
  resetEarningRange(target.querySelector('.earning-range-panel'));
 }
 
