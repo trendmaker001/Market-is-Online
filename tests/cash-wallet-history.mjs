@@ -20,6 +20,14 @@ for(const [i,name,code,amount] of [[1,'Starter','BASIC_1',11],[2,'Basic','BASIC_
  await db.query("insert into package_activations values($1,$2,$3,1,'approved',$4)",[id(30+i),id(2),code,`2026-11-09T14:0${i}:00Z`]);
  await db.query("insert into mio_ledger values($1,$2,$3,'package_activation',null,null,$4,$5,null)",[id(40+i),id(2),-amount,id(30+i),`2026-11-09T14:0${i}:00Z`]);
 }
+await db.exec(`alter table mio_ledger add column bonus_transaction_id uuid,add column idempotency_key text;
+create function private.has_role(text) returns boolean language sql as $$select false$$;
+create table member_income_wallets(member_id uuid,proceed_mio numeric,shopping_points numeric,promotion_points numeric);
+create table income_wallet_ledger(id uuid,member_id uuid,amount numeric,wallet_kind text,entry_kind text,source_bonus_id uuid,source_reward_id uuid,conversion_id uuid,note text,metadata jsonb,created_at timestamptz);
+create table proceed_wallet_conversions(id uuid,member_id uuid,idempotency_key text,proceed_amount numeric,cash_amount numeric,shopping_amount numeric,promotion_amount numeric,fee_amount numeric,config_snapshot jsonb,created_at timestamptz);
+create table private.proceed_fee_reclassifications(legacy_ledger_id uuid,adjustment_ledger_id uuid);
+`);
+await db.exec(await readFile('schema/wallet_history.sql','utf8'));
 await db.exec(await readFile('schema/cash_wallet_history.sql','utf8'));
 const as=uid=>db.query("select set_config('test.uid',$1,false)",[uid?id(uid):'']);
 const history=async(filter='all',page=1,limit=20)=>(await db.query('select my_cash_wallet_history($1,$2,$3) as v',[filter,page,limit])).rows[0].v;
