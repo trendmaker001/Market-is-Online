@@ -222,4 +222,8 @@ for(const code of [null,'BASIC_1','BASIC_2','ADVANCED_1','ADVANCED_2','PREMIUM']
 }
 dashboardData.package_code='ADVANCED_2';await ww.MioDashboard.refresh();assert.equal(dd.querySelector('.dashboard-exchange-balance'),null);
 console.log('PASS Exchange balance is requested and shown only for Platinum, and removed on downgrade');
+const beforeProfile=walletRpcCalls.length;await ww.MioDashboard.refresh('profile');
+assert.deepEqual(walletRpcCalls.slice(beforeProfile).map(([name])=>name),['my_member_dashboard_identity']);
+assert.match(dd.querySelector('#dashboardProfile').textContent,/My Network|Profile picture/);
+console.log('PASS profile refresh requests identity only, without wallet, tree or dashboard programs');
 await new Promise(r=>setTimeout(r,100));w.close();ww.close();

@@ -36,8 +36,8 @@
   }
   async function mountAdmin(){
    if(document.getElementById('premiumAdmin'))return;const hero=document.getElementById('heroBannerForm')?.closest('.card');if(!hero)return;
-   const r=await api.db.rpc('marketplace_presentation_settings');if(r.error)throw r.error;settings=r.data||settings;
-   draft=JSON.parse(JSON.stringify(settings));draft.main??=(api.hero?.()||[]).map(x=>({...x,link:x.link||x.cta_link||'#shop',enabled:x.enabled!==false}));draft.video??=[];draft.main_interval??=3;
+   const r=await api.db.rpc('marketplace_presentation_settings');if(r.error)throw r.error;settings={...settings,...(r.data&&!Array.isArray(r.data)?r.data:{})};
+   draft=JSON.parse(JSON.stringify(settings));for(const key of ['slides','promos','categories'])if(!Array.isArray(draft[key]))draft[key]=[];draft.main??=(api.hero?.()||[]).map(x=>({...x,link:x.link||x.cta_link||'#shop',enabled:x.enabled!==false}));draft.video??=[];draft.main_interval??=3;
    hero.hidden=true;hero.classList.add('legacy-promotion-editor');hero.insertAdjacentHTML('afterend','<section id="premiumAdmin" class="card premium-editor"></section>');renderAdmin();
   }
   function renderAdmin(){

@@ -1,0 +1,33 @@
+import {PGlite} from '@electric-sql/pglite';
+import {readFile} from 'node:fs/promises';import assert from 'node:assert/strict';
+const db=new PGlite(),id=n=>`00000000-0000-0000-0000-${String(n).padStart(12,'0')}`;
+await db.exec(`create schema auth;create schema private;create role anon;create role authenticated;
+create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('test.uid',true),'')::uuid$$;
+create table member_profiles(user_id uuid primary key,full_name text,member_code text);
+create table mio_wallet_accounts(member_id uuid primary key,balance numeric(20,4));
+create table mio_ledger(id uuid primary key,member_id uuid,amount numeric(20,4),action text,reason text,transfer_id uuid,activation_id uuid,created_at timestamptz,counterparty_id uuid);
+create table package_activations(id uuid primary key,member_id uuid,package_code text,package_version integer,status text,activated_at timestamptz);
+create table package_versions(package_code text,version integer,display_name text);
+create table private.exchange_transfers(id uuid primary key,actor_id uuid,recipient_id uuid,source_wallet text,destination_wallet text);
+insert into member_profiles values('${id(1)}','Company','MIO-1'),('${id(2)}','Member','MIO-2'),('${id(3)}','Another member','MIO-3');
+insert into mio_wallet_accounts values('${id(2)}',440),('${id(3)}',999);
+insert into private.exchange_transfers values('${id(10)}','${id(1)}','${id(2)}','exchange','cash');
+insert into mio_ledger values('${id(20)}','${id(2)}',550,'transfer_in','Received','${id(10)}',null,'2026-11-09T12:26:29Z','${id(1)}');
+insert into mio_ledger values('${id(99)}','${id(3)}',999,'admin_mint',null,null,null,now(),null);
+`);
+for(const [i,name,code,amount] of [[1,'Starter','BASIC_1',11],[2,'Basic','BASIC_2',11],[3,'Silver','ADVANCED_1',33],[4,'Gold','ADVANCED_2',55]]){
+ await db.query('insert into package_versions values($1,1,$2)',[code,name]);
+ await db.query("insert into package_activations values($1,$2,$3,1,'approved',$4)",[id(30+i),id(2),code,`2026-11-09T14:0${i}:00Z`]);
+ await db.query("insert into mio_ledger values($1,$2,$3,'package_activation',null,null,$4,$5,null)",[id(40+i),id(2),-amount,id(30+i),`2026-11-09T14:0${i}:00Z`]);
+}
+await db.exec(await readFile('schema/cash_wallet_history.sql','utf8'));
+const as=uid=>db.query("select set_config('test.uid',$1,false)",[uid?id(uid):'']);
+const history=async(filter='all',page=1,limit=20)=>(await db.query('select my_cash_wallet_history($1,$2,$3) as v',[filter,page,limit])).rows[0].v;
+await as(null);await assert.rejects(history(),/Sign in/);
+await as(2);let all=await history();assert.equal(all.total,5);assert.equal(Number(all.balance),440);assert.equal(Number(all.credited),550);assert.equal(Number(all.debited),110);assert.deepEqual(all.rows.map(r=>Number(r.balance_after)),[440,495,528,539,550]);assert.deepEqual(all.rows.map(r=>Number(r.balance_before)),[495,528,539,550,0]);assert.equal(all.rows[0].previous_package_name,'Silver');assert.equal(all.rows[3].previous_package_name,null);assert.equal(all.rows[4].source_wallet,'exchange');assert.equal(all.rows[4].counterparty_name,'Company');assert.equal(all.rows[4].receiver_code,'MIO-2');
+const packages=await history('package',2,2);assert.equal(packages.total,4);assert.equal(packages.rows.length,2);assert.equal(Number(packages.rows[0].balance_after),528);assert.equal((await history('received')).rows[0].id,id(20));await assert.rejects(history('bad'),/Invalid/);await assert.rejects(history('all',0),/Invalid/);
+await as(3);all=await history();assert.equal(all.total,1);assert.equal(all.rows[0].id,id(99));await as(1);assert.equal((await history()).rows.length,0);
+assert.equal((await db.query("select has_function_privilege('anon','my_cash_wallet_history(text,integer,integer)','execute') as v")).rows[0].v,false);
+assert.equal((await db.query("select has_function_privilege('authenticated','my_cash_wallet_history(text,integer,integer)','execute') as v")).rows[0].v,true);
+assert.equal((await db.query('select count(*)::int as n from mio_ledger')).rows[0].n,6);assert.equal(Number((await db.query('select balance from mio_wallet_accounts where member_id=$1',[id(2)])).rows[0].balance),440);
+console.log('PASS cash ledger: receipt source, four upgrade charges, historical balances, filtering/pagination, own-account isolation, anonymous rejection and no financial writes');await db.close();

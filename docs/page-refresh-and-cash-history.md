@@ -1,0 +1,9 @@
+# Page refresh and Cash Wallet history
+
+Startup restores the route and checks the signed-in identity and account access. It then dispatches only the requested page loader; it does not prefetch the catalog, network, orders, or other admin panels. Auth session events use the same route-scoped path. Simultaneous requests for the same account/page are coalesced. Dashboard and Wallet presentation RPCs are scoped separately; Profile loads only member identity. Admin commerce loaders fetch data for the selected section.
+
+Browser reload still downloads the document. A public structural shell replaces the full-screen loading text until identity checks complete. Private account data is not persisted in this shell. Account-holder and cash-history filters/page selections use account-specific sessionStorage keys; financial records remain server-owned. In-page history updates preserve the table while the request completes.
+
+The read-only `my_cash_wallet_history` RPC derives entries and running balances from the existing caller-owned ledger. It joins transfer counterparties and package activation records for receipts, applies activity filtering and pagination, and never changes balances, generates transfers, or charges subscriptions. Anonymous execution is revoked; authenticated callers cannot select another member. Compact receipts use the existing local PNG download renderer.
+
+Validation: interface tests cover route-scoped startup and excluded requests; cash-history SQL tests cover isolation, balances, source wallets, four incremental package charges, filtering and pagination; UI tests cover receipts, escaping, errors and account changes. Dashboard, admin-member and Exchange receipt regressions pass. Browser QA confirmed a 320x568 package receipt without internal overflow and a successful PNG download. Production signed-in device latency is not inferred from mocked tests.
