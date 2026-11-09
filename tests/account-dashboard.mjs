@@ -75,6 +75,14 @@ assert.ok(d.querySelector('#page-transactions #mioHistory'));
 assert.equal(d.querySelector('#page-transactions .mio-price-banner'),null);
 assert.ok(d.querySelector('#memberAccountNav [data-page="earnings"]'));
 assert.equal(d.querySelector('.sidebar-brand'),null);
+assert.deepEqual([...d.querySelectorAll('#memberWalletSubmenu [data-page]')].map(x=>x.textContent),['My Wallet','Transfer MIO','Deposit','Withdraw','Top Up']);
+assert.equal(d.querySelectorAll('#memberAccountNav [data-page=transfer]').length,1);
+assert.equal(d.querySelector('[data-wallet-menu]').getAttribute('aria-expanded'),'true');
+d.querySelector('[data-wallet-menu]').click();assert.equal(d.getElementById('memberWalletSubmenu').hidden,true);
+d.querySelector('[data-wallet-menu]').click();assert.equal(d.getElementById('memberWalletSubmenu').hidden,false);
+for(const name of ['deposit','withdraw','top-up']){q.go(name);assert.equal(d.querySelector('#page-'+name).classList.contains('active'),true);assert.equal(d.querySelector('#memberAccountShell').classList.contains('hidden'),false);assert.match(d.querySelector('#page-'+name).textContent,/not available yet/)}
+q.go('wallet');
+
 assert.equal(d.querySelectorAll('#memberAccountNav .member-nav-group').length,4);
 assert.match(d.querySelector('.sidebar-heading').textContent,/Account centre/);
 assert.match(dashboardCssSource,/\.member-account-shell>\.member-sidebar\{\s*position:sticky;/,'desktop sidebar keeps its sticky position instead of being pushed down');
