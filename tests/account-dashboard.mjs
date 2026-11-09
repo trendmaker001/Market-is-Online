@@ -98,7 +98,7 @@ const incomeData={cash_mio:12,proceed_mio:40,shopping_points:3000,promotion_poin
 const notificationData={unread:2,rows:[{id:'n1',category:'rank',title:'New rank achieved',message:'Promotion Points moved to Proceed Wallet.',created_at:'2026-10-16'}]};
 const guaranteeData=[{order_id:'order-1',order_code:'MIO-100',buyer_name:'Direct Member',total_pkr:1000,status:'pending_sponsor',mio_rate_snapshot:300,sponsor_cash_mio:2,sponsor_shopping_points:600,requested_at:'2026-10-16'}];
 const maintenanceData={package:'ADVANCED_2',monthly_due_at:new Date(Date.now()+180*86400000).toISOString(),annual_due_at:new Date(Date.now()+365*86400000).toISOString(),monthly_active:true,annual_active:true,monthly_progress_ppv:2,monthly_required_ppv:10,rules:{enabled:true,monthly_levels:{ADVANCED_2:8},annual_fee_mio:20,annual_company_rate:.5}};
-const walletRpcCalls=[];ww.MioDashboard.mount({signedIn:()=>signedIn,rpc:async(name,args)=>{walletRpcCalls.push([name,args]);return{data:name==='my_income_wallets'?incomeData:name==='my_manager_status'?managerData:name==='my_community_share_status'?communityData:name==='my_super_member_status'?superMemberData:name==='my_notifications'?notificationData:name==='my_cod_guarantee_requests'?guaranteeData:name==='my_maintenance_status'?maintenanceData:dashboardData}},go:()=>{},renderNetwork:async()=>{},error:e=>{throw e},notify:()=>{},idKey:()=> 'wallet-test-key',safeImage:v=>v,planName:code=>({BASIC_2:'Basic',ADVANCED_1:'Silver',ADVANCED_2:'Gold'}[code]||'Free'),tierImage:()=>'/assets/tree-plan-advanced-2.svg'});
+const walletRpcCalls=[];ww.MioDashboard.mount({signedIn:()=>signedIn,rpc:async(name,args)=>{walletRpcCalls.push([name,args]);return{data:name==='my_exchange_wallet'?{balance:'123.4567'}:name==='my_income_wallets'?incomeData:name==='my_manager_status'?managerData:name==='my_community_share_status'?communityData:name==='my_super_member_status'?superMemberData:name==='my_notifications'?notificationData:name==='my_cod_guarantee_requests'?guaranteeData:name==='my_maintenance_status'?maintenanceData:dashboardData}},go:()=>{},renderNetwork:async()=>{},error:e=>{throw e},notify:()=>{},idKey:()=> 'wallet-test-key',safeImage:v=>v,planName:code=>({BASIC_2:'Basic',ADVANCED_1:'Silver',ADVANCED_2:'Gold'}[code]||'Free'),tierImage:()=>'/assets/tree-plan-advanced-2.svg'});
 ww.MioDashboard.setFinancial({balance:12,ppv:8,earned:40,held:2});await ww.MioDashboard.refresh();
 const dd=ww.document;
 assert.equal(dd.querySelectorAll('.dashboard-maintenance-card').length,2);
@@ -216,4 +216,10 @@ assert.ok(dd.querySelector('#memberAccountNav [data-page="exchange"]'));
 ww.MioDashboard.updateAuth(true,false,false,true,false);
 assert.equal(dd.querySelector('#memberAccountNav [data-page="exchange"]'),null);
 console.log('PASS free account has only unstarted welcome timer and Exchange Wallet sidebar is Platinum-only');
+
+for(const code of [null,'BASIC_1','BASIC_2','ADVANCED_1','ADVANCED_2','PREMIUM']){
+ dashboardData.package_code=code;const before=walletRpcCalls.filter(([name])=>name==='my_exchange_wallet').length;await ww.MioDashboard.refresh();const card=dd.querySelector('.dashboard-exchange-balance');assert.equal(!!card,code==='PREMIUM');assert.equal(walletRpcCalls.filter(([name])=>name==='my_exchange_wallet').length-before,code==='PREMIUM'?1:0);if(card){assert.match(card.textContent,/123\.46/);assert.equal(card.dataset.page,'exchange');}
+}
+dashboardData.package_code='ADVANCED_2';await ww.MioDashboard.refresh();assert.equal(dd.querySelector('.dashboard-exchange-balance'),null);
+console.log('PASS Exchange balance is requested and shown only for Platinum, and removed on downgrade');
 await new Promise(r=>setTimeout(r,100));w.close();ww.close();
