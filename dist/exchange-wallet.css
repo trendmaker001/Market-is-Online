@@ -39,58 +39,45 @@
 
 @media(max-width:600px){.wallet-history-filters{grid-template-columns:repeat(6,minmax(0,1fr))}.wallet-history-filters label:first-child{grid-column:1 / span 3}.wallet-history-filters label:nth-child(2){grid-column:4 / span 3}.wallet-history-filters label:nth-child(3){grid-column:1 / span 3}.wallet-history-filters button[type=submit]{grid-column:4 / span 2}.wallet-history-filters [data-wallet-clear]{grid-column:6;padding:6px 3px}}
 
+/* One-row wallet toolbar and the same ledger columns at every screen size. */
 .wallet-history-tabs[hidden]{display:none}
-.member-wallet-statement .wallet-history-filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) auto auto;align-items:end}
-.member-wallet-statement .wallet-history-filters label{min-width:0}
-.member-wallet-statement .wallet-history-filters :is(input,select){min-width:0;width:100%;box-sizing:border-box}
-.member-wallet-statement .cash-history-table{min-width:0;table-layout:fixed}
-.member-wallet-statement .cash-history-table td{overflow-wrap:anywhere}
-.member-wallet-statement .cash-history-table th:first-child{width:25%}
-.member-wallet-statement .cash-history-table th:nth-child(3){width:23%}
-.member-wallet-statement .cash-history-table th:last-child{width:15%}
-@media(max-width:760px){
- .member-wallet-statement .wallet-history-filters{grid-template-columns:repeat(2,minmax(0,1fr)) auto auto;gap:6px}
- .member-wallet-statement .wallet-history-filters .wallet-from{grid-column:1 / 3}
- .member-wallet-statement .wallet-history-filters .wallet-to{grid-column:3 / 5}
- .member-wallet-statement .wallet-history-filters .wallet-picker{grid-column:1}
- .member-wallet-statement .wallet-history-filters .wallet-activity{grid-column:2}
- .member-wallet-statement .wallet-history-filters button[type=submit]{grid-column:3}
- .member-wallet-statement .wallet-history-filters [data-wallet-clear]{grid-column:4}
- .member-wallet-statement .wallet-history-filters .btn{padding:5px 6px}
- .member-wallet-statement .cash-history-table :is(th,td){padding:7px 4px;font-size:11px;overflow-wrap:anywhere}
- .member-wallet-statement .cash-history-table .btn{font-size:11px;padding:4px}
-}
-
-/* Keep inherited account-table spacing from clipping the wallet statement. */
-#memberAccountShell #mioHistory.member-wallet-statement .cash-history-table :is(th,td){white-space:normal;overflow-wrap:break-word;word-break:normal;padding:8px 5px;line-height:1.35}
-#memberAccountShell #mioHistory.member-wallet-statement .cash-history-table th:last-child{width:20%}
-#memberAccountShell #mioHistory.member-wallet-statement .cash-history-table .btn{min-width:0;min-height:30px;white-space:nowrap;padding:4px;font-size:11px}
-@media(max-width:760px){
- #memberAccountShell #mioHistory.member-wallet-statement .wallet-history-filters{grid-template-columns:repeat(6,minmax(0,1fr))}
- #memberAccountShell #mioHistory.member-wallet-statement .wallet-from{grid-column:1 / 4}
- #memberAccountShell #mioHistory.member-wallet-statement .wallet-to{grid-column:4 / 7}
- #memberAccountShell #mioHistory.member-wallet-statement .wallet-picker{grid-column:1 / 4}
- #memberAccountShell #mioHistory.member-wallet-statement .wallet-activity{grid-column:4 / 7}
- #memberAccountShell #mioHistory.member-wallet-statement .wallet-history-filters button[type=submit]{grid-column:1 / 4}
- #memberAccountShell #mioHistory.member-wallet-statement .wallet-history-filters [data-wallet-clear]{grid-column:4 / 7}
- #memberAccountShell #mioHistory.member-wallet-statement .wallet-history-filters :is(input,select){min-height:34px;padding:5px;font-size:11px}
- #memberAccountShell #mioHistory.member-wallet-statement .wallet-history-filters .btn{min-height:30px;padding:4px 6px;font-size:11px}
- #memberAccountShell #mioHistory.member-wallet-statement .cash-history-table :is(th,td){padding:7px 3px;font-size:11px}
-}
-
-/* Historical balances come from each wallet's server ledger, including filtered pages. */
-.wallet-mobile-balances{display:none}
+.wallet-date-short{display:none}
 .wallet-balance-column{font-variant-numeric:tabular-nums}
-@media(min-width:761px){
- #memberAccountShell #mioHistory.member-wallet-statement .has-wallet-balances th:first-child{width:17%}
- #memberAccountShell #mioHistory.member-wallet-statement .has-wallet-balances th:nth-child(2){width:27%}
- #memberAccountShell #mioHistory.member-wallet-statement .has-wallet-balances th:nth-child(3){width:13%}
- #memberAccountShell #mioHistory.member-wallet-statement .has-wallet-balances th.wallet-balance-column{width:17%}
- #memberAccountShell #mioHistory.member-wallet-statement .has-wallet-balances th:last-child{width:9%}
-}
+#memberAccountShell #mioHistory.member-wallet-statement .wallet-history-filters{display:flex;flex-wrap:nowrap;align-items:center;gap:8px;margin:0 0 10px;position:relative}
+#memberAccountShell #mioHistory.member-wallet-statement .wallet-history-filters label{display:flex;flex-direction:row;align-items:center;gap:6px;margin:0;min-width:0;font-size:11px}
+#memberAccountShell #mioHistory.member-wallet-statement .wallet-history-filters :is(input,select){width:auto;min-width:0;min-height:34px;height:34px;padding:5px 7px;font-size:12px}
+#memberAccountShell #mioHistory.member-wallet-statement .wallet-picker{flex:0 1 200px}
+#memberAccountShell #mioHistory.member-wallet-statement .wallet-picker select{width:100%}
+.wallet-control-label{display:none}
+.wallet-filter-menu{margin-left:auto}
+.wallet-filter-menu summary{display:flex;align-items:center;justify-content:center;gap:5px;cursor:pointer;list-style:none;background:#087950;color:#fff;border-radius:6px;height:34px;padding:0 10px;font-size:12px;box-sizing:border-box}
+.wallet-filter-menu summary::-webkit-details-marker{display:none}
+.wallet-filter-menu summary:focus-visible{outline:2px solid #f8a51b;outline-offset:2px}
+.wallet-filter-panel{position:absolute;right:0;top:calc(100% + 5px);z-index:20;display:flex;align-items:end;gap:6px;padding:12px;border:1px solid #cedfd5;border-radius:8px;background:#fff;box-shadow:0 8px 24px #123a2926;max-width:100%;box-sizing:border-box}
+#memberAccountShell #mioHistory.member-wallet-statement .wallet-filter-panel .wallet-activity{flex-direction:column;align-items:stretch}
+#memberAccountShell #mioHistory.member-wallet-statement .wallet-filter-panel .btn{min-height:34px;height:34px;padding:5px 8px;font-size:11px}
+#memberAccountShell #mioHistory.member-wallet-statement .cash-history-scroll{width:100%;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:auto;-webkit-overflow-scrolling:touch}
+#memberAccountShell #mioHistory.member-wallet-statement .cash-history-table{min-width:880px;width:100%;table-layout:auto}
+#memberAccountShell #mioHistory.member-wallet-statement .cash-history-table :is(th,td){white-space:nowrap;overflow-wrap:normal;word-break:normal;padding:9px 12px;line-height:1.35;font-size:12px}
+#memberAccountShell #mioHistory.member-wallet-statement .cash-history-table th{width:auto}
+#memberAccountShell #mioHistory.member-wallet-statement .cash-history-table th:nth-child(2){width:30%}
+#memberAccountShell #mioHistory.member-wallet-statement .cash-history-table .btn{min-width:40px;min-height:30px;white-space:nowrap;padding:4px 7px;font-size:11px}
 @media(max-width:760px){
- .cash-history-table.has-wallet-balances .wallet-balance-column{display:none!important}
- .cash-history-table .wallet-mobile-balances{display:grid;gap:3px;margin-top:6px;font-size:10px;font-weight:400;color:#607769}
- .wallet-mobile-balances span{display:block}
- .wallet-mobile-balances b{display:block;font-size:11px;color:#294e3d;font-weight:600}
+ #memberAccountShell #page-transactions .cash-history-card .card-body{padding:8px}
+ #memberAccountShell #mioHistory.member-wallet-statement .wallet-history-filters{gap:5px}
+ #memberAccountShell #mioHistory.member-wallet-statement .wallet-picker{flex:1;min-width:0}
+ #memberAccountShell #mioHistory.member-wallet-statement .wallet-history-filters .wallet-picker select{font-size:11px;padding:4px 2px;height:34px}
+ #memberAccountShell #mioHistory.member-wallet-statement .wallet-history-filters :is(.wallet-from,.wallet-to){position:relative;flex:0 0 47px;height:34px;display:flex;flex-direction:column;justify-content:center;gap:0;border:1px solid #cedfd5;border-radius:6px;background:#fff;font-size:11px;box-sizing:border-box}
+ #memberAccountShell #mioHistory.member-wallet-statement .wallet-history-filters .wallet-date-input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}
+ #memberAccountShell #mioHistory .wallet-date-input::-webkit-calendar-picker-indicator{position:absolute;inset:0;width:auto;height:auto;cursor:pointer}
+ #memberAccountShell #mioHistory.member-wallet-statement :is(.wallet-from,.wallet-to):focus-within{outline:2px solid #087950;outline-offset:1px}
+ .wallet-date-short{display:block;font-size:9px;line-height:11px;color:#486755}
+ .wallet-date-short:empty{display:none}
+ .wallet-filter-menu{flex:0 0 30px;margin-left:0}
+ .wallet-filter-menu summary{width:30px;padding:0}
+ .wallet-filter-menu summary span{display:none}
+ #memberAccountShell #mioHistory.member-wallet-statement .wallet-statement-heading{gap:4px;align-items:center;margin-bottom:8px}
+ #memberAccountShell #mioHistory.member-wallet-statement .wallet-statement-heading h2{font-size:14px}
+ #memberAccountShell #mioHistory.member-wallet-statement .cash-history-table{min-width:880px}
+ #memberAccountShell #mioHistory.member-wallet-statement .cash-history-table :is(th,td){padding:8px 10px;font-size:11px}
 }
