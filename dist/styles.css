@@ -3260,3 +3260,58 @@ body.admin-workspace-active #marketplaceFooter,body.admin-workspace-active #acco
  #memberAccountShell #page-earnings .desktop-earning-heading .history-date-form input{min-height:34px;padding:5px;font-size:11px}
  #memberAccountShell #page-earnings .desktop-earning-heading .history-date-form .btn{min-height:34px;padding:5px 8px;font-size:11px}
 }
+
+/* Emerald earning statement: a compact header with a single date-range calendar. */
+@media(min-width:761px){
+ #memberAccountShell #page-earnings #desktopEarningHistory{border:1px solid #d5e5dd;border-radius:12px;background:#fff;box-shadow:0 3px 10px #16453108;overflow:visible}
+ #memberAccountShell #page-earnings .desktop-earning-heading{display:flex;flex-wrap:nowrap;align-items:center;gap:12px;margin:0;padding:14px 20px;min-height:68px;box-sizing:border-box;border-radius:11px 11px 0 0;background:#087950;color:#fff}
+ #memberAccountShell #page-earnings .desktop-earning-heading h1{display:flex;align-items:center;gap:12px;margin:0 auto 0 0;font-size:clamp(18px,1.75vw,24px);font-weight:700;color:#fff;line-height:1.2;white-space:nowrap}
+ .earning-title-icon{display:grid;place-items:center;flex:none;width:34px;height:34px;border:1px solid #ffffff45;border-radius:8px;background:#ffffff0a}.earning-title-icon svg{width:23px;height:23px}
+ #memberAccountShell #page-earnings .desktop-earning-total{padding:0 0 0 16px;border-left:1px solid #ffffff60;border-radius:0;background:transparent;min-width:120px}
+ #memberAccountShell #page-earnings .desktop-earning-total strong{font-size:21px;line-height:1.2;color:#fff;white-space:nowrap}
+ #memberAccountShell #page-earnings .desktop-earning-total small{color:#e5f5ed;font-size:10px}
+ .earning-range{position:relative;min-width:0;border:0;padding:0;background:transparent}
+ #memberAccountShell #page-earnings .earning-range>summary{display:flex;align-items:center;justify-content:center;gap:8px;list-style:none;cursor:pointer;color:#fff;border:1px solid #ffffff95;border-radius:7px;padding:9px 11px;min-height:36px;box-sizing:border-box;font-size:12px;font-weight:600;white-space:nowrap;background:transparent}
+ .earning-range>summary::-webkit-details-marker{display:none}
+ .earning-range>summary:focus-visible,.earning-range-reset:focus-visible{outline:2px solid #ffc25a;outline-offset:2px}
+ #memberAccountShell #page-earnings .earning-range-reset{display:grid;place-items:center;flex:none;width:36px;height:36px;padding:0;border:1px solid #ffffff80;border-radius:7px;color:white;background:transparent;cursor:pointer}
+ #memberAccountShell #page-earnings .desktop-earning-heading .earning-range-panel{position:absolute;right:0;top:calc(100% + 8px);z-index:80;display:block;width:310px;max-width:none;padding:16px;margin:0;box-sizing:border-box;background:#fff;color:#244b39;border:1px solid #caddd2;border-radius:10px;box-shadow:0 10px 30px #123e292b}
+ #memberAccountShell #page-earnings .earning-range-panel>strong{display:block;font-size:14px;margin-bottom:4px}
+ #memberAccountShell #page-earnings .earning-range-panel>small{display:block;font-size:11px;color:#647c70;margin-bottom:12px}
+ .earning-range-month{display:flex;align-items:center;gap:4px;margin-bottom:8px}
+ #memberAccountShell #page-earnings .earning-range-month select{width:auto;min-width:0;height:30px;min-height:30px;padding:3px;border:0;background:#fff;color:#145b3c;font-size:12px;font-weight:600;box-shadow:none}
+ #memberAccountShell #page-earnings .earning-range-month select[data-range-month]{flex:1}
+ #memberAccountShell #page-earnings .earning-range-month button{display:grid;place-items:center;width:28px;height:28px;padding:0;flex:none;border:1px solid #d6e6dc;border-radius:6px;background:#fff;color:#087950;font-size:20px;cursor:pointer}
+ .earning-range-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px 0}
+ .earning-range-grid .weekday{text-align:center;font-size:11px;color:#6b8376;padding:5px 0}
+ #memberAccountShell #page-earnings .earning-range-grid button{height:32px;min-width:0;padding:0;border:0;border-radius:0;background:#fff;color:#244b39;font-size:12px;cursor:pointer}
+ #memberAccountShell #page-earnings .earning-range-grid button:hover{background:#ebf5ef}
+ #memberAccountShell #page-earnings .earning-range-grid .range-between{background:#e0f4e9}
+ #memberAccountShell #page-earnings .earning-range-grid .range-edge{background:#087950;color:#fff;border-radius:50%;font-weight:700}
+ .earning-range-grid button:focus-visible{outline:2px solid #bd891f;outline-offset:-2px}
+ .earning-range-selection{display:flex;justify-content:space-between;gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid #deebe3;font-size:10px;color:#6a8175}
+ .earning-range-selection b{display:block;font-size:11px;color:#215c40;margin-top:2px}
+ .earning-range-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+ #memberAccountShell #page-earnings .earning-range-actions .btn{min-height:30px;padding:5px 12px;font-size:12px}
+ #memberAccountShell #page-earnings .desktop-earning-card{border:0;border-radius:0 0 11px 11px;overflow:hidden}
+ #memberAccountShell #page-earnings .desktop-earning-table thead th{background:#e5f4ec;color:#24553c;padding:10px 5px;font-size:11px;font-weight:650}
+ #memberAccountShell #page-earnings .desktop-earning-table tbody :is(th,td){padding:10px 5px;font-variant-numeric:tabular-nums}
+ #memberAccountShell #page-earnings .desktop-earning-table .earning-day-total{background:#edf8f1;color:#08663f;font-weight:700}
+ #memberAccountShell #page-earnings .desktop-earning-table :is(th,td):first-child{padding-left:16px}
+ #memberAccountShell #page-earnings .desktop-earning-pagination{padding:10px 16px;gap:10px}
+ #memberAccountShell #page-earnings .desktop-earning-receipt{margin:0;font-size:11px;padding:6px 9px}
+ #memberAccountShell #page-earnings .desktop-earning-pagination small{font-size:10px;color:#657b6f}
+ [data-member-theme="dark"] #desktopEarningHistory{background:#13271e!important}
+ [data-member-theme="dark"] .desktop-earning-pagination{background:#13271e}
+}
+@media(min-width:761px) and (max-width:1100px){
+ #memberAccountShell #page-earnings .desktop-earning-heading{padding:12px;gap:8px}
+ #memberAccountShell #page-earnings .desktop-earning-heading h1{font-size:18px;gap:6px}
+ #memberAccountShell #page-earnings .earning-title-icon{display:none}
+ #memberAccountShell #page-earnings .desktop-earning-total{min-width:95px;padding-left:8px}
+ #memberAccountShell #page-earnings .desktop-earning-total strong{font-size:16px}
+ #memberAccountShell #page-earnings .earning-range>summary{font-size:10px;padding:8px 5px;gap:4px}
+ #memberAccountShell #page-earnings .desktop-earning-table thead th{font-size:10px;padding-inline:3px}
+}
+
+@media(min-width:761px){#memberAccountShell #page-earnings.earning-daily-mode>section:has(>#earningsTable){margin-top:0;border:0;background:transparent;box-shadow:none;overflow:visible}}
