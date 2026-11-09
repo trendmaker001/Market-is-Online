@@ -77,3 +77,20 @@
  #memberAccountShell #mioHistory.member-wallet-statement .wallet-history-filters .btn{min-height:30px;padding:4px 6px;font-size:11px}
  #memberAccountShell #mioHistory.member-wallet-statement .cash-history-table :is(th,td){padding:7px 3px;font-size:11px}
 }
+
+/* Historical balances come from each wallet's server ledger, including filtered pages. */
+.wallet-mobile-balances{display:none}
+.wallet-balance-column{font-variant-numeric:tabular-nums}
+@media(min-width:761px){
+ #memberAccountShell #mioHistory.member-wallet-statement .has-wallet-balances th:first-child{width:17%}
+ #memberAccountShell #mioHistory.member-wallet-statement .has-wallet-balances th:nth-child(2){width:27%}
+ #memberAccountShell #mioHistory.member-wallet-statement .has-wallet-balances th:nth-child(3){width:13%}
+ #memberAccountShell #mioHistory.member-wallet-statement .has-wallet-balances th.wallet-balance-column{width:17%}
+ #memberAccountShell #mioHistory.member-wallet-statement .has-wallet-balances th:last-child{width:9%}
+}
+@media(max-width:760px){
+ .cash-history-table.has-wallet-balances .wallet-balance-column{display:none!important}
+ .cash-history-table .wallet-mobile-balances{display:grid;gap:3px;margin-top:6px;font-size:10px;font-weight:400;color:#607769}
+ .wallet-mobile-balances span{display:block}
+ .wallet-mobile-balances b{display:block;font-size:11px;color:#294e3d;font-weight:600}
+}
