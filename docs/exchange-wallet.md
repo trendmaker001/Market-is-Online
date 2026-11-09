@@ -25,3 +25,9 @@ PGlite tests cover all tiers, free-member transfers, routing, balances, insuffic
 - Download creates a PNG locally in the browser with the same record details; no third-party rendering service or wallet mutation is involved.
 - Only a PREMIUM (Platinum) dashboard requests and displays the Exchange Wallet balance. The card links to Exchange Wallet. A failed balance read displays an unavailable marker rather than a fabricated zero. Admin member previews use the selected member's separately retrieved exchange balance.
 - Verification: receipt and exchange UI tests, dashboard tier visibility, admin member preview, existing exchange database tests and interface checks; local desktop/mobile browser preview and successful PNG download. No live member transfer was executed for QA.
+
+### Compact receipt presentation (9 November 2026)
+
+Receipt modal now uses a 440px maximum width, small brand header, a single amount panel, and a sender/receiver comparison table. The PNG export uses the same compact content structure, wraps names at word boundaries and sizes its canvas to the content. No footer URL or duplicate total is shown.
+
+Verification: existing receipt authorization/escaping/direction tests and exchange UI tests passed; interface suite passed all 109 checks. Browser QA at 320×568 and 390×650 showed no horizontal or vertical modal overflow for a full UUID, company name and member IDs (receipt heights approximately 506px and 473px). PNG download completed successfully. Exceptionally long notes or enlarged text retain scrolling so details remain accessible.
