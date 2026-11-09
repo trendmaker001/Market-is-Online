@@ -111,3 +111,6 @@
 .member-account-shell[data-theme=dark] .dashboard-active-wallets .income-wallet-card:not([data-wallet-history=cash]){background:#15392e;border-color:#315645}
 
 .wallet-transfer-dialog [hidden]{display:none!important}
+
+.wallet-hub-cards.wallet-transfer-only{grid-template-columns:minmax(0,380px)}
+@media(max-width:760px){.wallet-transfer-only .wallet-hub-card-top{flex-direction:row;align-items:center;min-height:38px}.wallet-transfer-only .wallet-hub-card-footer{flex-direction:row;align-items:center;min-height:49px}.wallet-transfer-only .wallet-hub-action{width:auto!important}}

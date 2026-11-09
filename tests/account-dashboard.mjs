@@ -82,9 +82,9 @@ d.querySelector('[data-wallet-menu]').click();assert.equal(d.getElementById('mem
 d.querySelector('[data-wallet-menu]').click();assert.equal(d.getElementById('memberWalletSubmenu').hidden,false);
 for(const name of ['deposit','withdraw','top-up']){q.go(name);assert.equal(d.querySelector('#page-'+name).classList.contains('active'),true);assert.equal(d.querySelector('#memberAccountShell').classList.contains('hidden'),false);assert.match(d.querySelector('#page-'+name).textContent,/not available yet/)}
 q.go('wallet');
-const originalHub=w.MioWalletHub;let transferOpens=0;w.MioWalletHub={enter(){},leave(){},update(){},setIdentity(){},openTransfer(){transferOpens++}};
-d.querySelector('#memberAccountNav [data-page=transfer]').click();assert.equal(d.querySelector('#page-wallet').classList.contains('active'),true);assert.equal(d.querySelector('#page-transfer').classList.contains('active'),false);assert.equal(w.location.hash,'#wallet');assert.equal(transferOpens,1);
-q.go('transfer');assert.equal(transferOpens,2);w.MioWalletHub=originalHub;
+const originalHub=w.MioWalletHub;let transferOpens=0,transferView=false;w.MioWalletHub={setTransferView(value){transferView=value},enter(){},leave(){},update(){},setIdentity(){},openTransfer(){transferOpens++}};
+d.querySelector('#memberAccountNav [data-page=transfer]').click();assert.equal(d.querySelector('#page-wallet').classList.contains('active'),true);assert.equal(d.querySelector('#page-transfer').classList.contains('active'),false);assert.equal(w.location.hash,'#transfer');assert.equal(transferView,true);assert.equal(transferOpens,1);
+q.go('transfer');assert.equal(transferOpens,2);q.go('wallet');assert.equal(transferView,false);assert.equal(w.location.hash,'#wallet');w.MioWalletHub=originalHub;
 assert.equal(d.querySelectorAll('#memberAccountNav .member-nav-group').length,4);
 assert.match(d.querySelector('.sidebar-heading').textContent,/Account centre/);
 assert.match(dashboardCssSource,/\.member-account-shell>\.member-sidebar\{\s*position:sticky;/,'desktop sidebar keeps its sticky position instead of being pushed down');
