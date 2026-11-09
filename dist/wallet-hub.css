@@ -109,3 +109,5 @@
 .member-account-shell[data-theme=dark] .wallet-hub-card-footer{border-color:#ffffff26}
 .member-account-shell[data-theme=dark] .wallet-hub-select{color:#b2e7cd}
 .member-account-shell[data-theme=dark] .dashboard-active-wallets .income-wallet-card:not([data-wallet-history=cash]){background:#15392e;border-color:#315645}
+
+.wallet-transfer-dialog [hidden]{display:none!important}

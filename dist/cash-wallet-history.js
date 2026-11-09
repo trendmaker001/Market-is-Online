@@ -12,7 +12,7 @@ window.createMioWalletHistory=(options={})=>{
  const key=()=>`mio-wallet-view:${options.compact?'hub:':''}${options.company?'company:':options.admin?'admin:':''}${uid}`;
  function save(){try{sessionStorage.setItem(key(),JSON.stringify({page,filter,from,to,kind}))}catch{}}
  function setIdentity(id){if(uid===id)return;turn++;uid=id;rows=[];page=1;filter='all';from='';to='';kind=options.company?'company':'cash';window.MioTransferReceipt?.clear();host()?.replaceChildren();if(uid){try{const p=JSON.parse(sessionStorage.getItem(key())||'{}');page=Math.max(1,Math.min(100000,Number(p.page)||1));filter=['all','received','sent','package','other','proceeded'].includes(p.filter)?p.filter:'all';kind=options.company?'company':walletKinds.includes(p.kind)?p.kind:'cash';from=/^\d{4}-\d{2}-\d{2}$/.test(p.from)?p.from:'';to=/^\d{4}-\d{2}-\d{2}$/.test(p.to)?p.to:''}catch{}}if(options.compact&&!['all','proceeded'].includes(filter))filter='all'}
- function setWallet(value){if(!walletKinds.includes(value))return;turn++;kind=value;page=1;filter='all';rows=[];host()?.replaceChildren();save()}
+ function setWallet(value,{resetDates=false}={}){if(!walletKinds.includes(value))return;turn++;kind=value;page=1;filter='all';if(resetDates){from='';to=''}rows=[];host()?.replaceChildren();save()}
  function mount(value){
   api=value;
   const target=host();
