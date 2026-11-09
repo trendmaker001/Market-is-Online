@@ -1106,8 +1106,8 @@ function renderFinancePanels(s,d,metric,fmt,labels){
 // Shared calendar and compact ledger presentation. Dates use the platform's Pakistan timezone.
 const historyFilters={earnings:{from:'',to:''},desktopEarnings:{from:'',to:''},mio:{from:'',to:''}};
 const historyPage={earnings:1,desktopEarnings:1,mio:1};
-let selectedEarningDay=null;
-function resetHistoryFilters(){for(const key of Object.keys(historyFilters)){historyFilters[key]={from:'',to:''};historyPage[key]=1}selectedEarningDay=null}
+let selectedEarningDay=null,activeDesktopBonus='all';
+function resetHistoryFilters(){for(const key of Object.keys(historyFilters)){historyFilters[key]={from:'',to:''};historyPage[key]=1}selectedEarningDay=null;activeDesktopBonus='all'}
 function historyDay(value){if(!value||!Number.isFinite(new Date(value).getTime()))return '';const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Karachi',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(value));const get=k=>parts.find(p=>p.type===k)?.value;return `${get('year')}-${get('month')}-${get('day')}`}
 function displayHistoryDay(day){return /^\d{4}-\d{2}-\d{2}$/.test(day)?new Date(day+'T00:00:00Z').toLocaleDateString('en-GB',{timeZone:'UTC',day:'2-digit',month:'short',year:'numeric'}):'Date unavailable'}
 function filterHistoryDates(rows,scope){const {from,to}=historyFilters[scope];return rows.filter(row=>{const day=historyDay(row.created_at);return (!from||day>=from)&&(!to||!!day&&day<=to)})}
@@ -1132,6 +1132,14 @@ const desktopBonusColumns=[
  ['monthly_maintenance','Monthly Maintenance'],['annual_maintenance','Annual Maintenance'],['ecommerce','E-commerce']
 ];
 const desktopDaysPerPage=50;
+document.addEventListener('change',event=>{
+ if(!event.target.matches('[data-desktop-bonus-filter]'))return;
+ const value=event.target.value;
+ if(value!=='all'&&!desktopBonusColumns.some(([key])=>key===value))return;
+ activeDesktopBonus=value;historyPage.desktopEarnings=1;selectedEarningDay=null;
+ renderDesktopEarnings();el('desktopEarningHistory')?.querySelector('[data-desktop-bonus-filter]')?.focus({preventScroll:true});
+});
+
 
 function desktopEarningRows(){
  // The shopping RPC also includes the same maintenance payout IDs already loaded as network earnings.
@@ -1145,7 +1153,7 @@ function desktopEarningRows(){
  const allowed=new Set(desktopBonusColumns.map(([key])=>key));
  const {from,to}=historyFilters.desktopEarnings;
  return rows.flatMap(({row,category})=>{
-  if(!allowed.has(category))return [];
+  if(!allowed.has(category)||(activeDesktopBonus!=='all'&&category!==activeDesktopBonus))return [];
   const day=historyDay(row.created_at);
   return ((!from||day>=from)&&(!to||!!day&&day<=to))?[{row,category,day}]:[];
  }).sort((a,b)=>b.day.localeCompare(a.day)||(Date.parse(b.row.created_at)||0)-(Date.parse(a.row.created_at)||0));
@@ -1208,28 +1216,29 @@ function renderDesktopEarnings(){
  const days=[...groups.keys()],pages=Math.max(1,Math.ceil(days.length/desktopDaysPerPage));
  const page=historyPage.desktopEarnings=Math.max(1,Math.min(historyPage.desktopEarnings,pages));
  const start=(page-1)*desktopDaysPerPage,end=Math.min(start+desktopDaysPerPage,days.length);
- const moneyText=amount=>amount.toFixed(2);
- const cols='<colgroup><col class="earning-date-col"><col span="8"><col class="earning-total-col"><col class="earning-action-col"></colgroup>';
- const header=(first,last)=>`<thead><tr><th scope="col">${first}</th>${desktopBonusColumns.map(([,label])=>`<th scope="col">${label}</th>`).join('')}<th scope="col">Grand total</th><th scope="col">${last}</th></tr></thead>`;
+ const moneyText=amount=>amount.toFixed(2),filtered=activeDesktopBonus!=='all',columns=filtered?desktopBonusColumns.filter(([key])=>key===activeDesktopBonus):desktopBonusColumns,columnCount=filtered?3:11;
+ const bonusFilter=`<label class="desktop-bonus-filter"><span class="sr-only">Bonus type</span><select aria-label="Bonus type" data-desktop-bonus-filter><option value="all" ${!filtered?'selected':''}>All bonuses</option>${desktopBonusColumns.map(([key,label])=>`<option value="${key}" ${key===activeDesktopBonus?'selected':''}>${label}</option>`).join('')}</select></label>`;
+ const cols=filtered?'<colgroup><col style="width:38%"><col style="width:42%"><col style="width:20%"></colgroup>':'<colgroup><col class="earning-date-col"><col span="8"><col class="earning-total-col"><col class="earning-action-col"></colgroup>';
+ const header=(first,last)=>`<thead><tr><th scope="col">${first}</th>${columns.map(([,label])=>`<th scope="col">${label}${filtered?' (MIO)':''}</th>`).join('')}${filtered?'':'<th scope="col">Grand total</th>'}<th scope="col">${last}</th></tr></thead>`;
  const credited=items=>items.filter(({row})=>row.status==='posted').map(({row})=>row);
  const details=(items,day,id)=>{
   const counts=new Map();
   for(const {category} of items)counts.set(category,(counts.get(category)||0)+1);
   const countLabels=desktopBonusColumns.filter(([key])=>counts.has(key)).map(([key,label])=>`<span>${counts.get(key)} ${label}</span>`).join('');
-  return `<tr class="earning-expanded-row"><td colspan="11"><section id="${id}" aria-label="Earning details for ${displayHistoryDay(day)}"><header><h2>${displayHistoryDay(day)} · Earning details</h2><div><strong>${items.length} ${items.length===1?'entry':'entries'}</strong>${countLabels}</div></header><table class="desktop-earning-table" aria-label="Individual earning entries">${cols}${header('Entry','Status')}<tbody>${items.map(({row,category},index)=>{
+  return `<tr class="earning-expanded-row"><td colspan="${columnCount}"><section id="${id}" aria-label="Earning details for ${displayHistoryDay(day)}"><header><h2>${displayHistoryDay(day)} · Earning details</h2><div><strong>${items.length} ${items.length===1?'entry':'entries'}</strong>${countLabels}</div></header><table class="desktop-earning-table" aria-label="Individual earning entries">${cols}${header('Entry','Status')}<tbody>${items.map(({row,category},index)=>{
    const source=row.source_name||row.source_kind||row.source_code||row.order_code||row.source_order_code;
    const status=row.status==='posted'?'Credited':isHeldEarning(row)?'On hold':row.reward_kind?ecommerceState(row.status):'Reversed';
-   return `<tr><th scope="row"><span>${index+1}. ${esc(pkDateTime(row.created_at).replace(/^.*?, /,''))}</span>${source?`<small>${esc(source)}</small>`:''}</th>${desktopBonusColumns.map(([key])=>`<td>${key===category?moneyText(earningAmount(row)):'—'}</td>`).join('')}<td>${moneyText(earningAmount(row))}</td><td>${esc(status)}</td></tr>`;
+   return `<tr><th scope="row"><span>${index+1}. ${esc(pkDateTime(row.created_at).replace(/^.*?, /,''))}</span>${source?`<small>${esc(source)}</small>`:''}</th>${columns.map(([key])=>`<td>${key===category?moneyText(earningAmount(row)):'—'}</td>`).join('')}${filtered?'':`<td>${moneyText(earningAmount(row))}</td>`}<td>${esc(status)}</td></tr>`;
   }).join('')}</tbody></table></section></td></tr>`;
  };
  const dailyRows=days.slice(start,end).map((day,index)=>{
   const items=groups.get(day),posted=credited(items),expanded=selectedEarningDay===day,id=`earning-date-${start+index}`;
-  return `<tr class="${expanded?'earning-selected-date':''}"><th scope="row">${displayHistoryDay(day)}</th>${desktopBonusColumns.map(([key])=>`<td>${moneyText(sumEarnings(credited(items.filter(item=>item.category===key))))}</td>`).join('')}<td class="earning-day-total">${moneyText(sumEarnings(posted))}</td><td><button type="button" class="btn small" data-desktop-earning-day="${day||'unavailable'}" aria-expanded="${expanded}" ${expanded?`aria-controls="${id}"`:''}>Details</button></td></tr>${expanded?details(items,day,id):''}`;
+  return `<tr class="${expanded?'earning-selected-date':''}"><th scope="row">${displayHistoryDay(day)}</th>${columns.map(([key])=>`<td>${moneyText(sumEarnings(credited(items.filter(item=>item.category===key))))}</td>`).join('')}${filtered?'':`<td class="earning-day-total">${moneyText(sumEarnings(posted))}</td>`}<td><button type="button" class="btn small" data-desktop-earning-day="${day||'unavailable'}" aria-expanded="${expanded}" ${expanded?`aria-controls="${id}"`:''}>Details</button></td></tr>${expanded?details(items,day,id):''}`;
  }).join('');
  const range=days.length?`${start+1}–${end} of ${days.length}`:'0 dates';
  const held=sumEarnings(entries.map(({row})=>row).filter(isHeldEarning));
- target.innerHTML=`<div class="desktop-earning-heading"><h1><span class="earning-title-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 20h18M5 17v-4m5 4V9m5 8v-6m5 6V5M4 9l6-5 5 3 6-5m-5 0h5v5"/></svg></span>Earning History</h1>${earningRangeControl()}<div class="desktop-earning-total" aria-live="polite"><small>Total credited</small><strong>${moneyText(sumEarnings(credited(entries)))} MIO</strong>${held?`<small>${moneyText(held)} MIO on hold</small>`:''}</div></div>
- <div class="desktop-earning-card"><table class="desktop-earning-table" aria-label="Daily earning history">${cols}${header('Date','Action')}<tbody>${dailyRows||'<tr><td colspan="11">No earnings in this date range.</td></tr>'}</tbody></table>
+ target.innerHTML=`<div class="desktop-earning-heading"><h1><span class="earning-title-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 20h18M5 17v-4m5 4V9m5 8v-6m5 6V5M4 9l6-5 5 3 6-5m-5 0h5v5"/></svg></span>Earning History</h1>${bonusFilter}${earningRangeControl()}<div class="desktop-earning-total" aria-live="polite"><small>${filtered?'Selected bonus total':'Total credited'}</small><strong>${moneyText(sumEarnings(credited(entries)))} MIO</strong>${held?`<small>${moneyText(held)} MIO on hold</small>`:''}</div></div>
+ <div class="desktop-earning-card"><table class="desktop-earning-table ${filtered?'earning-bonus-filtered':''}" aria-label="Daily earning history">${cols}${header('Date','Action')}<tbody>${dailyRows||`<tr><td colspan="${columnCount}">No earnings in this date range.</td></tr>`}</tbody></table>
  <nav class="desktop-earning-pagination" aria-label="Earning history pages"><small>50 dates per page</small><div><button class="btn small" type="button" data-history-page="desktopEarnings" data-page-delta="-1" ${page===1?'disabled':''}>Previous</button><span aria-live="polite">${range}</span><button class="btn small" type="button" data-history-page="desktopEarnings" data-page-delta="1" ${page===pages?'disabled':''}>Next</button></div></nav></div>`;
  resetEarningRange(target.querySelector('.earning-range-panel'));
 }
