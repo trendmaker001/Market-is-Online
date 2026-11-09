@@ -60,3 +60,20 @@
  .member-wallet-statement .cash-history-table :is(th,td){padding:7px 4px;font-size:11px;overflow-wrap:anywhere}
  .member-wallet-statement .cash-history-table .btn{font-size:11px;padding:4px}
 }
+
+/* Keep inherited account-table spacing from clipping the wallet statement. */
+#memberAccountShell #mioHistory.member-wallet-statement .cash-history-table :is(th,td){white-space:normal;overflow-wrap:break-word;word-break:normal;padding:8px 5px;line-height:1.35}
+#memberAccountShell #mioHistory.member-wallet-statement .cash-history-table th:last-child{width:20%}
+#memberAccountShell #mioHistory.member-wallet-statement .cash-history-table .btn{min-width:0;min-height:30px;white-space:nowrap;padding:4px;font-size:11px}
+@media(max-width:760px){
+ #memberAccountShell #mioHistory.member-wallet-statement .wallet-history-filters{grid-template-columns:repeat(6,minmax(0,1fr))}
+ #memberAccountShell #mioHistory.member-wallet-statement .wallet-from{grid-column:1 / 4}
+ #memberAccountShell #mioHistory.member-wallet-statement .wallet-to{grid-column:4 / 7}
+ #memberAccountShell #mioHistory.member-wallet-statement .wallet-picker{grid-column:1 / 4}
+ #memberAccountShell #mioHistory.member-wallet-statement .wallet-activity{grid-column:4 / 7}
+ #memberAccountShell #mioHistory.member-wallet-statement .wallet-history-filters button[type=submit]{grid-column:1 / 4}
+ #memberAccountShell #mioHistory.member-wallet-statement .wallet-history-filters [data-wallet-clear]{grid-column:4 / 7}
+ #memberAccountShell #mioHistory.member-wallet-statement .wallet-history-filters :is(input,select){min-height:34px;padding:5px;font-size:11px}
+ #memberAccountShell #mioHistory.member-wallet-statement .wallet-history-filters .btn{min-height:30px;padding:4px 6px;font-size:11px}
+ #memberAccountShell #mioHistory.member-wallet-statement .cash-history-table :is(th,td){padding:7px 3px;font-size:11px}
+}

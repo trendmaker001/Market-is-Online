@@ -3249,3 +3249,14 @@ body.admin-workspace-active #marketplaceFooter,body.admin-workspace-active #acco
 @media(max-width:760px){
  [data-page="earnings"] .earning-desktop-name,#accountPageTitle .earning-desktop-name{display:none}
 }
+
+/* Outrank legacy account table rules without changing mobile earning cards. */
+@media(min-width:761px){
+ #memberAccountShell #page-earnings .desktop-earning-table :is(th,td){padding:7px 4px;line-height:1.25;white-space:normal;overflow-wrap:break-word;word-break:normal}
+ #memberAccountShell #page-earnings .desktop-earning-table th:first-child{padding-left:10px}
+ #memberAccountShell #page-earnings .desktop-earning-table .earning-expanded-row>td{padding:0}
+ #memberAccountShell #page-earnings .desktop-earning-table .btn{min-height:27px;padding:3px 6px;font-size:11px}
+ #memberAccountShell #page-earnings .desktop-earning-heading .history-date-form{padding:0;gap:5px;border:0;background:transparent;box-shadow:none}
+ #memberAccountShell #page-earnings .desktop-earning-heading .history-date-form input{min-height:34px;padding:5px;font-size:11px}
+ #memberAccountShell #page-earnings .desktop-earning-heading .history-date-form .btn{min-height:34px;padding:5px 8px;font-size:11px}
+}
