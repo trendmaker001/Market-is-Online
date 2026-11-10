@@ -3390,8 +3390,7 @@ body.admin-workspace-active #marketplaceFooter,body.admin-workspace-active #acco
  .mobile-earning-total>span{font-size:12px;color:#e4f5ec;font-weight:600}
  .mobile-earning-total strong{font-size:25px;line-height:1.2;font-variant-numeric:tabular-nums;letter-spacing:-.5px;color:#fff}
  .mobile-earning-total small{font-size:11px;letter-spacing:0}
- .mobile-earning-filters{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr) 32px;gap:6px;align-items:center}
- #memberAccountShell #page-earnings [data-mobile-bonus-filter]{min-width:0;width:100%;height:36px;min-height:36px;padding:6px 18px 6px 7px;font-size:11px;border:1px solid #ffffff85;border-radius:7px;background-color:#fff;color:#174b37;box-shadow:none}
+ .mobile-earning-filters{display:grid;grid-template-columns:minmax(0,1fr) 36px;gap:8px;align-items:center}
  .earning-range{position:relative;min-width:0;border:0;padding:0;background:transparent}
  #memberAccountShell #page-earnings .earning-range>summary{display:flex;align-items:center;justify-content:center;gap:8px;list-style:none;cursor:pointer;color:#fff;border:1px solid #ffffff95;border-radius:7px;padding:9px 11px;min-height:36px;box-sizing:border-box;font-size:12px;font-weight:600;white-space:nowrap;background:transparent}
  .earning-range>summary::-webkit-details-marker{display:none}
@@ -3427,4 +3426,26 @@ body.admin-workspace-active #marketplaceFooter,body.admin-workspace-active #acco
  [data-theme="dark"] .mobile-earning-category{background:#182f26;border-color:#355345;color:#e6f4ec}
  [data-theme="dark"] .mobile-earning-category>b{color:#a8e2c5}
  [data-theme="dark"] .mobile-earning-category small{color:#b0c6bb}
+}
+
+/* A single mobile calendar, an explicit applied period, and a compact account footer. */
+@media(max-width:760px){
+ .mobile-earning-period{display:grid;gap:3px;padding:9px 12px;border:1px solid #d6e9df;border-left:3px solid #087950;border-radius:8px;background:#edf7f1;color:#174b35;line-height:1.45}
+ .mobile-earning-period>span{font-size:10px;color:#526f60}
+ .mobile-earning-period strong{font-size:12px;font-weight:650;overflow-wrap:anywhere}
+ #memberAccountShell #page-earnings .mobile-earning-toolbar .earning-range>summary{min-height:38px;padding:8px 11px;font-size:12px;gap:8px;background:#ffffff0a}
+ .mobile-earning-toolbar .earning-range>summary>span:last-child{margin-left:auto}
+ #memberAccountShell #page-earnings .mobile-earning-toolbar .earning-range-reset{width:36px;height:38px}
+ #memberAccountShell #page-earnings .earning-range-selection{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding-top:10px;text-align:left}
+ #memberAccountShell #page-earnings .earning-range-selection>span{padding:8px;border:1px solid #e1ece6;background:#f5faf7;border-radius:7px}
+ #memberAccountShell #page-earnings .earning-range-selection b{font-size:12px}
+ #memberAccountShell #page-earnings .earning-range-grid button{height:34px;border-radius:5px}
+ #memberAccountShell #page-earnings .earning-range-actions .btn{width:auto!important;min-height:36px!important;padding:7px 16px}
+ body:has(#page-earnings.active) .member-account-shell{margin-bottom:0}
+ body:has(#page-earnings.active) #main-content{padding-bottom:0}
+ body:has(#page-earnings.active) #accountFooter{margin:0;padding:6px 0;font-size:10px;line-height:1.4}
+ body:has(#page-earnings.active) #accountFooter .wrap{flex-direction:row;justify-content:space-between;align-items:center;gap:8px;padding-block:0}
+ body:has(#page-earnings.active) #accountFooter a{padding:6px 0;white-space:nowrap;font-weight:600}
+ [data-theme="dark"] .mobile-earning-period{background:#17392a;border-color:#355846;color:#e2f3e9}
+ [data-theme="dark"] .mobile-earning-period>span{color:#b3cbbd}
 }
