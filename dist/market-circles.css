@@ -1,0 +1,49 @@
+
+/* Compact marketplace category and vendor circles — scoped away from account UI. */
+#page-shop .market-circle-section{margin-top:22px;padding:16px 18px 10px;border:1px solid #e0ebe5;border-radius:16px;background:#fff;box-shadow:0 3px 12px #124c3105}
+#page-shop .market-circle-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 8px;padding:0;border:0}
+#page-shop .market-circle-heading h2{margin:0;font-size:20px;line-height:1.3;font-weight:750;letter-spacing:-.3px;color:#173f30}
+#page-shop .market-circle-controls{display:flex;align-items:center;gap:14px}
+#page-shop .market-circle-all{display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:5px 0;border:0;background:transparent;color:#08784f;font-size:12px;font-weight:700;white-space:nowrap}
+#page-shop .market-circle-arrows{display:flex;gap:6px}
+#page-shop .market-circle-arrows button{display:grid;place-items:center;width:36px;height:36px;padding:0;border:1px solid #d9e8df;border-radius:50%;background:#fff;color:#126344;font-size:23px;line-height:1}
+#page-shop .market-circle-arrows button:hover{background:#edf7f1;border-color:#8aba9e}
+#page-shop .market-circle-rail{display:flex;flex-flow:row nowrap;align-items:flex-start;gap:16px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;scroll-padding-inline:4px;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:#c7ded0 transparent;padding:6px 3px 10px;margin:0;max-width:100%;min-width:0}
+#page-shop .market-circle-rail::-webkit-scrollbar{height:4px}
+#page-shop .market-circle-rail::-webkit-scrollbar-thumb{background:#c7ded0;border-radius:4px}
+#page-shop .market-circle-item{flex:0 0 112px;width:112px;min-width:0;max-width:none;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:9px;padding:0 3px 4px;margin:0;border:0;border-radius:8px;background:transparent;box-shadow:none;text-align:center;color:#264c39;scroll-snap-align:start;transform:none;transition:none}
+#page-shop .market-circle-item:before,#page-shop .market-circle-item:after{display:none}
+#page-shop .market-circle-item .market-circle-art{position:relative;display:grid;place-items:center;flex:none;width:96px;height:96px;min-height:0;padding:3px;margin:0;border:1px solid #dce9e1;border-radius:50%;overflow:hidden;background:#f1f7f3;box-shadow:0 2px 6px #0b573009;transition:border-color .15s,box-shadow .15s;grid-row:auto}
+#page-shop .market-circle-item .market-circle-art img{display:block;width:100%;height:100%;max-width:none;min-height:0;padding:0;margin:0;border:0;border-radius:50%;object-fit:cover;background:#f1f7f3;transform:none;position:relative;z-index:1}
+#page-shop .market-circle-item .market-vendor-art{padding:0;background:#fff}
+#page-shop .market-circle-item .market-vendor-art img{padding:12px;object-fit:contain;background:#fff}
+#page-shop .market-vendor-monogram{position:absolute;inset:0;display:grid;place-items:center;font-size:24px;font-weight:700;color:#167b53;background:#edf7f1}
+#page-shop .market-circle-item strong{display:block;max-width:100%;margin:0;padding:0;color:#294a3a;font-size:12px;font-weight:600;line-height:1.4;white-space:normal;overflow-wrap:normal;word-break:normal;text-overflow:clip;letter-spacing:0}
+#page-shop .market-circle-item:hover .market-circle-art{border-color:#16845b;box-shadow:0 0 0 2px #16845b18}
+#page-shop .market-circle-item:hover strong{color:#08784f}
+#page-shop .market-circle-item:focus-visible,#page-shop .market-circle-all:focus-visible,#page-shop .market-circle-arrows button:focus-visible,#page-shop .market-circle-rail:focus-visible{outline:2px solid #128358;outline-offset:3px}
+#page-shop .market-circle-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:22px 16px;padding:18px;border:1px solid #e0ebe5;border-radius:16px;background:white}
+#page-shop .market-circle-grid .market-circle-item{width:100%;justify-self:center}
+@media(max-width:680px){
+ #page-shop .market-circle-section{margin-top:16px;padding:10px 10px 5px;border-radius:12px}
+ #page-shop .market-circle-heading{gap:8px;margin-bottom:2px}
+ #page-shop .market-circle-heading h2{font-size:17px}
+ #page-shop .market-circle-controls{gap:0}
+ #page-shop .market-circle-arrows{display:none}
+ #page-shop .market-circle-all{font-size:11px;min-height:38px}
+ #page-shop .market-circle-rail{gap:8px;padding:5px 2px 8px}
+ #page-shop .market-circle-item{flex-basis:78px;width:78px;gap:7px;padding:0 1px 3px}
+ #page-shop .market-circle-item .market-circle-art{width:68px;height:68px;padding:2px}
+ #page-shop .market-circle-item .market-vendor-art{padding:0}
+ #page-shop .market-circle-item .market-vendor-art img{padding:8px}
+ #page-shop .market-circle-item strong{font-size:10px;line-height:1.35}
+ #page-shop .market-circle-grid{grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:18px 8px;padding:12px 8px}
+}
+@media(prefers-reduced-motion:reduce){#page-shop .market-circle-art{transition:none}}
+
+#page-shop .dept.market-circle-item{background:transparent!important}
+#page-shop #departments.market-circle-rail{gap:16px;padding:6px 3px 10px}
+@media(max-width:680px){#page-shop #departments.market-circle-rail{gap:8px;padding:5px 2px 8px}}
+#page-shop .market-circle-item .dept-art{height:96px!important}
+#page-shop .market-circle-item .dept-art img.category-illustration{width:100%!important;height:100%!important;object-fit:cover!important}
+@media(max-width:680px){#page-shop .market-circle-item .dept-art{height:68px!important}}
