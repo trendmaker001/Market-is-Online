@@ -1,0 +1,95 @@
+import {PGlite} from '@electric-sql/pglite';
+import {readFile,readdir} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+import assert from 'node:assert/strict';
+const source=new URL('..',import.meta.url).pathname.replace(/\/$/,'');
+const db=new PGlite(),q=(sql,args=[])=>db.query(sql,args),one=async(sql,args=[])=>Object.values((await q(sql,args)).rows[0])[0];
+const uid=n=>{const h=createHash('sha256').update('bundles:'+n).digest('hex').slice(0,32);return `${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20)}`};
+const company=uid(1),buyer=uid(2),as=id=>q("select set_config('request.jwt.claim.sub',$1,false)",[id]);
+await db.exec(`create role anon;create role authenticated;create role service_role;create schema auth;
+create table auth.users(id uuid primary key,email text,raw_user_meta_data jsonb,raw_app_meta_data jsonb);
+create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
+alter default privileges grant execute on functions to anon,authenticated,service_role;
+grant usage on schema auth to anon,authenticated;grant execute on function auth.uid() to anon,authenticated;`);
+for(const file of (await readdir(source+'/schema')).filter(x=>/^\d+.*\.sql$/.test(x)).sort())await db.exec(await readFile(source+'/schema/'+file,'utf8'));
+await db.exec('alter table public.products add column if not exists country_code text');
+// The production PIN helper is installed by the Supabase-only security migration.
+await db.exec("create function private.require_transaction_pin(text,uuid) returns void language sql as $$select$$");
+await q("update private.operator_setup set email='checkout-company@example.invalid'");
+await q("insert into auth.users(id,email,raw_user_meta_data,raw_app_meta_data) values($1,'checkout-company@example.invalid',$2,'{\"provider\":\"google\"}')",[company,JSON.stringify({full_name:'Checkout company',phone:'00000000',terms_accepted:true})]);
+await q("insert into public.user_roles(user_id,role) values($1,'admin')",[company]);await q("update public.member_profiles set status='active',terms_accepted_at=now() where user_id=$1",[company]);
+const ref=await one('select referral_code from public.member_profiles where user_id=$1',[company]);
+await q("insert into auth.users(id,email,raw_user_meta_data,raw_app_meta_data) values($1,'checkout-buyer@example.invalid',$2,'{}')",[buyer,JSON.stringify({full_name:'Checkout buyer',phone:'00000000',terms_accepted:true,referral_code:ref})]);await q("update public.member_profiles set status='active',terms_accepted_at=now() where user_id=$1",[buyer]);
+await as(company);await q("select set_config('request.jwt.claims',$1,false)",[JSON.stringify({aal:'aal2',amr:[{method:'totp',timestamp:Math.floor(Date.now()/1000)}]})]);await q("select public.admin_set_usd_to_pkr_rate(300,'Checkout test rate')");await q("select public.set_company_delivery(0,'Checkout test delivery')");
+const vendor=await one("select public.create_company_brand('Checkout shop','','')");await q('select public.set_vendor_commission($1,.30)',[vendor]);const product=await one("insert into public.products(vendor_id,name,description,category,price_pkr,stock_quantity,status) values($1,'Checkout product','Checkout test','Tests',1000,100,'approved') returning id",[vendor]);
+await q("update public.mio_wallet_accounts set balance=100 where member_id=$1",[buyer]);await q("insert into public.member_income_wallets(member_id,shopping_points,promotion_points) values($1,10000,20) on conflict(member_id)do update set shopping_points=10000,promotion_points=20",[buyer]);await as(buyer);
+
+
+await as(company);
+const legacyItems=[];let legacyPoints=0;
+for(const price of [1375,1595,1695]){const id=await one("insert into public.products(vendor_id,name,description,category,price_pkr,stock_quantity,status) values($1,$2,'Legacy component','Care', $3,50,'approved') returning id",[vendor,'Legacy care '+price,price]);legacyItems.push({product_id:id,quantity:1});legacyPoints+=Number(await one('select ppv_per_unit from public.products where id=$1',[id]));}
+const legacyBundle=await one("select public.admin_save_bundle(null,$1,'Legacy Care Trio',$2,$3,$4,300,$5,'approved','half_ppv')",[vendor,JSON.stringify(legacyItems),Math.floor(legacyPoints/2*10000)/10000,Math.round(legacyPoints/2*300*100)/100,JSON.stringify(['/assets/bundles/allure-daily-care-trio.webp'])]);
+await q('insert into private.network_foundation(singleton,company_id,founder_id) values(true,$1,$2)',[company,buyer]);
+await db.exec(await readFile(source+'/supabase/migrations/20261110214233_product_commission_and_vendor_rewards.sql','utf8'));
+const migratedBundle=(await q('select status,bundle_definition from public.products where id=$1',[legacyBundle])).rows[0];
+assert.equal(migratedBundle.status,'approved');assert.equal(migratedBundle.bundle_definition.economics_version,3);assert.equal(migratedBundle.bundle_definition.introducer_pkr,139.95);
+assert.ok(migratedBundle.bundle_definition.ppv<legacyPoints/2);
+console.log('PASS existing published care bundle recalculates under the new economics and stays published');
+
+const economics=async(base,sale,commission,rate,points=null,policy='reserve')=>one('select private.product_economics($1,$2,$3,$4,$5,$6)',[base,sale,commission,rate,points,policy]);
+let e=await economics(1000,1000,.30,290);assert.equal(e.company_fee,50);assert.equal(e.introducer,30);assert.equal(e.maximum_ppv,.7586);assert.equal(e.reserve,0);
+e=await economics(1000,1000,.20,290);assert.equal(e.introducer,20);assert.equal(e.maximum_ppv,.4482);
+e=await economics(1000,1000,.30,290,.5,'reserve');assert.equal(e.reserve,75);assert.equal(e.sale_price,1000);
+e=await economics(1000,1000,.30,290,.5,'discount');assert.equal(e.extra_discount,75);assert.equal(e.sale_price,925);assert.equal(e.reserve,0);
+await assert.rejects(()=>economics(1000,1000,.3,290,.9),/maximum PPV/);await assert.rejects(()=>economics(1000,700,.3,290),/cover/);
+console.log('PASS 30%/20% economics, capped PPV, explicit reserve/discount and unfunded settings rejection');
+await q('select public.admin_save_product_economics($1,1000,null,.20,.4,\'reserve\')',[product]);
+assert.equal(Number(await one('select ppv_per_unit from public.products where id=$1',[product])),.4);
+assert.equal(Number(await one('select maximum_ppv from public.products where id=$1',[product])),.4333);
+await q('select public.admin_save_product_economics($1,1000,null,.20,.4,\'discount\')',[product]);
+assert.equal(Number(await one('select price_pkr from public.products where id=$1',[product])),990);
+await q('update public.products set stock_quantity=99 where id=$1',[product]);assert.equal(Number(await one('select price_pkr from public.products where id=$1',[product])),990);
+await as(buyer);await assert.rejects(()=>q('select public.admin_save_product_economics($1,1000,null,.30,.5,\'reserve\')',[product]),/Admin access/);
+console.log('PASS admin pricing save, repeat stock updates preserve one discount, and member cannot change settings');
+await as(company);await q('select public.admin_save_product_economics($1,1000,null,.30,.5,\'reserve\')',[product]);
+await q('update public.vendors set introduced_by=$1 where id=$2',[company,vendor]);
+await as(buyer);
+const order=await one("select public.place_checkout_order($1,'Buyer','00000000','Checkout address','Lahore','economics-order-0001','STANDARD','COD','1234')",[JSON.stringify([{product_id:product,quantity:1}])]);
+const row=(await q('select * from public.order_items where order_id=$1',[order.order_id])).rows[0];assert.equal(row.economics_version,3);assert.equal(Number(row.ppv_per_unit_snapshot),.5);assert.equal(row.economics_snapshot.introducer,30);assert.equal(row.economics_snapshot.reserve,70);
+assert.equal(Number(await one("select amount from public.ecommerce_rewards where order_id=$1 and reward_kind='vendor_introducer'",[order.order_id])),.1);
+await as(company);await q('select public.admin_save_product_economics($1,1000,null,.20,null,\'reserve\')',[product]);
+assert.equal(Number(await one('select ppv_per_unit_snapshot from public.order_items where id=$1',[row.id])),.5);
+assert.equal(await one("select has_function_privilege('anon','public.admin_save_product_economics(uuid,numeric,numeric,numeric,numeric,text)','execute')"),false);
+console.log('PASS new order economics snapshot and introducer reward; later product edits preserve old order');
+
+// Isolate reward allocation from separately tested package eligibility rules.
+await db.exec("create or replace function private.package_eligible(member uuid) returns boolean language sql stable as $$select true$$");
+await q("update public.member_profiles set shopping_reward_mode='MIO' where user_id=$1",[buyer]);
+await as(buyer);
+const mioOrder=await one("select public.place_checkout_order($1,'Buyer','00000000','Checkout address','Lahore','economics-mio-order-0002','STANDARD','COD','1234')",[JSON.stringify([{product_id:product,quantity:1}])]);
+const rewards=(await q("select reward_kind,rate,amount,base_points from public.ecommerce_rewards where order_id=$1 order by reward_kind",[mioOrder.order_id])).rows;
+assert.equal(Number(rewards.find(r=>r.reward_kind==='cashback').rate),.70);assert.equal(Number(rewards.find(r=>r.reward_kind==='sponsor').rate),.20);assert.equal(Number(rewards.find(r=>r.reward_kind==='second_sponsor').rate),.10);assert.equal(Number(rewards.find(r=>r.reward_kind==='vendor_introducer').rate),.10);
+const networkTotal=rewards.filter(r=>r.reward_kind!=='vendor_introducer').reduce((n,r)=>n+Number(r.amount),0);assert.ok(Math.abs(networkTotal-Number(rewards[0].base_points))<.00001);
+console.log('PASS MIO 70/20/10 allocation conserves the full reward base; introducer uses separate commission budget');
+await as(company);
+await q("update public.orders set payment_status='confirmed' where id=$1",[mioOrder.order_id]);
+const allocations=(await q('select share_kind,amount_pkr,status from public.commission_allocations a join public.order_items i on i.id=a.order_item_id where i.order_id=$1',[mioOrder.order_id])).rows;
+assert.equal(allocations.find(r=>r.share_kind==='introducer').status,'reserved');
+const paidTotal=allocations.reduce((n,r)=>n+Number(r.amount_pkr),0);assert.equal(paidTotal,200);
+await q("update public.orders set status='delivered' where id=$1",[mioOrder.order_id]);
+const count=Number(await one("select count(*) from public.mio_ledger where source_order_id=$1 and action='bonus_credit'",[mioOrder.order_id]));
+await q("update public.orders set status='delivered' where id=$1",[mioOrder.order_id]);assert.equal(Number(await one("select count(*) from public.mio_ledger where source_order_id=$1 and action='bonus_credit'",[mioOrder.order_id])),count);assert.ok(count>0);
+console.log('PASS confirmed sale reconciles, introducer cannot be paid twice manually, delivery retry does not duplicate credits');
+
+await as(company);
+const second=await one("insert into public.products(vendor_id,name,description,category,price_pkr,stock_quantity,status,commission_rate_override) values($1,'Different margin product','Second product','Tests',2000,300,'approved',.40) returning id",[vendor]);
+const productPoints=Number(await one('select ppv_per_unit from public.products where id=$1',[product]));const secondPoints=Number(await one('select ppv_per_unit from public.products where id=$1',[second]));const bundlePoints=Math.floor((productPoints+secondPoints)/2*10000)/10000;const discount=Math.round((productPoints+secondPoints)/2*300*100)/100;
+const bundle=await one("select public.admin_save_bundle(null,$1,'Mixed commission bundle',$2,$3,$4,300,$5,'approved','half_ppv')",[vendor,JSON.stringify([{product_id:product,quantity:1},{product_id:second,quantity:1}]),bundlePoints,discount,JSON.stringify(['/assets/bundles/allure-daily-care-trio.webp'])]);
+const def=await one('select bundle_definition from public.products where id=$1',[bundle]);assert.equal(def.commission_pkr,1000);assert.equal(def.company_fee_pkr,150);assert.equal(def.introducer_pkr,100);assert.equal(def.economics_version,3);
+await as(buyer);const bundleOrder=await one("select public.place_checkout_order($1,'Buyer','00000000','Checkout address','Lahore','economics-bundle-0003','STANDARD','COD','1234')",[JSON.stringify([{product_id:bundle,quantity:1}])]);
+assert.equal(Number(await one('select ppv_per_unit_snapshot from public.order_items where order_id=$1',[bundleOrder.order_id])),bundlePoints);
+console.log('PASS bundle sums separate component commission rates and checkout preserves assigned bundle PPV');
+await as(company);await q('select public.admin_save_product_economics($1,2000,null,.45,$2,\'reserve\')',[second,secondPoints]);
+await as(buyer);await assert.rejects(()=>one("select public.place_checkout_order($1,'Buyer','00000000','Checkout address','Lahore','economics-stale-bundle-0004','STANDARD','COD','1234')",[JSON.stringify([{product_id:bundle,quantity:1}])]),/Bundle product pricing changed/);
+console.log('PASS stale component pricing blocks new bundle checkout without changing historical orders');
+await db.close();
