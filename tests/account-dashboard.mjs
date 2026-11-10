@@ -74,6 +74,7 @@ assert.ok(d.querySelector('#page-transfer #transferForm'));
 assert.ok(d.querySelector('#page-transactions #mioHistory'));
 assert.equal(d.querySelector('#page-transactions .mio-price-banner'),null);
 assert.ok(d.querySelector('#memberAccountNav [data-page="earnings"]'));
+assert.equal(d.querySelector('#memberAccountNav .earning-mobile-label').textContent,'Earning History');
 assert.equal(d.querySelector('.sidebar-brand'),null);
 assert.deepEqual([...d.querySelectorAll('#memberWalletSubmenu [data-page]')].map(x=>x.textContent),['My Wallet','Transfer MIO','Deposit','Withdraw','Top Up']);
 assert.equal(d.querySelectorAll('#memberAccountNav [data-page=transfer]').length,1);
