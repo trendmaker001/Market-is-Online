@@ -29,14 +29,18 @@
 .bundle-detail-grid>*{min-width:0}.bundle-gallery,.bundle-detail-copy,.bundle-component-gallery{min-width:0;max-width:100%}.bundle-detail-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}@media(max-width:600px){.bundle-detail-grid{grid-template-columns:minmax(0,1fr)}}
 
 /* Configurable storefront and admin bundles */
-.configured-bundles h1{margin:0 0 16px;font-size:clamp(23px,3vw,32px)}
-.configured-bundle-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(164px,225px));gap:clamp(10px,1.4vw,20px)}
-.configured-bundle-card{min-width:0;display:flex;flex-direction:column;padding:10px;border:2px solid #dbe6de;border-radius:14px;background:#fffdf9}
-.configured-bundle-card.selected{border-color:#08774f;background:#edf8f0}
-.configured-bundle-card img{display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:cover;border-radius:8px;background:#dce8db}
-.configured-bundle-card h2{font-size:clamp(15px,2vw,20px);margin:8px 0 2px;overflow-wrap:anywhere}
-.configured-bundle-card p{margin:0 0 9px;color:#496257;font-size:13px}
-.configured-bundle-card .bundle-select{width:100%;min-height:40px;margin-top:auto;padding:5px;background:#f3a44c;border-color:#e59943;color:#281709}
+.configured-bundles h1{margin:0 0 4px;font-size:clamp(23px,3vw,32px)}
+.configured-bundle-intro{margin:0 0 16px;color:#365348}
+.configured-bundle-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(10px,1.4vw,20px);max-width:1060px}
+.configured-bundle-card{min-width:0;display:flex;flex-direction:column;padding:8px;border:2px solid #dbe6de;border-radius:14px;background:#fffdf9;text-align:center}
+.configured-bundle-card.selected{border-color:#08774f}
+.configured-bundle-card img{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;border-radius:8px;background:#dce8db}
+.configured-bundle-card .bundle-card-title{font-size:clamp(13px,2vw,21px);line-height:1.25;margin:7px 0;color:#064732;overflow-wrap:anywhere}
+.bundle-card-units{font-weight:500;white-space:nowrap}
+.bundle-savings-strip{display:flex;justify-content:center;align-items:center;min-height:33px;margin:0 0 8px;padding:3px;background:#faf3e4;border-radius:7px}
+.bundle-savings-badge{display:inline-flex;justify-content:center;align-items:center;gap:4px;flex-wrap:wrap;padding:3px 7px;border-radius:20px;background:#064732;color:#fff;font-size:clamp(10px,1.4vw,14px);line-height:1.15}
+.bundle-savings-stars{color:#ffcc48;white-space:nowrap}
+.configured-bundle-card .bundle-select{width:100%;min-height:40px;margin-top:auto;padding:5px;background:#d65300;border-color:#d65300;color:#fff}
 .configured-bundle-card.selected .bundle-select{background:#08734d;border-color:#08734d;color:white}
 .configured-bundle-card .bundle-select:disabled{background:#eeeee8;border-color:#e1e4df;color:#526057;opacity:1}
 .configured-bundle-builder{margin-top:18px;padding:clamp(11px,2vw,22px);border:1px solid #dbe6de;border-radius:14px;background:#fffdf9}

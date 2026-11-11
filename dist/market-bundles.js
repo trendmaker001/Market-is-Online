@@ -5,7 +5,7 @@
  const money=n=>'PKR '+Number(n||0).toLocaleString('en-PK',{minimumFractionDigits:2,maximumFractionDigits:2});
  function create(api){
   let publicProducts=[],busy=false,categories=[],categoryIndex=0,categoryQuery='',motion={enabled:true,speed:'slow',direction:'left'},animation=0,pauseUntil=0,hover=false,manualPause=false;
-  const carton='/assets/bundles/configured-carton.webp';
+  const bundleArtwork = name => /^Bundle ([1-6])$/.exec(name)?.[1];
   let types=null, activeVendors=[], selectedType='', selectedVendor='', quantities=new Map(), quote=null, quoteError='', quoteVersion=0;
   let typeLoadError='', adminTypes=[], adminRate=null;
   const selectedItems=()=>[...quantities].map(([product_id,quantity])=>({product_id,quantity}));
@@ -31,12 +31,14 @@
    const units=selectedUnits();
    const ready=quote?.complete&&quote?.meets_minimum;
    const markup=`<section class="configured-bundles">
-    <h1>Build a bundle</h1>
-    <div class="configured-bundle-grid">${types.map(row=>`<article class="configured-bundle-card ${row.id===selectedType?'selected':''}">
-     <img src="${carton}" alt="" width="540" height="360" loading="lazy">
-     <h2>${esc(row.name)}</h2><p>${row.required_units} units</p>
+    <h1>Build a Bundle</h1>
+    <p class="configured-bundle-intro">Bigger bundles unlock more savings potential.</p>
+    <div class="configured-bundle-grid">${types.map(row=>{const tier=bundleArtwork(row.name);return `<article class="configured-bundle-card ${row.id===selectedType?'selected':''}">
+     <img src="/assets/bundles/${tier?'bundle-'+tier:'configured-carton'}.webp" alt="" width="720" height="540" loading="lazy">
+     <h2 class="bundle-card-title"><span>${esc(row.name)}</span><span class="bundle-card-units"> · ${row.required_units} units</span></h2>
+     <div class="bundle-savings-strip"><span class="bundle-savings-badge">Extra Savings${tier?` <span class="bundle-savings-stars" role="img" aria-label="${tier} savings stars">${'★'.repeat(Number(tier))}</span>`:''}</span></div>
      <button type="button" class="btn bundle-select" data-bundle-type="${row.id}" aria-pressed="${row.id===selectedType}" ${row.status!=='enabled'?'disabled':''}>${row.status==='draft'?'Coming soon':row.id===selectedType?'✓ Selected':'Select bundle'}</button>
-    </article>`).join('')||'<p>Bundles are currently unavailable.</p>'}</div>
+    </article>`;}).join('')||'<p>Bundles are currently unavailable.</p>'}</div>
     ${type?`<div class="configured-bundle-builder">
      <label class="bundle-vendor-field">Vendor<select id="configuredBundleVendor"><option value="">Select a vendor</option>${activeVendors.map(v=>`<option value="${v.id}" ${v.id===selectedVendor?'selected':''}>${esc(v.business_name)}</option>`).join('')}</select></label>
      ${selectedVendor?`<div class="bundle-builder-progress"><strong>${units} of ${type.required_units} units</strong><span>${type.allow_repeats?'You can repeat products':'Choose one unit per product'}</span></div>
