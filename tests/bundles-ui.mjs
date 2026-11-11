@@ -28,6 +28,7 @@ await api.load(items);
 assert.equal(w.document.querySelector('[data-bundle-type=draft]').disabled,true);
 click('[data-bundle-type=three]');
 assert.equal(w.document.querySelector('#configuredBundleVendor').value,'v1');
+assert.equal(w.document.activeElement.id,'configuredBundleVendor');
 assert.equal(w.document.querySelector('[data-component=other]'),null);
 assert.equal(w.document.querySelector('[data-component=legacy]'),null);
 assert.equal(w.document.querySelector('[data-component=p1][data-step="-1"]').disabled,true);

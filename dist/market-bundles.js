@@ -76,7 +76,9 @@
      remaining-=keep;
     }
     refreshQuote(host);
-    host.querySelector(`[data-bundle-type="${selectedType}"]`)?.focus();
+    const vendorSelect=host.querySelector('#configuredBundleVendor');
+    vendorSelect?.scrollIntoView?.({block:'center',behavior:'instant'});
+    vendorSelect?.focus({preventScroll:true});
    });
    const vendor=host.querySelector('#configuredBundleVendor');
    if(vendor)vendor.onchange=()=>{preselectVendor(vendor.value);refreshQuote(host,true);};
@@ -110,7 +112,7 @@
     const active=document.activeElement;
     const control=active?.dataset.component;
     const step=active?.dataset.step;
-    renderMarketplace(host,true);
+    renderMarketplace(host,true,active===host.querySelector('#configuredBundleVendor'));
     if(control)host.querySelector(`[data-component="${control}"][data-step="${step}"]:not([disabled])`)?.focus();
    }
   }
