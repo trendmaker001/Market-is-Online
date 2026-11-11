@@ -1,0 +1,35 @@
+begin;
+create temporary table shopping_smoke_result(result jsonb) on commit drop;
+do $$
+declare admin_id uuid;shopper uuid:=gen_random_uuid();product_id uuid;bank_id uuid;placed jsonb;retried jsonb;req numeric;o public.orders%rowtype;before_stock integer;
+begin
+ select f.company_id into admin_id from private.network_foundation f where singleton and exists(select 1 from public.user_roles r where r.user_id=f.company_id and r.role='admin');
+ if admin_id is null then raise exception 'QA admin identity not found';end if;
+ select p.id,p.stock_quantity into product_id,before_stock from public.products p join public.vendors v on v.id=p.vendor_id where p.status='approved' and v.status='active' and p.stock_quantity>=2 and p.bundle_definition is null and p.price_pkr>600 order by p.id limit 1;
+ if product_id is null then raise exception 'QA eligible stocked product unavailable';end if;
+ insert into auth.users(id,email,raw_user_meta_data,raw_app_meta_data,email_confirmed_at,created_at,updated_at)
+ values(shopper,'qa-shopping-'||shopper||'@example.invalid','{"registration_type":"customer","full_name":"Rollback Checkout QA","phone":"03000000000","terms_accepted":true}', '{"provider":"email","providers":["email"]}',now(),now(),now());
+ perform set_config('request.jwt.claim.sub',shopper::text,true);
+ if (public.my_shopping_account()->>'customer_only')::boolean is distinct from true or exists(select 1 from public.member_profiles where user_id=shopper) or exists(select 1 from public.mio_wallet_accounts where member_id=shopper) then raise exception 'QA shopper identity isolation failed';end if;
+ placed:=public.place_shopping_order(jsonb_build_array(jsonb_build_object('product_id',product_id,'quantity',1)),'Rollback Checkout QA','03000000000','QA only - rollback transaction','Lahore','production-smoke-checkout','ADVANCE',null);
+ retried:=public.place_shopping_order(jsonb_build_array(jsonb_build_object('product_id',product_id,'quantity',1)),'Rollback Checkout QA','03000000000','QA only - rollback transaction','Lahore','production-smoke-checkout','ADVANCE',null);
+ if placed->>'order_id' is distinct from retried->>'order_id' or (retried->>'duplicate')::boolean is distinct from true then raise exception 'QA duplicate checkout failed';end if;
+ select * into o from public.orders where id=(placed->>'order_id')::uuid;req:=(placed->>'required_pkr')::numeric;
+ perform set_config('request.jwt.claim.sub',gen_random_uuid()::text,true);
+ begin perform public.cancel_unpaid_order(o.id);raise exception 'QA unauthorized cancel accepted';exception when others then if sqlerrm not like '%Order not found%' then raise;end if;end;
+ perform set_config('request.jwt.claim.sub',admin_id::text,true);
+ begin perform public.advance_order_status(o.id,'confirmed');raise exception 'QA unfunded dispatch accepted';exception when others then if sqlerrm not like '%Advance payment%' then raise;end if;end;
+ bank_id:=public.admin_save_shopping_payment_account(null,'Rollback QA Bank','Rollback QA Company','QA-'||shopper,'Temporary test, rolled back',true);
+ perform set_config('request.jwt.claim.sub',shopper::text,true);
+ perform public.submit_shopping_advance(o.id,bank_id,'QA-TXN-'||shopper);
+ perform set_config('request.jwt.claim.sub',admin_id::text,true);
+ perform public.admin_review_shopping_advance(o.id,true,req,'Rollback test verification only');
+ if not exists(select 1 from public.orders where id=o.id and status='confirmed' and payment_status='unconfirmed' and customer_advance_pkr=req and cod_due_pkr=total_pkr-req) then raise exception 'QA advance or COD accounting failed';end if;
+ perform public.cancel_unpaid_order(o.id);
+ if (select status from private.customer_order_funding where order_id=o.id)<>'refund_due' then raise exception 'QA advance refund tracking failed';end if;
+ if (select stock_quantity from public.products where id=product_id)<>before_stock then raise exception 'QA cancellation stock restore failed';end if;
+ if (private.customer_order_requirement(6000,290)->>'required_pkr')::numeric<>600 or (private.customer_order_requirement(12000,290)->>'required_pkr')::numeric<>1200 or (private.customer_order_requirement(12000,290)->>'hold_mio')::numeric<>4.1380 then raise exception 'QA formula failed';end if;
+ insert into shopping_smoke_result values(jsonb_build_object('identity','User only','idempotency','passed','ownership','passed','dispatch_guard','passed','advance_approval','passed','cod_remaining','passed','refund_tracking','passed','stock_restore','passed','formula','passed','all_changes','rolled back'));
+end $$;
+select result from shopping_smoke_result;
+rollback;

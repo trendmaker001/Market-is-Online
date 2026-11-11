@@ -38,9 +38,11 @@ await db.exec(await readFile(source+'/supabase/migrations/20261111162534_configu
 await db.exec(await readFile(source+'/supabase/migrations/20261111214405_customer_checkout_advance_and_sponsor_hold.sql','utf8'));
 await db.exec("create table if not exists private.founder_invites(email text,token_hash text,expires_at timestamptz,redeemed_at timestamptz)");
 await as(company);await q("select public.admin_save_product_economics($1,1000,null,null,0,'reserve')",[product]);
+await db.exec(await readFile(source+'/supabase/migrations/20261111220641_shopping_user_signup_fields.sql','utf8'));
+await db.exec('create trigger require_signup_gender before insert on auth.users for each row execute function private.validate_signup_gender()');
 console.log('PASS migration replay');
 const shopper=uid(101),stranger=uid(102),unverified=uid(103),affiliate=uid(104),sponsor=buyer;
-const signup=async(id,referral=null,verified=true)=>q("insert into auth.users(id,email,raw_user_meta_data,raw_app_meta_data,email_confirmed_at) values($1,$2,$3,'{}',$4)",[id,id+'@example.invalid',JSON.stringify({full_name:'Shopping Customer',phone:'03000000000',terms_accepted:true,affiliate_code:referral,registration_type:'customer'}),verified?new Date().toISOString():null]);
+const signup=async(id,referral=null,verified=true)=>q("insert into auth.users(id,email,raw_user_meta_data,raw_app_meta_data,email_confirmed_at) values($1,$2,$3,'{\"provider\":\"email\"}',$4)",[id,id+'@example.invalid',JSON.stringify({full_name:'Shopping Customer',phone:'03000000000',terms_accepted:true,affiliate_code:referral,registration_type:'customer'}),verified?new Date().toISOString():null]);
 await signup(shopper);await signup(stranger);await signup(unverified,null,false);await signup(affiliate,await one('select member_code from public.member_profiles where user_id=$1',[sponsor]));
 for(const id of [shopper,stranger,unverified,affiliate]){assert.equal(Number(await one('select count(*) from public.member_profiles where user_id=$1',[id])),0);assert.equal(Number(await one('select count(*) from public.user_roles where user_id=$1',[id])),0);assert.equal(Number(await one('select count(*) from public.mio_wallet_accounts where member_id=$1',[id])),0)}
 await as(shopper);assert.equal((await one('select public.my_shopping_account()')).customer_only,true);
