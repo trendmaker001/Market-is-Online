@@ -65,7 +65,7 @@
 #marketplaceFooter .footer-links:not(:has(a:not(.hidden))){display:none}
 /* The marketplace container already spans the viewport; avoid 100vw scrollbar overflow. */
 #page-shop #marketHero{width:100%;margin-left:0;margin-right:0}
-#main-content:has(>#page-shop.active){padding-left:0;padding-right:0}
+#main-content:has(>#page-shop.active){max-width:none;width:100%;padding-left:0;padding-right:0}
 #page-shop .shop-market-nav,#page-shop #marketTicker{width:100%!important;margin-left:0!important;margin-right:0!important}
 #shopDirectory{padding:18px 24px}
 @media(max-width:680px){#shopDirectory{padding:16px 12px}}
