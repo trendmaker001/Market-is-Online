@@ -1,0 +1,17 @@
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+const context={window:{}};vm.runInNewContext(readFileSync('dist/account-access.js','utf8'),context);
+const choose=context.window.MioAccountAccess.destination;
+const dual={has_member:true,has_store:true,email_verified:true};
+assert.equal(choose(dual,'member').route,'dashboard');
+assert.equal(choose(dual,'vendor').route,'seller');
+assert.match(choose({has_member:true},'vendor').error,/No vendor account/);
+assert.match(choose({has_member:false,vendor_only:true},'member').error,/No member account/);
+assert.equal(choose({vendor_only:true,email_verified:true},'vendor').route,'vendor-register');
+assert.equal(choose({application_status:'pending',email_verified:true},'vendor').route,'seller');
+assert.match(choose({application_status:'rejected'},'vendor').error,/not approved/);
+assert.match(choose({store_status:'suspended'},'vendor').error,/paused/);
+assert.match(choose({has_store:true,email_verified:false},'vendor').error,/Verify/);
+assert.equal(choose({has_store:false,role:'vendor',has_member:true},'vendor').route,undefined);
+console.log('PASS 10 account routing cases: dual role, missing roles, unverified, pending, rejected, paused and no client-side privilege escalation');

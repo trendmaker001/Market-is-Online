@@ -1,0 +1,73 @@
+/* Final scoped layout rules for the marketplace and checkout. */
+#page-login{max-width:560px;margin:24px auto}
+#page-login .heading{margin-bottom:18px}
+#page-login .heading h1{font-size:28px;margin:6px 0}
+#page-login .heading p{font-size:14px;color:#60776b;line-height:1.5}
+.account-type-picker{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border:0;margin:0 0 8px;padding:0;gap:10px}
+.account-type-picker legend{font-size:12px;font-weight:700;padding:0;margin-bottom:8px}
+#loginForm .account-type-picker label{display:flex;align-items:flex-start;gap:8px;border:1px solid #d2e4d9;border-radius:10px;padding:13px 10px;background:#fff;cursor:pointer;font-size:13px}
+#loginForm .account-type-picker label:has(:checked){border-color:#087b55;background:#edf8f1;box-shadow:0 0 0 1px #087b55}
+#loginForm .account-type-picker input{width:16px!important;height:16px;min-height:0;margin:2px 0 0;flex:0 0 16px;accent-color:#087b55;padding:0;box-shadow:none}
+.account-type-picker small{display:block;font-size:10px;font-weight:400;color:#567060;margin-top:4px}
+#loginAccountMessage{padding:12px;border:1px solid #f0d5ab;background:#fff7ea;color:#79511d;border-radius:8px;font-size:13px;line-height:1.5;margin:0}
+#loginAccountMessage[hidden]{display:none}
+.vendor-access-form{padding:16px;margin:16px 0;border:1px solid #d5e6db;border-radius:10px;background:#f6fbf8}
+.vendor-access-form h4{margin:0;font-size:14px}
+.top .search{min-width:0;transition:border-color .15s,box-shadow .15s}
+.top .search:focus-within{border-color:#158360;box-shadow:0 0 0 2px #15836020}
+.top .search #searchBox,.top .search #searchBox:focus{min-width:0;border:0!important;outline:0!important;box-shadow:none!important;background:transparent;border-radius:0}
+#page-shop #marketHero,#page-shop #marketHero .hero-slide,#page-shop #marketHero .hero-media,#page-shop #marketHero picture,#page-shop #marketHero img{border-radius:0!important}
+#page-shop #marketHero .hero-slide-track{height:auto!important;aspect-ratio:auto!important}
+#page-shop #marketHero .hero-slide.active,#page-shop #marketHero .hero-media,#page-shop #marketHero .hero-media a,#page-shop #marketHero .hero-media picture{position:relative!important;inset:auto!important;display:block;height:auto!important}
+#page-shop #marketHero .hero-media img{display:block;width:100%!important;height:auto!important;max-height:none!important;object-fit:contain!important}
+#page-shop .market-circle-controls{gap:12px;flex-shrink:0}
+#page-shop .market-circle-all{padding:7px 10px;min-height:36px;border:1px solid #d5e7dc;border-radius:8px;background:#f4faf6;font-size:12px}
+#shopDirectory{padding:18px 0;margin:0;min-height:0}
+#shopDirectory .bundle-section-head{padding:0 0 12px;border-bottom:1px solid #dfebe4;margin-bottom:16px}
+#shopDirectory .bundle-grid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr));align-items:start}
+#shopDirectory .bundle-card{max-width:none}
+.market-directory-active #page-shop{padding-bottom:0}
+.market-directory-active main{min-height:0;padding-bottom:24px}
+.market-directory-active #marketTicker{display:none!important}
+#checkoutPaymentChoices{min-width:0;padding:14px;border-radius:12px}
+#checkoutPaymentChoices .checkout-maintenance{display:flex;align-items:flex-start;gap:10px;font-size:13px;font-weight:500;padding:8px 0;margin:0 0 8px}
+#checkoutPaymentChoices input[type=checkbox],#checkoutPaymentChoices input[type=radio]{flex:0 0 18px;width:18px!important;height:18px;min-height:0;margin:2px 0 0;padding:0;box-shadow:none;accent-color:#087c55}
+#checkoutPaymentChoices .checkout-option-group{border:0;padding:0;margin:10px 0;min-width:0}
+#checkoutPaymentChoices .checkout-option-group legend{padding:0;font-size:12px;font-weight:700;color:#4d675b}
+#checkoutPaymentChoices .checkout-choice-grid{margin:8px 0;gap:8px}
+#checkoutPaymentChoices .checkout-choice-grid label{gap:10px;padding:12px;border-radius:10px;margin:0;min-width:0}
+#checkoutPaymentChoices .checkout-choice-grid b{font-size:13px;line-height:1.4}
+#checkoutPaymentChoices .checkout-choice-grid small{font-size:12px;font-weight:400;line-height:1.5;margin-top:4px}
+#checkoutPaymentPreview{font-size:12px;margin:8px 0 0}
+#cartModal{padding:12px}
+#cartModal .modal-box{max-height:calc(100dvh - 24px);overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable}
+#cartModal .modal-box>.card-head{position:sticky;top:0;z-index:2;background:#fff}
+@media(max-width:680px){
+ #page-shop .market-circle-controls{gap:8px}
+ #page-shop .market-circle-all{font-size:11px;padding:7px 8px}
+ #shopDirectory .bundle-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+ #shopDirectory .bundle-grid-single{grid-template-columns:minmax(0,1fr)}
+ #shopDirectory .bundle-grid-single .bundle-card{display:grid;grid-template-columns:minmax(110px,38%) minmax(0,1fr);align-items:center}
+ #shopDirectory .bundle-grid-single .bundle-card-image{height:170px;padding:10px}
+ #shopDirectory .bundle-card h3{font-size:14px}
+ #shopDirectory .bundle-card-copy{padding:12px}
+ #shopDirectory .bundle-card .btn{min-height:38px;font-size:12px}
+ #shopDirectory .bundle-section-head h2{font-size:22px}
+ #checkoutPaymentChoices{padding:10px}
+ #cartModal .modal-box{width:100%;border-radius:14px;padding:0}#cartModal .modal-box>.card-body{padding:14px}#cartModal .modal-box>.card-head{padding:12px 14px}
+ #cartModal .modal-body{padding:14px}
+ #checkoutForm .field{gap:5px}
+ #checkoutForm :is(input:not([type=radio]):not([type=checkbox]),textarea,select){font-size:16px}
+}
+
+@media(max-width:620px){#marketplaceFooter .footer-main{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;padding:20px 14px}#marketplaceFooter .footer-brand{grid-column:1/-1!important}#marketplaceFooter .footer-brand p{margin:8px 0 0}#marketplaceFooter .footer-bottom{padding:12px 14px;gap:6px;font-size:11px}}
+/* Guest sessions should not show an empty account-link column. */
+#marketplaceFooter .footer-links:not(:has(a:not(.hidden))){display:none}
+/* The marketplace container already spans the viewport; avoid 100vw scrollbar overflow. */
+#page-shop #marketHero{width:100%;margin-left:0;margin-right:0}
+#main-content:has(>#page-shop.active){padding-left:0;padding-right:0}
+#page-shop .shop-market-nav,#page-shop #marketTicker{width:100%!important;margin-left:0!important;margin-right:0!important}
+#shopDirectory{padding:18px 24px}
+@media(max-width:680px){#shopDirectory{padding:16px 12px}}
+#page-shop>.section{width:calc(100% - 48px)}
+@media(max-width:680px){#page-shop>.section{width:calc(100% - 24px)}}

@@ -65,4 +65,39 @@ await as(company);assert.equal((await one('select public.my_vendor_referrals(1)'
 assert.equal(await one("select has_function_privilege('anon','public.my_vendor_access()','execute')"),false);
 assert.equal(await one("select has_table_privilege('authenticated','private.vendor_identities','select')"),false);
 console.log('PASS accepted agreement plus admin approval required; isolated seller orders, member-only referral records and private identity table');
+
+await db.exec(await readFile(source+'/supabase/migrations/20261111044130_dual_role_vendor_access.sql','utf8'));
+await db.exec(await readFile(source+'/supabase/migrations/20261111061500_vendor_metadata_pricing_guard.sql','utf8'));
+await db.exec(await readFile(source+'/supabase/migrations/20261111062000_vendor_assignment_step_up.sql','utf8'));
+// Reproduce a legacy zero-price record without changing the pricing rules.
+await db.exec('alter table public.products disable trigger user');
+await q('update public.products set vendor_submitted_price_pkr=0 where id=$1',[product]);
+await db.exec('alter table public.products enable trigger user');
+
+await as(buyer);
+await assert.rejects(()=>q('select public.admin_assign_vendor_account($1,$2,$3)',[vendor,'checkout-buyer@example.invalid',memberCode]),/Workspace/);
+await as(company);
+await q("select set_config('request.jwt.claims','{}',false)");
+await assert.rejects(()=>q('select public.admin_assign_vendor_account($1,$2,$3)',[vendor,'checkout-buyer@example.invalid',memberCode]),/authenticator/);
+await q("select set_config('request.jwt.claims',$1,false)",[JSON.stringify({aal:'aal2',amr:[{method:'totp',timestamp:Math.floor(Date.now()/1000)}]})]);
+await assert.rejects(()=>q('select public.admin_assign_vendor_account($1,$2,$3)',[vendor,'checkout-buyer@example.invalid',memberCode]),/verified/);
+await q('update auth.users set email_confirmed_at=now() where id=$1',[buyer]);
+await assert.rejects(()=>q('select public.admin_assign_vendor_account($1,$2,$3)',[vendor,'checkout-buyer@example.invalid','INVALID']),/introducing/);
+await assert.rejects(()=>q('update public.vendors set commission_rate=.29 where id=$1',[vendor]),/positive submitted price/);
+const productCount=await one('select count(*) from public.products where vendor_id=$1',[vendor]);
+const balance=await one('select balance from public.mio_wallet_accounts where member_id=$1',[buyer]);
+await q('select public.admin_assign_vendor_account($1,$2,$3)',[vendor,'checkout-buyer@example.invalid',memberCode]);
+await as(buyer);access=await one('select public.my_vendor_access()');
+assert.equal(access.has_member,true);assert.equal(access.vendor_only,false);assert.equal(access.has_store,true);
+assert.equal(await one('select owner_user_id from public.vendors where id=$1',[vendor]),buyer);
+assert.equal(await one('select introduced_by from public.vendors where id=$1',[vendor]),buyer);
+assert.equal(await one('select count(*) from public.products where vendor_id=$1',[vendor]),productCount);
+assert.equal(await one('select balance from public.mio_wallet_accounts where member_id=$1',[buyer]),balance);
+assert.equal((await one('select public.my_vendor_referrals(1)')).total,2);
+assert.equal((await one('select public.my_vendor_referrals(1)')).rows.filter(r=>r.business_name==='My Store').length,1);
+assert.equal((await one('select public.seller_portal_orders($1,1)',[vendor])).total,0);
+await as(other);await assert.rejects(()=>q('select public.seller_portal_orders($1,1)',[vendor]),/Seller access/);
+assert.equal(await one("select has_function_privilege('anon','public.admin_assign_vendor_account(uuid,text,text)','execute')"),false);
+assert.equal(await one("select count(*) from public.audit_logs where action='VENDOR_ACCOUNT_ASSIGNED'"),1);
+console.log('PASS dual-role access uses one identity, admin-only verified store assignment, immutable balances/products, audited transfer and deduplicated referral history');
 await db.close();
