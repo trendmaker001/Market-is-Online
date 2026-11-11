@@ -29,9 +29,10 @@
 .bundle-detail-grid>*{min-width:0}.bundle-gallery,.bundle-detail-copy,.bundle-component-gallery{min-width:0;max-width:100%}.bundle-detail-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}@media(max-width:600px){.bundle-detail-grid{grid-template-columns:minmax(0,1fr)}}
 
 /* Configurable storefront and admin bundles */
+.configured-bundles{max-width:1060px;margin-inline:auto}
 .configured-bundles h1{margin:0 0 4px;font-size:clamp(23px,3vw,32px)}
 .configured-bundle-intro{margin:0 0 16px;color:#365348}
-.configured-bundle-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(10px,1.4vw,20px);max-width:1060px}
+.configured-bundle-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(10px,1.4vw,20px)}
 .configured-bundle-card{min-width:0;display:flex;flex-direction:column;padding:8px;border:2px solid #dbe6de;border-radius:14px;background:#fffdf9;text-align:center}
 .configured-bundle-card.selected{border-color:#08774f}
 .configured-bundle-card img{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;border-radius:8px;background:#dce8db}
