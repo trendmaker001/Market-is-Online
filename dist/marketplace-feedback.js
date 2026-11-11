@@ -41,7 +41,10 @@
    let host=document.getElementById('marketTicker');if(!host){document.getElementById('marketHero')?.insertAdjacentHTML('afterend','<section id="marketTicker" class="market-ticker shop-home-section hidden" aria-label="Marketplace announcements"></section>');host=document.getElementById('marketTicker');}if(!host)return;
    host.classList.toggle('hidden',!ticker?.enabled);if(!ticker?.enabled){host.replaceChildren();return;}
    const messages=(ticker.messages||[]).map(m=>`<span>${escape(m)}</span>`).join('');
-   host.innerHTML=`<div class="ticker-window"><div class="ticker-track"><div class="ticker-segment">${messages}</div><div class="ticker-segment" aria-hidden="true">${messages}</div></div></div><button type="button" class="ticker-pause" aria-label="Pause announcements" aria-pressed="false">Ⅱ</button>`;
+   const paused=host.classList.contains('is-paused');
+   const focused=host.contains(document.activeElement);
+   host.innerHTML=`<div class="ticker-window"><div class="ticker-track"><div class="ticker-segment">${messages}</div><div class="ticker-segment" aria-hidden="true">${messages}</div></div></div><button type="button" class="ticker-pause" aria-label="${paused?'Resume announcements':'Pause announcements'}" aria-pressed="${paused}">${paused?'▶':'Ⅱ'}</button>`;
+   if(focused)host.querySelector('button').focus({preventScroll:true});
    host.querySelector('button').onclick=e=>{const paused=host.classList.toggle('is-paused');e.currentTarget.textContent=paused?'▶':'Ⅱ';e.currentTarget.setAttribute('aria-label',paused?'Resume announcements':'Pause announcements');e.currentTarget.setAttribute('aria-pressed',String(paused));};
   }
   async function loadTicker(){const {data,error}=await api.db.rpc('marketplace_ticker_settings');if(!error&&data){ticker=data;renderTicker();}}

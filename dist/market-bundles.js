@@ -3,27 +3,212 @@
  const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const image=s=>/^(https:\/\/[^\s]+|\/[a-z0-9][^\s]*)$/i.test(s||'')?s:'';
  const money=n=>'PKR '+Number(n||0).toLocaleString('en-PK',{minimumFractionDigits:2,maximumFractionDigits:2});
- const round=n=>Math.round((Number(n)+Number.EPSILON)*100)/100,ppv=n=>Math.floor((Number(n)+1e-10)*10000)/10000;
- function calculate(items,points,discount,rate=290,mode='manual'){
-  const total=round(items.reduce((n,i)=>n+Number(i.price_pkr)*i.quantity,0));
-  const originalPPV=items.reduce((n,i)=>n+Number(i.ppv_per_unit||0)*i.quantity,0);
-  if(mode==='half_ppv'){points=ppv(originalPPV/2);discount=round(originalPPV/2*rate)}
-  return {total,originalPPV:ppv(originalPPV),points:Number(points),discount:round(discount),price:round(total-discount)};
- }
  function create(api){
-  let publicProducts=[],adminProducts=[],vendors=[],draft=null,busy=false,categories=[],categoryIndex=0,categoryQuery='',motion={enabled:true,speed:'slow',direction:'left'},animation=0,pauseUntil=0,hover=false,manualPause=false;
-  const card=p=>`<article class="bundle-card"><a href="#product/${esc(p.id)}" class="bundle-card-image"><img src="${esc(image(p.image_url))}" alt="${esc(p.name)}" loading="lazy"></a><div class="bundle-card-copy"><small>${esc(p.vendors?.business_name||'Vendor')} · ${p.bundle_definition.items.length} products</small><h3><a href="#product/${esc(p.id)}">${esc(p.name)}</a></h3><div class="bundle-prices"><del>${money(p.bundle_definition.original_total)}</del><strong>${money(p.price_pkr)}</strong></div><div class="bundle-card-meta"><span>Save ${money(p.bundle_definition.discount_pkr)}</span><b>${Number(p.ppv_per_unit).toFixed(4)} PPV</b></div><a class="btn small" href="#product/${esc(p.id)}">View bundle →</a></div></article>`;
-  function renderMarketplace(host,all=false){
-   if(!host)return;const rows=publicProducts.filter(p=>p.bundle_definition);
-   host.innerHTML=`<div class="bundle-section-head"><h2>Bundles</h2>${all?`<span>${rows.length} ${rows.length===1?'bundle':'bundles'}</span>`:'<button class="market-circle-all" data-shop-view="bundles" type="button">View All Bundles →</button>'}</div><div class="${all?('bundle-grid'+(rows.length===1?' bundle-grid-single':'')):'bundle-rail'}">${rows.map(card).join('')||'<p class="bundle-empty">New bundles will appear here soon.</p>'}</div>`;
+  let publicProducts=[],busy=false,categories=[],categoryIndex=0,categoryQuery='',motion={enabled:true,speed:'slow',direction:'left'},animation=0,pauseUntil=0,hover=false,manualPause=false;
+  const carton='/assets/bundles/configured-carton.webp';
+  let types=null, activeVendors=[], selectedType='', selectedVendor='', quantities=new Map(), quote=null, quoteError='', quoteVersion=0;
+  let typeLoadError='', adminTypes=[], adminRate=null;
+  const selectedItems=()=>[...quantities].map(([product_id,quantity])=>({product_id,quantity}));
+  const selectedUnits=()=>[...quantities.values()].reduce((total,qty)=>total+qty,0);
+  const limitFor=(type,product)=>Math.min(Number(product.stock_quantity)||0,
+   type.allow_repeats ? type.max_per_product ?? type.required_units : 1);
+  const regularProducts=()=>publicProducts.filter(p=>!p.bundle_definition && Number(p.stock_quantity)>0);
+  function preselectVendor(vendor){
+   if(selectedVendor!==vendor){selectedVendor=vendor;quantities.clear();quote=null;quoteVersion++;}
+  }
+  function renderMarketplace(host,all=false,keepVendor=false){
+   if(!host)return;
+   if(!all){
+    host.innerHTML='<div class="bundle-section-head"><h2>Bundles</h2><button class="btn" type="button" data-shop-view="bundles">Build a bundle</button></div>';
+    return;
+   }
+   if(!types){
+    host.innerHTML='<h1>Bundles</h1><p role="status">'+esc(typeLoadError||'Loading bundle types…')+'</p>';
+    return;
+   }
+   const type=types.find(row=>row.id===selectedType&&row.status==='enabled');
+   const products=regularProducts().filter(p=>p.vendor_id===selectedVendor);
+   const units=selectedUnits();
+   const ready=quote?.complete&&quote?.meets_minimum;
+   const markup=`<section class="configured-bundles">
+    <h1>Build a bundle</h1>
+    <div class="configured-bundle-grid">${types.map(row=>`<article class="configured-bundle-card ${row.id===selectedType?'selected':''}">
+     <img src="${carton}" alt="" width="540" height="360" loading="lazy">
+     <h2>${esc(row.name)}</h2><p>${row.required_units} units</p>
+     <button type="button" class="btn bundle-select" data-bundle-type="${row.id}" aria-pressed="${row.id===selectedType}" ${row.status!=='enabled'?'disabled':''}>${row.status==='draft'?'Coming soon':row.id===selectedType?'✓ Selected':'Select bundle'}</button>
+    </article>`).join('')||'<p>Bundles are currently unavailable.</p>'}</div>
+    ${type?`<div class="configured-bundle-builder">
+     <label class="bundle-vendor-field">Vendor<select id="configuredBundleVendor"><option value="">Select a vendor</option>${activeVendors.map(v=>`<option value="${v.id}" ${v.id===selectedVendor?'selected':''}>${esc(v.business_name)}</option>`).join('')}</select></label>
+     ${selectedVendor?`<div class="bundle-builder-progress"><strong>${units} of ${type.required_units} units</strong><span>${type.allow_repeats?'You can repeat products':'Choose one unit per product'}</span></div>
+     <div class="bundle-picker-grid">${products.map(p=>{const qty=quantities.get(p.id)||0;return `<article class="bundle-picker-row">
+      ${image(p.image_url)?`<img src="${esc(image(p.image_url))}" alt="" width="56" height="56" loading="lazy">`:''}
+      <div><h3>${esc(p.name)}</h3><small>${money(p.price_pkr)}</small></div>
+      <div class="bundle-quantity"><button type="button" data-component="${p.id}" data-step="-1" aria-label="Remove one ${esc(p.name)}" ${!qty?'disabled':''}>−</button><output aria-label="Selected quantity">${qty}</output><button type="button" data-component="${p.id}" data-step="1" aria-label="Add one ${esc(p.name)}" ${units>=type.required_units||qty>=limitFor(type,p)?'disabled':''}>+</button></div>
+     </article>`;}).join('')||'<p>This vendor has no available regular products.</p>'}</div>
+     <div id="configuredBundleQuote" class="bundle-checkout-summary" aria-live="polite">
+      ${quoteError?`<p role="alert">${esc(quoteError)}</p>`:''}
+      ${quote?`<dl><dt>Current product total</dt><dd>${money(quote.original_total)}</dd><dt>Extra bundle discount</dt><dd>−${money(quote.discount_pkr)}</dd><dt>Retained bundle PPV</dt><dd>${Number(quote.ppv).toFixed(4)}</dd><dt>Final product total</dt><dd><strong>${money(quote.price_pkr)}</strong></dd></dl>`:units===type.required_units&&!quoteError?'<p>Checking latest prices and stock…</p>':''}
+      ${quote?.complete&&!quote.meets_minimum?`<p role="alert">The final product total must reach ${money(quote.minimum_pkr)} before delivery. Replace a product or choose a larger bundle above.</p>`:''}
+      <button type="button" class="btn primary" data-configured-bundle-checkout ${!ready?'disabled':''}>Continue to checkout</button>
+     </div>`:'<p>Choose a vendor to see its products.</p>'}
+    </div>`:''}
+   </section>`;
+   const vendorField=keepVendor&&host.querySelector('.bundle-vendor-field');
+   if(vendorField){
+    // Keep the native dropdown connected while its product list updates.
+    const updated=document.createElement('template');
+    updated.innerHTML=markup;
+    const builder=updated.content.querySelector('.configured-bundle-builder');
+    builder.querySelector('.bundle-vendor-field').remove();
+    while(vendorField.nextSibling)vendorField.nextSibling.remove();
+    vendorField.after(...builder.childNodes);
+   }else host.innerHTML=markup;
+   host.querySelectorAll('[data-bundle-type]').forEach(button=>button.onclick=()=>{
+    selectedType=button.dataset.bundleType;
+    const next=types.find(row=>row.id===selectedType);
+    let remaining=next.required_units;
+    for(const [id,qty] of quantities){
+     const p=products.find(row=>row.id===id);
+     const keep=p?Math.min(remaining,qty,limitFor(next,p)):0;
+     if(keep)quantities.set(id,keep);else quantities.delete(id);
+     remaining-=keep;
+    }
+    refreshQuote(host);
+    host.querySelector(`[data-bundle-type="${selectedType}"]`)?.focus();
+   });
+   const vendor=host.querySelector('#configuredBundleVendor');
+   if(vendor)vendor.onchange=()=>{preselectVendor(vendor.value);refreshQuote(host,true);};
+   host.querySelectorAll('[data-component]').forEach(button=>button.onclick=()=>{
+    const id=button.dataset.component, step=Number(button.dataset.step);
+    const p=products.find(row=>row.id===id), old=quantities.get(id)||0;
+    if(!p||step>0&&(units>=type.required_units||old>=limitFor(type,p)))return;
+    const next=old+step;
+    if(next>0)quantities.set(id,next);else quantities.delete(id);
+    refreshQuote(host);
+    const replacement=host.querySelector(`[data-component="${id}"][data-step="${step}"]`);
+    if(replacement&&!replacement.disabled)replacement.focus();
+    else host.querySelector(`[data-component="${id}"][data-step="${-step}"]:not([disabled])`)?.focus();
+   });
+   const checkout=host.querySelector('[data-configured-bundle-checkout]');
+   if(checkout)checkout.onclick=()=>{if(ready)api.checkout({type:selectedType,vendor:selectedVendor,items:selectedItems(),quote});};
+  }
+  async function refreshQuote(host,keepVendor=false){
+   const version=++quoteVersion;
+   quote=null;quoteError='';
+   renderMarketplace(host,true,keepVendor);
+   const type=types.find(row=>row.id===selectedType);
+   if(!type||!selectedVendor||selectedUnits()!==type.required_units)return;
+   try{
+    const result=await api.db.rpc('quote_marketplace_bundle',{p_type:selectedType,p_vendor:selectedVendor,p_items:selectedItems()});
+    if(result.error)throw result.error;
+    if(version!==quoteVersion)return;
+    quote=result.data;
+   }catch(error){if(version!==quoteVersion)return;quoteError=error.message||'Could not check the bundle';}
+   if(api.shopView()==='bundles'){
+    const active=document.activeElement;
+    const control=active?.dataset.component;
+    const step=active?.dataset.step;
+    renderMarketplace(host,true);
+    if(control)host.querySelector(`[data-component="${control}"][data-step="${step}"]:not([disabled])`)?.focus();
+   }
   }
   async function load(items){
-   publicProducts=items;let host=$('marketBundleSection');if(!host){host=document.createElement('section');host.id='marketBundleSection';host.className='shop-home-section bundle-section';$('departments')?.closest('section')?.after(host)}
-   if(host){host.classList.toggle('hidden',api.shopView()!=='home');host.hidden=!items.some(p=>p.bundle_definition);renderMarketplace(host)}
+   publicProducts=items;
+   let host=$('marketBundleSection');
+   if(!host){
+    host=document.createElement('section');host.id='marketBundleSection';host.className='shop-home-section bundle-section';
+    $('departments')?.closest('section')?.after(host);
+   }
+   if(host){host.classList.toggle('hidden',api.shopView()!=='home');renderMarketplace(host);}
+   const [bundleTypes,vendorList,settings]=await Promise.all([
+    api.db.rpc('marketplace_bundle_types'),
+    api.db.from('vendors').select('id,business_name').eq('status','active').order('business_name'),
+    api.db.from('system_config').select('config_value').eq('config_key','MARKETPLACE_CATEGORY_MOTION').is('effective_to',null).order('version',{ascending:false}).limit(1)
+   ]);
+   if(!bundleTypes.error&&Array.isArray(bundleTypes.data))types=bundleTypes.data;
+   else typeLoadError='Bundle types could not load. Refresh to try again.';
+   const visibleVendors=new Map(regularProducts().map(p=>[p.vendor_id,{id:p.vendor_id,business_name:p.vendors?.business_name||'Vendor'}]));
+   for(const vendor of vendorList.data||[])visibleVendors.set(vendor.id,vendor);
+   activeVendors=[...visibleVendors.values()].sort((a,b)=>a.business_name.localeCompare(b.business_name));
+   if(!settings.error&&settings.data?.[0]?.config_value)motion={...motion,...settings.data[0].config_value};
+   startMotion();
    if(api.shopView()==='bundles')renderMarketplace($('shopDirectory'),true);
-   const r=await api.db.from('system_config').select('config_value').eq('config_key','MARKETPLACE_CATEGORY_MOTION').is('effective_to',null).order('version',{ascending:false}).limit(1);
-   if(!r.error&&r.data?.[0]?.config_value&&typeof r.data[0].config_value==='object')motion={...motion,...r.data[0].config_value};startMotion();
-   if(location.hash.startsWith('#product/')){const p=items.find(p=>p.id===location.hash.slice(9));if(p?.bundle_definition)renderDetail(p)}
+  }
+  async function mountAdmin(){
+   if(!api.isAdmin())return;
+   const host=$('control-bundles');
+   if(!host)return;
+   const r=await api.db.rpc('admin_marketplace_bundle_types');
+   if(!api.isAdmin())return;
+   if(r.error){host.textContent=r.error.message;return;}
+   adminTypes=r.data.types;adminRate=r.data.reference_rate;
+   renderAdmin(host);
+  }
+  function renderAdmin(host){
+   host.innerHTML=`<div class="commerce-studio">
+    <header class="studio-heading"><h2>Bundle types</h2><button type="button" class="btn primary" data-add-type>Add bundle type</button></header>
+    <div class="configured-admin-types">${adminTypes.map(t=>`<article class="studio-card">
+     <h3>${esc(t.name)}</h3><dl><dt>Required units</dt><dd>${t.required_units}</dd><dt>PPV divider</dt><dd>${t.ppv_divider??'Pending'}</dd><dt>Minimum total</dt><dd>${money(t.minimum_pkr)}</dd><dt>Status</dt><dd>${esc(t.status)}</dd></dl>
+     <div class="bundle-admin-actions"><button type="button" class="btn" data-edit-type="${t.id}">Edit</button>
+     <button type="button" class="btn" data-toggle-type="${t.id}" ${t.ppv_divider==null?'disabled':''}>${t.status==='enabled'?'Disable':'Enable'}</button></div>
+    </article>`).join('')}</div><div id="bundleTypeEditor"></div><p role="status" id="bundleTypeStatus"></p>
+   </div>`;
+   host.querySelector('[data-add-type]').onclick=()=>renderTypeEditor(host,{name:'',required_units:15,minimum_pkr:3000,status:'draft',allow_repeats:true});
+   host.querySelectorAll('[data-edit-type]').forEach(b=>b.onclick=()=>renderTypeEditor(host,adminTypes.find(t=>t.id===b.dataset.editType)));
+   host.querySelectorAll('[data-toggle-type]').forEach(b=>b.onclick=()=>{
+    const t=adminTypes.find(row=>row.id===b.dataset.toggleType);
+    return saveType(host,{...t,status:t.status==='enabled'?'disabled':'enabled'},b);
+   });
+  }
+  async function saveType(host,t,button){
+   if(busy)return;
+   busy=true;button.disabled=true;
+   const status=host.querySelector('#bundleTypeStatus');
+   try{
+    const result=await api.db.rpc('admin_save_marketplace_bundle_type',{
+     p_id:t.id||null,p_name:t.name,p_units:t.required_units,p_divider:t.ppv_divider??null,
+     p_minimum:t.minimum_pkr,p_repeats:t.allow_repeats,p_max:t.max_per_product??null,p_status:t.status
+    });
+    if(result.error)throw result.error;
+    await mountAdmin();
+    await api.reload();
+    api.toast('Bundle type saved');
+   }catch(error){status.textContent=error.message||'Could not save bundle type';}
+   finally{busy=false;button.disabled=false;}
+  }
+  function renderTypeEditor(host,t){
+   const editor=host.querySelector('#bundleTypeEditor');
+   editor.innerHTML=`<form class="studio-card bundle-type-form"><h3>${t.id?'Edit bundle type':'Add bundle type'}</h3>
+    <div class="studio-two">
+     <label>Name<input name="name" required maxlength="80" value="${esc(t.name)}"></label>
+     <label>Required units<input name="units" required type="number" min="2" max="99" value="${t.required_units}"></label>
+     <label>PPV divider<input name="divider" type="number" min="1" step=".0001" value="${t.ppv_divider??''}"></label>
+     <label>Minimum product total (PKR)<input name="minimum" required type="number" min="0" step=".01" value="${t.minimum_pkr}"></label>
+     <label>Maximum per product<input name="max" type="number" min="1" placeholder="Bundle size" value="${t.max_per_product??''}"></label>
+     <label>Status<select name="status">${['draft','enabled','disabled'].map(s=>`<option value="${s}" ${t.status===s?'selected':''}>${s}</option>`).join('')}</select></label>
+    </div><label class="bundle-repeat"><input type="checkbox" name="repeat" ${t.allow_repeats?'checked':''}> Allow repeated products</label>
+    <details><summary>Calculation preview</summary><p>Current conversion rate: ${adminRate==null?'Unavailable':money(adminRate)+' per PPV'}</p>
+     <div class="studio-two"><label>Example current product total<input type="number" name="samplePrice" min="0" step=".01"></label><label>Example approved PPV<input type="number" name="samplePPV" min="0" step=".0001"></label></div><output data-preview></output>
+    </details><button class="btn primary" type="submit">Save bundle type</button></form>`;
+   const form=editor.querySelector('form'),f=form.elements;
+   const preview=()=>{
+    f.max.max=f.units.value;f.max.disabled=!f.repeat.checked;
+    const divider=Number(f.divider.value),points=Number(f.samplePPV.value);
+    const out=editor.querySelector('[data-preview]');
+    if(divider<1||adminRate==null||!f.samplePrice.value||!f.samplePPV.value){out.textContent='Enter sample totals and a divider.';return;}
+    const retained=Math.floor(points/divider*10000)/10000;
+    const discount=Math.floor((points-points/divider)*Number(adminRate)*100)/100;
+    const price=Number(f.samplePrice.value)-discount;
+    out.textContent=`Retained PPV ${retained.toFixed(4)} · Extra discount ${money(discount)} · Final products ${money(price)}`+(price<Number(f.minimum.value)?' · Below minimum':'');
+   };
+   form.oninput=preview;
+   form.onsubmit=e=>{
+    e.preventDefault();
+    return saveType(host,{...t,name:f.name.value.trim(),required_units:Number(f.units.value),
+     ppv_divider:f.divider.value?Number(f.divider.value):null,minimum_pkr:Number(f.minimum.value),
+     allow_repeats:f.repeat.checked,max_per_product:f.repeat.checked&&f.max.value?Number(f.max.value):null,status:f.status.value},e.submitter||form.querySelector('button[type="submit"]'));
+   };
+   preview();f.name.focus();
   }
   function renderDetail(p){
    const root=$('productDetail');if(!root)return;const b=p.bundle_definition,photos=[...new Set([p.image_url,...(p.image_urls||[]),...b.items.map(i=>i.image_url)])].filter(image);
@@ -40,32 +225,6 @@
    if(b.items.length)selectComponent(0);
    root.querySelectorAll('[data-bundle-photo]').forEach(button=>button.onclick=()=>{$('bundleMainImage').src=button.dataset.bundlePhoto});
   }
-  function fresh(){return {id:null,vendor:vendors[0]?.id||'',name:'',items:[],ppv:0,discount:0,rate:api.referenceRate?.()||290,mode:'half_ppv',images:[],status:'draft'}}
-  const selected=()=>draft.items.map(i=>({...adminProducts.find(p=>p.id===i.product_id),quantity:i.quantity})).filter(i=>i.id);
-  function readForm(){const f=$('bundleEditor');if(!f||!draft)return;draft.name=f.elements.bundleName.value;draft.ppv=Number(f.elements.points.value);draft.discount=Number(f.elements.discount.value);draft.rate=Number(f.elements.rate.value);draft.mode=f.elements.mode.value}
-  function totals(){return calculate(selected(),draft.ppv,draft.discount,draft.rate,draft.mode)}
-  function preview(){if(!draft||!$('bundleEditor'))return;const t=totals(),f=$('bundleEditor');if(draft.mode==='half_ppv'){f.elements.points.value=t.points.toFixed(4);f.elements.discount.value=t.discount.toFixed(2);draft.ppv=t.points;draft.discount=t.discount}
-   $('bundleTotals').innerHTML=`<span>Products total <b>${money(t.total)}</b></span><span>Original PPV <b>${t.originalPPV.toFixed(4)}</b></span>`;
-   $('bundlePrice').textContent=money(t.price);$('bundlePreviewName').textContent=draft.name||'Your bundle name';$('bundlePreviewPrice').textContent=money(t.price);$('bundlePreviewSaving').textContent='Save '+money(t.discount)+' · '+t.points.toFixed(4)+' PPV';
-   const imgs=draft.images.filter(image);$('bundlePreviewImages').innerHTML=imgs.length?`<img src="${esc(imgs[0])}" alt="Bundle preview">`:'<span>Add a bundle photo</span>';
-   $('bundleGallery').innerHTML=imgs.map((src,i)=>`<div><img src="${esc(src)}" alt="Bundle image ${i+1}"><button type="button" data-remove-bundle-image="${i}" aria-label="Remove image ${i+1}">×</button>${i===0?'<small>Cover</small>':`<button type="button" class="bundle-cover" data-cover-bundle-image="${i}">Set cover</button>`}</div>`).join('');
-  }
-  function renderAdmin(){
-   const host=$('control-bundles');if(!host)return;host.innerHTML=`<div class="commerce-studio"><header class="studio-heading"><div><small>E-commerce Controls</small><h2>Bundles</h2></div><button class="btn primary" type="button" data-new-bundle>+ Create bundle</button></header><div class="bundle-admin-list">${adminProducts.filter(p=>p.bundle_definition).map(p=>`<button type="button" data-edit-bundle="${p.id}"><img src="${esc(image(p.image_url))}" alt=""><span><b>${esc(p.name)}</b><small>${money(p.price_pkr)} · ${Number(p.ppv_per_unit).toFixed(4)} PPV</small></span><em>${p.status==='approved'?'Published':p.status==='archived'?'Paused':'Draft'}</em><span>Edit →</span></button>`).join('')||'<p>Create a bundle by selecting a vendor and its products.</p>'}</div><div id="bundleEditorHost"></div><p class="studio-status" id="bundleAdminStatus" role="status"></p></div>`;
-   host.querySelector('[data-new-bundle]').onclick=()=>{draft=fresh();renderEditor()};host.querySelectorAll('[data-edit-bundle]').forEach(btn=>btn.onclick=()=>{const p=adminProducts.find(p=>p.id===btn.dataset.editBundle),b=p.bundle_definition;draft={id:p.id,vendor:p.vendor_id,name:p.name,items:b.items.map(i=>({product_id:i.product_id,quantity:i.quantity})),ppv:b.ppv,discount:b.discount_pkr,rate:api.referenceRate?.()||b.reference_rate,mode:b.mode||'manual',images:[...(p.image_urls||[p.image_url])],status:p.status};renderEditor()});
-   if(draft)renderEditor();
-  }
-  function renderEditor(){
-   const host=$('bundleEditorHost');if(!host)return;const vendorProducts=adminProducts.filter(p=>p.vendor_id===draft.vendor&&!p.bundle_definition&&p.status==='approved');
-   host.innerHTML=`<form id="bundleEditor" class="bundle-editor"><div class="studio-heading"><h3>${draft.id?'Edit bundle':'Create bundle'}</h3><span class="studio-chip">${draft.status==='approved'?'Published':draft.status==='archived'?'Paused':'Draft'}</span></div><div class="bundle-editor-grid"><div class="bundle-fields"><section class="studio-card"><div class="studio-two"><label>Vendor<select name="vendor" required>${vendors.map(v=>`<option value="${v.id}" ${draft.vendor===v.id?'selected':''}>${esc(v.business_name)}</option>`).join('')}</select></label><label>Bundle name<input name="bundleName" maxlength="100" value="${esc(draft.name)}" required placeholder="e.g. Daily Care Trio"></label></div></section><section class="studio-card"><h3>Selected products <span>(${draft.items.length})</span></h3><label class="studio-search">Search products<input id="bundleProductSearch" type="search" placeholder="Search this vendor’s products"></label><div class="bundle-product-picker" id="bundleProductPicker">${vendorProducts.map(p=>`<label data-product-search="${esc(p.name.toLowerCase())}"><input type="checkbox" value="${p.id}" ${draft.items.some(i=>i.product_id===p.id)?'checked':''}><img src="${esc(image(p.image_url))}" alt=""><span>${esc(p.name)}<small>${money(p.price_pkr)} · ${Number(p.ppv_per_unit).toFixed(4)} PPV</small></span></label>`).join('')||'<p>No approved products for this vendor.</p>'}</div><div class="bundle-selected">${selected().map(p=>`<div><img src="${esc(image(p.image_url))}" alt=""><span>${esc(p.name)}<small>${money(p.price_pkr)} · ${Number(p.ppv_per_unit).toFixed(4)} PPV</small></span><label>Qty<input type="number" data-bundle-qty="${p.id}" value="${p.quantity}" min="1" max="99" required></label><button type="button" data-remove-bundle-product="${p.id}" aria-label="Remove ${esc(p.name)}">×</button></div>`).join('')}</div><div id="bundleTotals" class="studio-totals"></div></section><section class="studio-card"><h3>Pricing &amp; PPV</h3><div class="studio-two"><label>PPV / discount method<select name="mode"><option value="half_ppv" ${draft.mode==='half_ppv'?'selected':''}>50% PPV split</option><option value="manual" ${draft.mode==='manual'?'selected':''}>Manual settings</option></select></label><label>PKR per PPV<input name="rate" readonly title="Uses the configured MIO reference rate" type="number" min="0.01" step="0.01" value="${draft.rate}" required></label><label>Bundle PPV<input name="points" type="number" min="0" step="0.0001" value="${draft.ppv}" required></label><label>Discount (PKR)<input name="discount" type="number" min="0" step="0.01" value="${draft.discount}" required></label></div><small class="bundle-note">PPV follows the existing 4-decimal ledger. Discount rounds to PKR 0.01.</small><div class="studio-price"><span>Customer price (final)</span><strong id="bundlePrice"></strong></div></section></div><aside class="studio-card bundle-live-preview"><h3>Live preview</h3><div id="bundlePreviewImages"></div><b id="bundlePreviewName"></b><strong id="bundlePreviewPrice"></strong><small id="bundlePreviewSaving"></small><div class="studio-heading"><h3>Image gallery</h3><label class="btn small upload-control">Upload images<input id="bundleImageUpload" type="file" accept="image/png,image/jpeg,image/webp" multiple></label></div><div id="bundleGallery" class="bundle-admin-gallery"></div><small class="bundle-note">First image is the cover. Include the bundle and individual product photos.</small></aside></div><footer class="studio-actions"><button type="submit" class="btn" name="intent" value="draft">Save draft</button>${draft.id?'<button type="submit" class="btn" name="intent" value="archived">Pause bundle</button>':''}<button type="submit" class="btn primary" name="intent" value="approved">Publish bundle</button></footer></form>`;
-   const f=$('bundleEditor');f.elements.vendor.onchange=()=>{readForm();draft.vendor=f.elements.vendor.value;draft.items=[];draft.images=[];renderEditor()};
-   f.oninput=e=>{if(e.target.id==='bundleProductSearch'){$('bundleProductPicker').querySelectorAll('[data-product-search]').forEach(row=>row.hidden=!row.dataset.productSearch.includes(e.target.value.toLowerCase()));return}if(e.target.matches('[data-bundle-qty]')){const i=draft.items.find(i=>i.product_id===e.target.dataset.bundleQty);i.quantity=Number(e.target.value);readForm();preview();return}if(['points','discount'].includes(e.target.name)){f.elements.mode.value='manual'}readForm();preview()};
-   f.onchange=e=>{if(e.target.matches('#bundleProductPicker input')){readForm();if(e.target.checked){draft.items.push({product_id:e.target.value,quantity:1});const p=adminProducts.find(p=>p.id===e.target.value);if(image(p.image_url)&&!draft.images.includes(p.image_url))draft.images.push(p.image_url)}else draft.items=draft.items.filter(i=>i.product_id!==e.target.value);renderEditor()}else if(e.target.name==='mode'){readForm();preview()}};
-   f.onclick=e=>{const remove=e.target.closest('[data-remove-bundle-product]'),photo=e.target.closest('[data-remove-bundle-image]'),cover=e.target.closest('[data-cover-bundle-image]');if(remove){readForm();draft.items=draft.items.filter(i=>i.product_id!==remove.dataset.removeBundleProduct);renderEditor()}if(photo){draft.images.splice(Number(photo.dataset.removeBundleImage),1);preview()}if(cover){draft.images.unshift(...draft.images.splice(Number(cover.dataset.coverBundleImage),1));preview()}};
-   $('bundleImageUpload').onchange=async e=>{try{if(busy)return;busy=true;readForm();for(const file of e.target.files){if(draft.images.length>=8)throw Error('Use up to 8 images');draft.images.push(await upload(file,'bundles'))}preview()}catch(e){api.toast(e.message)}finally{busy=false}};
-   f.onsubmit=async e=>{e.preventDefault();if(busy)return;readForm();const t=totals();if(draft.items.length<2)return api.toast('Select at least two products');if(!draft.images.length)return api.toast('Add a bundle image');busy=true;f.querySelectorAll('button[type=submit]').forEach(b=>b.disabled=true);try{const r=await api.db.rpc('admin_save_bundle',{p_id:draft.id,p_vendor:draft.vendor,p_name:draft.name,p_items:draft.items,p_ppv:t.points,p_discount:t.discount,p_rate:draft.rate,p_images:draft.images,p_status:e.submitter?.value||'draft',p_mode:draft.mode});if(r.error)throw r.error;draft=null;await mountAdmin();await api.reload();api.toast('Bundle saved')}catch(error){$('bundleAdminStatus').textContent=error.message;api.toast(error.message)}finally{busy=false;f.querySelectorAll('button[type=submit]').forEach(b=>b.disabled=false)}};preview();
-  }
-  async function mountAdmin(){if(!api.isAdmin())return;const [p,v]=await Promise.all([api.db.from('products').select('*').order('name'),api.db.from('vendors').select('id,business_name,status').eq('status','active').order('business_name')]);if(p.error||v.error)throw p.error||v.error;if(!api.isAdmin())return;adminProducts=p.data||[];vendors=v.data||[];renderAdmin()}
   async function upload(file,folder){if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>5242880)throw Error('Use PNG, JPG or WebP up to 5 MB');const path=folder+'/'+crypto.randomUUID()+'.'+({ 'image/png':'png','image/jpeg':'jpg','image/webp':'webp'}[file.type]);const r=await api.db.storage.from('marketplace-banners').upload(path,file,{contentType:file.type,cacheControl:'31536000',upsert:false});if(r.error)throw r.error;return api.db.storage.from('marketplace-banners').getPublicUrl(path).data.publicUrl}
   async function mountCategories(){if(!api.isAdmin())return;const r=await api.db.from('system_config').select('config_key,config_value').in('config_key',['MARKETPLACE_CATEGORIES','MARKETPLACE_CATEGORY_MOTION']).is('effective_to',null).order('version',{ascending:false});if(r.error)throw r.error;if(!api.isAdmin())return;categories=structuredClone(r.data?.find(x=>x.config_key==='MARKETPLACE_CATEGORIES')?.config_value||api.categories());motion={...motion,...r.data?.find(x=>x.config_key==='MARKETPLACE_CATEGORY_MOTION')?.config_value};categoryIndex=Math.min(categoryIndex,categories.length-1);renderCategories()}
   function renderCategories(){const host=$('control-categories');if(!host)return;const c=categories[categoryIndex];host.innerHTML=`<div class="commerce-studio"><header class="studio-heading"><div><small>E-commerce Controls</small><h2>Categories</h2></div><button class="btn primary" type="button" data-add-category>+ Add category</button></header><div class="category-editor-grid"><section class="studio-card"><label class="studio-search">Search categories<input id="categorySearch" type="search" value="${esc(categoryQuery)}" placeholder="Search categories"></label><div class="category-studio-list">${categories.map((c,i)=>`<div class="category-studio-row ${i===categoryIndex?'selected':''}" data-category-row="${i}" ${categoryQuery&&!c.name.toLowerCase().includes(categoryQuery.toLowerCase())?'hidden':''} draggable="true"><span class="category-grip" aria-hidden="true">⠿</span><img src="${esc(image(c.image_url)||api.categoryImage(c.name))}" alt=""><strong>${esc(c.name)}</strong><label class="studio-switch"><input type="checkbox" data-category-visible="${i}" ${c.visible!==false?'checked':''}><span>${c.visible===false?'Hidden':'Visible'}</span></label><div class="category-order"><button type="button" data-category-move="${i}" data-delta="-1" aria-label="Move ${esc(c.name)} up" ${i===0?'disabled':''}>↑</button><button type="button" data-category-move="${i}" data-delta="1" aria-label="Move ${esc(c.name)} down" ${i===categories.length-1?'disabled':''}>↓</button></div><button class="btn small" type="button" data-category-edit="${i}">Edit</button></div>`).join('')}</div></section><aside class="studio-card category-detail"><h3>Category details</h3>${c?`<img class="category-detail-image" src="${esc(image(c.image_url)||api.categoryImage(c.name))}" alt=""><label class="btn small upload-control">Replace image<input id="categoryImageUpload" type="file" accept="image/png,image/jpeg,image/webp"></label><label>Name<input id="categoryEditName" maxlength="60" value="${esc(c.name)}"></label><label>Display order<input id="categoryEditOrder" type="number" min="1" max="${categories.length}" value="${categoryIndex+1}"></label><small class="bundle-note">Used category names are preserved to keep product listings connected.</small><button class="btn" type="button" data-category-remove>Remove unused category</button>`:''}</aside></div><section class="studio-card category-motion"><h3>Category strip motion</h3><div class="category-motion-controls"><label class="studio-switch"><input id="categoryMotionEnabled" type="checkbox" ${motion.enabled?'checked':''}>Auto-scroll</label><label>Speed<select id="categoryMotionSpeed"><option value="slow" ${motion.speed==='slow'?'selected':''}>Slow</option><option value="normal" ${motion.speed==='normal'?'selected':''}>Normal</option><option value="fast" ${motion.speed==='fast'?'selected':''}>Fast</option></select></label><label>Direction<select id="categoryMotionDirection"><option value="left" ${motion.direction==='left'?'selected':''}>Left</option><option value="right" ${motion.direction==='right'?'selected':''}>Right</option></select></label><span>Pauses on hover, touch &amp; keyboard focus</span></div><div class="category-strip-preview">${categories.filter(c=>c.visible!==false).slice(0,8).map(c=>`<div><img src="${esc(image(c.image_url)||api.categoryImage(c.name))}" alt=""><span>${esc(c.name)}</span></div>`).join('')}</div></section><footer class="studio-actions"><p id="categoryStudioStatus" role="status"></p><button type="button" class="btn primary" data-save-category-display>Save changes</button></footer></div>`;
@@ -88,7 +247,7 @@
     animation=requestAnimationFrame(tick)
    }animation=requestAnimationFrame(tick);
   }
-  return {load,renderMarketplace,renderDetail,mountAdmin,mountCategories,startMotion};
+  return {load,renderMarketplace,renderDetail,preselectVendor,mountAdmin,mountCategories,startMotion};
  }
- window.MioBundles={create,calculate};
+ window.MioBundles={create};
 })();
