@@ -1,0 +1,93 @@
+import {PGlite} from '@electric-sql/pglite';
+import {readFile,readdir} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+import assert from 'node:assert/strict';
+const source=new URL('..',import.meta.url).pathname.replace(/\/$/,'');
+const db=new PGlite(),q=(sql,args=[])=>db.query(sql,args),one=async(sql,args=[])=>Object.values((await q(sql,args)).rows[0])[0];
+const uid=n=>{const h=createHash('sha256').update('bundles:'+n).digest('hex').slice(0,32);return `${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20)}`};
+const company=uid(1),buyer=uid(2),as=id=>q("select set_config('request.jwt.claim.sub',$1,false)",[id]);
+await db.exec(`create role anon;create role authenticated;create role service_role;create schema auth;
+create table auth.users(id uuid primary key,email text,raw_user_meta_data jsonb,raw_app_meta_data jsonb);
+create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
+alter default privileges grant execute on functions to anon,authenticated,service_role;
+grant usage on schema auth to anon,authenticated;grant execute on function auth.uid() to anon,authenticated;`);
+for(const file of (await readdir(source+'/schema')).filter(x=>/^\d+.*\.sql$/.test(x)).sort())await db.exec(await readFile(source+'/schema/'+file,'utf8'));
+await db.exec('alter table public.products add column if not exists country_code text');
+// The production PIN helper is installed by the Supabase-only security migration.
+await db.exec("create function private.require_transaction_pin(text,uuid) returns void language sql as $$select$$");
+await q("update private.operator_setup set email='checkout-company@example.invalid'");
+await q("insert into auth.users(id,email,raw_user_meta_data,raw_app_meta_data) values($1,'checkout-company@example.invalid',$2,'{\"provider\":\"google\"}')",[company,JSON.stringify({full_name:'Checkout company',phone:'00000000',terms_accepted:true})]);
+await q("insert into public.user_roles(user_id,role) values($1,'admin')",[company]);await q("update public.member_profiles set status='active',terms_accepted_at=now() where user_id=$1",[company]);
+const ref=await one('select referral_code from public.member_profiles where user_id=$1',[company]);
+await q("insert into auth.users(id,email,raw_user_meta_data,raw_app_meta_data) values($1,'checkout-buyer@example.invalid',$2,'{}')",[buyer,JSON.stringify({full_name:'Checkout buyer',phone:'00000000',terms_accepted:true,referral_code:ref})]);await q("update public.member_profiles set status='active',terms_accepted_at=now() where user_id=$1",[buyer]);
+await as(company);await q("select set_config('request.jwt.claims',$1,false)",[JSON.stringify({aal:'aal2',amr:[{method:'totp',timestamp:Math.floor(Date.now()/1000)}]})]);await q("select public.admin_set_usd_to_pkr_rate(300,'Checkout test rate')");await q("select public.set_company_delivery(0,'Checkout test delivery')");
+const vendor=await one("select public.create_company_brand('Checkout shop','','')");await q('select public.set_vendor_commission($1,.30)',[vendor]);const product=await one("insert into public.products(vendor_id,name,description,category,price_pkr,stock_quantity,status) values($1,'Checkout product','Checkout test','Tests',1000,100,'approved') returning id",[vendor]);
+await q("update public.mio_wallet_accounts set balance=100 where member_id=$1",[buyer]);await q("insert into public.member_income_wallets(member_id,shopping_points,promotion_points) values($1,10000,20) on conflict(member_id)do update set shopping_points=10000,promotion_points=20",[buyer]);await as(buyer);
+
+
+await as(company);
+await db.exec(await readFile(source+'/supabase/migrations/20261110214233_product_commission_and_vendor_rewards.sql','utf8'));
+
+await db.exec("alter table auth.users add column email_confirmed_at timestamptz");
+await db.exec(await readFile(source+'/supabase/migrations/20261110215509_separate_vendor_portal.sql','utf8'));
+
+await db.exec(await readFile(source+'/schema/network_control_mio_price_setter.sql','utf8'));
+await q('insert into private.network_foundation(singleton,company_id,founder_id) values(true,$1,$2)',[company,buyer]);
+await q("insert into public.system_config(config_key,version,config_value,effective_from,created_by) values('MIO_REFERENCE_PRICE_PKR',1,'300',now(),$1)",[company]);
+await db.exec(await readFile(source+'/supabase/migrations/20261111162534_configurable_marketplace_bundles.sql','utf8'));
+await db.exec(await readFile(source+'/supabase/migrations/20261111214405_customer_checkout_advance_and_sponsor_hold.sql','utf8'));
+await db.exec("create table if not exists private.founder_invites(email text,token_hash text,expires_at timestamptz,redeemed_at timestamptz)");
+await as(company);await q("select public.admin_save_product_economics($1,1000,null,null,0,'reserve')",[product]);
+console.log('PASS migration replay');
+const shopper=uid(101),stranger=uid(102),unverified=uid(103),affiliate=uid(104),sponsor=buyer;
+const signup=async(id,referral=null,verified=true)=>q("insert into auth.users(id,email,raw_user_meta_data,raw_app_meta_data,email_confirmed_at) values($1,$2,$3,'{}',$4)",[id,id+'@example.invalid',JSON.stringify({full_name:'Shopping Customer',phone:'03000000000',terms_accepted:true,affiliate_code:referral,registration_type:'customer'}),verified?new Date().toISOString():null]);
+await signup(shopper);await signup(stranger);await signup(unverified,null,false);await signup(affiliate,await one('select member_code from public.member_profiles where user_id=$1',[sponsor]));
+for(const id of [shopper,stranger,unverified,affiliate]){assert.equal(Number(await one('select count(*) from public.member_profiles where user_id=$1',[id])),0);assert.equal(Number(await one('select count(*) from public.user_roles where user_id=$1',[id])),0);assert.equal(Number(await one('select count(*) from public.mio_wallet_accounts where member_id=$1',[id])),0)}
+await as(shopper);assert.equal((await one('select public.my_shopping_account()')).customer_only,true);
+console.log('PASS normal and affiliate signup creates shopping identity only, no member, role or wallet');
+for(const [total,amount,mio] of [[100,100,2],[1000,600,2],[5999,600,2],[6000,600,2],[6000.01,600,2],[9000,900,3],[12000,1200,4]]){const r=await one('select private.customer_order_requirement($1,300)',[total]);assert.equal(r.required_pkr,amount);assert.equal(r.hold_mio,mio)}
+assert.equal((await one('select private.customer_order_requirement(10000,290)')).hold_mio,3.4483);
+console.log('PASS formula thresholds, small orders, percentage and upward MIO rounding');
+let count=0;
+const place=async(id,{qty=1,method='ADVANCE',key='shopping-order-'+(++count),code=null}={})=>{await as(id);return one("select public.place_shopping_order($1,'Customer Name','03000000000','Complete street address','Lahore',$2,$3,$4)",[JSON.stringify([{product_id:product,quantity:qty}]),key,method,code])};
+await assert.rejects(()=>place(unverified),/Verify your email/);
+await assert.rejects(()=>place(shopper,{method:'SPONSOR'}),/linked sponsor/);
+await as('');await assert.rejects(()=>one("select public.place_guest_affiliate_order('[]','a','b','c','d','e','abcdefghijkl','abcdefghijklmnopqrstuvwxabcdefghijkl',null)"),/User account/);
+const first=await place(shopper,{key:'stable-checkout-request'}),retry=await place(shopper,{key:'stable-checkout-request'});assert.equal(retry.order_id,first.order_id);assert.equal(retry.duplicate,true);
+await as(stranger);assert.equal((await one('select public.my_shopping_orders()')).length,0);await assert.rejects(()=>q('select public.cancel_unpaid_order($1)',[first.order_id]),/Order not found/);
+await assert.rejects(()=>q("select public.submit_shopping_advance($1,$2,'TRANS-123')",[first.order_id,uid(202)]),/Order not found/);
+await assert.rejects(()=>q("select public.admin_save_shopping_payment_account(null,'QA Bank','QA Account','12345678','',true)"),/Admin/);
+await as(company);await assert.rejects(()=>q("select public.advance_order_status($1,'confirmed')",[first.order_id]),/Advance payment/);
+await assert.rejects(()=>q('select public.admin_confirm_order_payment($1)',[first.order_id]),/Advance payment/);
+const bank=await one("select public.admin_save_shopping_payment_account(null,'QA Bank','QA Account','12345678','Use order code',true)");
+await as(shopper);await q("select public.submit_shopping_advance($1,$2,'TRANS-123')",[first.order_id,bank]);await q("select public.submit_shopping_advance($1,$2,'TRANS-123')",[first.order_id,bank]);
+await assert.rejects(()=>q('select public.cancel_unpaid_order($1)',[first.order_id]),/under review/);
+await as(company);await assert.rejects(()=>q("select public.admin_review_shopping_advance($1,true,599,'Verified transfer')",[first.order_id]),/exact required/);
+await q("select public.admin_review_shopping_advance($1,true,600,'Verified transfer in bank')",[first.order_id]);await q("select public.admin_review_shopping_advance($1,true,600,'Retry after response loss')",[first.order_id]);
+const paid=(await q('select status,payment_status,cod_due_pkr,total_pkr from public.orders where id=$1',[first.order_id])).rows[0];assert.equal(paid.status,'confirmed');assert.equal(paid.payment_status,'unconfirmed');assert.equal(Number(paid.cod_due_pkr),Number(paid.total_pkr)-600);
+console.log('PASS verified identity, idempotent checkout, owner isolation, admin-only payment approval and dispatch gate; advance reduces COD without confirming full payment');
+const duplicate=await place(stranger);await assert.rejects(()=>q("select public.submit_shopping_advance($1,$2,' trans-123 ')",[duplicate.order_id,bank]),/unique/);
+const affAdvance=await place(affiliate);await as(sponsor);assert.equal((await q('select * from public.my_affiliate_guest_order_approvals()')).rows.some(a=>a.order_id===affAdvance.order_id),false);await assert.rejects(()=>q("select public.review_affiliate_guest_order($1,true,'123456','qa-approval-advance','MIO')",[affAdvance.order_id]),/selected advance/);
+await as(affiliate);await q("select public.submit_shopping_advance($1,$2,'AFF-ADVANCE-123')",[affAdvance.order_id,bank]);await as(company);await q("select public.admin_review_shopping_advance($1,true,600,'Verified affiliate advance')",[affAdvance.order_id]);
+const held=await place(affiliate,{qty:10,method:'SPONSOR'});const req=Number(held.hold_mio);assert.ok(req>2);
+await as(company);await assert.rejects(()=>q("select public.advance_order_status($1,'confirmed')",[held.order_id]),/approval|hold/);
+await as(sponsor);const before=Number(await one('select balance from public.mio_wallet_accounts where member_id=$1',[sponsor]));await q("select public.review_affiliate_guest_order($1,true,'123456','qa-affiliate-approval','MIO')",[held.order_id]);await q("select public.review_affiliate_guest_order($1,true,'123456','qa-affiliate-approval','MIO')",[held.order_id]);assert.equal(Number(await one('select balance from public.mio_wallet_accounts where member_id=$1',[sponsor])),before-req);
+assert.equal(Number(await one('select cod_due_pkr from public.orders where id=$1',[held.order_id])),Number(await one('select total_pkr from public.orders where id=$1',[held.order_id])));
+await as(company);await q('select public.cancel_unpaid_order($1)',[held.order_id]);assert.equal(Number(await one('select balance from public.mio_wallet_accounts where member_id=$1',[sponsor])),before);
+await q('select public.cancel_unpaid_order($1)',[held.order_id]);assert.equal(Number(await one('select balance from public.mio_wallet_accounts where member_id=$1',[sponsor])),before);
+console.log('PASS affiliate advance alternative, dynamic sponsor hold, exactly-once debit/refund and unchanged full COD for security holds');
+await q('select public.cancel_unpaid_order($1)',[first.order_id]);assert.equal(await one('select status from private.customer_order_funding where order_id=$1',[first.order_id]),'refund_due');await q("select public.admin_record_shopping_refund($1,'BANK-REFUND-12345')",[first.order_id]);assert.equal(await one('select status from private.customer_order_funding where order_id=$1',[first.order_id]),'refunded');
+const delegated=await place(affiliate,{qty:8,method:'SPONSOR'});await as(buyer);const originalBalance=await one('select balance from public.mio_wallet_accounts where member_id=$1',[buyer]);await q('update public.mio_wallet_accounts set balance=0 where member_id=$1',[buyer]);await assert.rejects(()=>q("select public.review_affiliate_guest_order($1,true,'123456','qa-low-balance-hold','MIO')",[delegated.order_id]),/below/);assert.equal(await one('select status from public.affiliate_guest_order_approvals where order_id=$1',[delegated.order_id]),'pending');await q("select public.review_affiliate_guest_order($1,true,null,'qa-delegate-hold','SPONSOR')",[delegated.order_id]);await as(company);await q('update public.mio_wallet_accounts set balance=20 where member_id=$1',[company]);await q("select public.review_sponsor_guest_guarantee($1,true,'123456','qa-guarantor-hold')",[delegated.order_id]);assert.equal(Number(await one('select balance from public.mio_wallet_accounts where member_id=$1',[company])),20-Number(delegated.hold_mio));await q('select public.cancel_unpaid_order($1)',[delegated.order_id]);assert.equal(Number(await one('select balance from public.mio_wallet_accounts where member_id=$1',[company])),20);await q('update public.mio_wallet_accounts set balance=$2 where member_id=$1',[buyer,originalBalance]);console.log('PASS insufficient sponsor balance rolls back cleanly; delegated sponsor holds and refunds the same dynamic amount');
+await as(buyer);await q("select public.activate_package_with_mio('BASIC_1','qa-sponsor-activation')");
+await as(shopper);await q('select public.join_network_from_shopping($1,true)',[await one('select member_code from public.member_profiles where user_id=$1',[buyer])]);assert.equal((await one('select public.my_shopping_account()')).customer_only,false);assert.equal((await one('select public.my_shopping_orders()'))[0].id,first.order_id);assert.equal(Number(await one('select count(*) from public.member_profiles where user_id=$1',[shopper])),1);
+console.log('PASS paid cancellation needs recorded refund; User-to-Member upgrade preserves shopping history');
+for(const name of ['my_shopping_account()','my_shopping_orders()','shopping_payment_accounts()','admin_shopping_payments()','place_shopping_order(jsonb,text,text,text,text,text,text,text)'])assert.equal(await one("select has_function_privilege('anon',$1,'execute')",['public.'+name]),false);
+assert.equal(await one("select has_table_privilege('authenticated','private.customer_order_funding','select')"),false);
+// Customer configured bundles use the same protected funding flow.
+await as(company);const tier=(await one('select public.marketplace_bundle_types()'))[0];const large=await one("insert into public.products(vendor_id,name,description,category,price_pkr,stock_quantity,status) values($1,'Bundle test item','Test','Care',2400,20,'approved') returning id",[vendor]);
+await as(stranger);const bundleItems=JSON.stringify([{product_id:large,quantity:tier.required_units}]);const quote=await one('select public.quote_marketplace_bundle($1,$2,$3)',[tier.id,vendor,bundleItems]);const bundleRequest={p_items:[],p_shipping_name:'Bundle Customer',p_shipping_phone:'03000000000',p_shipping_address:'Complete street address',p_shipping_city:'Lahore',p_idempotency_key:'customer-bundle-request',p_funding_method:'ADVANCE'};
+const bundle=await one('select public.place_configured_bundle_order($1,$2,$3,$4,$5)',[tier.id,vendor,bundleItems,quote.quote_key,JSON.stringify(bundleRequest)]);assert.ok(bundle.order_id);assert.equal(await one('select customer_id from private.customer_order_funding where order_id=$1',[bundle.order_id]),stranger);
+assert.equal(await one('select count(*) from public.order_items where order_id=$1',[bundle.order_id]),1);
+console.log('PASS configured bundle checkout and authenticated-only API grants');
+await q('update auth.users set email_confirmed_at=now() where id=$1',[buyer]);const memberAffiliate=await place(buyer,{method:'SPONSOR',code:await one('select member_code from public.member_profiles where user_id=$1',[company])});assert.equal(await one('select selling_affiliate_id from public.orders where id=$1',[memberAffiliate.order_id]),company);assert.equal((await one('select public.my_shopping_account()')).customer_only,false);assert.equal((await one('select public.my_shopping_orders()'))[0].id,memberAffiliate.order_id);console.log('PASS existing member affiliate purchases retain seller attribution and authenticated order ownership');
+await db.close();
