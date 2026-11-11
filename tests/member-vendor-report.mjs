@@ -1,0 +1,128 @@
+import {PGlite} from '@electric-sql/pglite';
+import {readFile,readdir} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+import assert from 'node:assert/strict';
+const source=new URL('..',import.meta.url).pathname.replace(/\/$/,'');
+const db=new PGlite(),q=(sql,args=[])=>db.query(sql,args),one=async(sql,args=[])=>Object.values((await q(sql,args)).rows[0])[0];
+const uid=n=>{const h=createHash('sha256').update('bundles:'+n).digest('hex').slice(0,32);return `${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20)}`};
+const company=uid(1),buyer=uid(2),as=id=>q("select set_config('request.jwt.claim.sub',$1,false)",[id]);
+await db.exec(`create role anon;create role authenticated;create role service_role;create schema auth;
+create table auth.users(id uuid primary key,email text,raw_user_meta_data jsonb,raw_app_meta_data jsonb);
+create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
+alter default privileges grant execute on functions to anon,authenticated,service_role;
+grant usage on schema auth to anon,authenticated;grant execute on function auth.uid() to anon,authenticated;`);
+for(const file of (await readdir(source+'/schema')).filter(x=>/^\d+.*\.sql$/.test(x)).sort())await db.exec(await readFile(source+'/schema/'+file,'utf8'));
+await db.exec('alter table public.products add column if not exists country_code text');
+// The production PIN helper is installed by the Supabase-only security migration.
+await db.exec("create function private.require_transaction_pin(text,uuid) returns void language sql as $$select$$");
+await q("update private.operator_setup set email='checkout-company@example.invalid'");
+await q("insert into auth.users(id,email,raw_user_meta_data,raw_app_meta_data) values($1,'checkout-company@example.invalid',$2,'{\"provider\":\"google\"}')",[company,JSON.stringify({full_name:'Checkout company',phone:'00000000',terms_accepted:true})]);
+await q("insert into public.user_roles(user_id,role) values($1,'admin')",[company]);await q("update public.member_profiles set status='active',terms_accepted_at=now() where user_id=$1",[company]);
+const ref=await one('select referral_code from public.member_profiles where user_id=$1',[company]);
+await q("insert into auth.users(id,email,raw_user_meta_data,raw_app_meta_data) values($1,'checkout-buyer@example.invalid',$2,'{}')",[buyer,JSON.stringify({full_name:'Checkout buyer',phone:'00000000',terms_accepted:true,referral_code:ref})]);await q("update public.member_profiles set status='active',terms_accepted_at=now() where user_id=$1",[buyer]);
+await as(company);await q("select set_config('request.jwt.claims',$1,false)",[JSON.stringify({aal:'aal2',amr:[{method:'totp',timestamp:Math.floor(Date.now()/1000)}]})]);await q("select public.admin_set_usd_to_pkr_rate(300,'Checkout test rate')");await q("select public.set_company_delivery(0,'Checkout test delivery')");
+const vendor=await one("select public.create_company_brand('Checkout shop','','')");await q('select public.set_vendor_commission($1,.30)',[vendor]);const product=await one("insert into public.products(vendor_id,name,description,category,price_pkr,stock_quantity,status) values($1,'Checkout product','Checkout test','Tests',1000,100,'approved') returning id",[vendor]);
+await q("update public.mio_wallet_accounts set balance=100 where member_id=$1",[buyer]);await q("insert into public.member_income_wallets(member_id,shopping_points,promotion_points) values($1,10000,20) on conflict(member_id)do update set shopping_points=10000,promotion_points=20",[buyer]);await as(buyer);
+
+
+await as(company);
+await db.exec(await readFile(source+'/supabase/migrations/20261110214233_product_commission_and_vendor_rewards.sql','utf8'));
+
+await db.exec("alter table auth.users add column email_confirmed_at timestamptz");
+await db.exec(await readFile(source+'/supabase/migrations/20261110215509_separate_vendor_portal.sql','utf8'));
+const seller=uid(20),other=uid(21),memberCode=await one('select member_code from public.member_profiles where user_id=$1',[buyer]);
+const signup=async(id,invitation=memberCode)=>q("insert into auth.users(id,email,raw_user_meta_data,raw_app_meta_data) values($1,$2,$3,'{}')",[id,id+'@example.invalid',JSON.stringify({registration_type:'vendor',vendor_invitation:invitation,full_name:'Seller Person',phone:'03000000000',country_code:'PK',terms_accepted:true,gender:'male'})]);
+await signup(seller);await signup(other);
+assert.equal(Number(await one('select count(*) from public.member_profiles where user_id=$1',[seller])),0);
+assert.equal(Number(await one('select count(*) from public.user_roles where user_id=$1',[seller])),0);
+assert.equal(Number(await one('select count(*) from public.mio_wallet_accounts where member_id=$1',[seller])),0);
+await assert.rejects(()=>signup(uid(22),'INVALID'),/invitation/);
+await as(seller);let access=await one('select public.my_vendor_access()');assert.equal(access.vendor_only,true);assert.equal(access.has_store,false);assert.equal(access.email_verified,false);
+await assert.rejects(()=>q("select public.submit_vendor_application('My Store','seller@example.invalid','0300000000','Beauty','Products',.3,null)"),/Verify/);
+await q('update auth.users set email_confirmed_at=now() where id=$1',[seller]);
+const app=await one("select public.submit_vendor_application('My Store','seller@example.invalid','0300000000','Beauty','Products',.3,'INVALID-REASSIGNMENT')");
+assert.equal(await one('select introduced_by from public.vendor_applications where id=$1',[app]),buyer);
+await assert.rejects(()=>q(`select public.save_product_listing(null,$1,'Unapproved','', 'Description','Beauty',1000,300,'["https://example.invalid/a.png"]',true)`,[vendor]));
+await as(buyer);await q("update auth.users set raw_user_meta_data=raw_user_meta_data||'{\"registration_type\":\"vendor\"}' where id=$1",[buyer]);
+assert.equal((await one('select public.my_vendor_access()')).vendor_only,false);
+await assert.rejects(()=>q("select public.submit_vendor_application('Member Store','m@example.invalid','0300000000','Beauty','Products',.3,null)"),/separate vendor/);
+console.log('PASS vendor signup creates no network account or wallet; verified email, immutable inviter and no metadata privilege escalation');
+await as(company);await assert.rejects(()=>q('select public.admin_review_vendor_application($1,true,.3)',[app]),/accept/);
+await q("select public.offer_vendor_commission($1,.3,'Agreed terms')",[app]);
+await as(seller);await q('select public.accept_vendor_commission($1)',[app]);
+await assert.rejects(()=>q('select public.admin_review_vendor_application($1,true,.3)',[app]),/Workspace/);
+await as(company);const sellerVendor=await one('select public.admin_review_vendor_application($1,true,.3)',[app]);
+await as(seller);assert.equal((await one('select public.my_vendor_access()')).has_store,true);
+const listed=await one(`select public.save_product_listing(null,$1,'Verified seller product','','Description',(select config_value->0->>'name' from public.system_config where config_key='MARKETPLACE_CATEGORIES' and effective_to is null limit 1),1000,300,'["https://example.invalid/a.png"]',true)`,[sellerVendor]);
+assert.ok(listed);assert.equal(await one('select vendor_id from public.products where id=$1',[listed]),sellerVendor);
+await as(other);await assert.rejects(()=>q(`select public.save_product_listing($1,$2,'Unauthorized edit','','Description',(select config_value->0->>'name' from public.system_config where config_key='MARKETPLACE_CATEGORIES' and effective_to is null limit 1),1000,300,'["https://example.invalid/a.png"]',true)`,[listed,sellerVendor]),/seller|Seller|access|Access/);await as(seller);
+
+assert.equal((await one('select public.seller_portal_orders($1,1)',[sellerVendor])).total,0);
+await assert.rejects(()=>q('select public.seller_portal_orders($1,1)',[vendor]),/Seller access/);
+await as(other);await assert.rejects(()=>q('select public.seller_portal_orders($1,1)',[sellerVendor]),/Seller access/);
+await as(buyer);const referrals=await one('select public.my_vendor_referrals(1)');assert.equal(referrals.total,1);assert.equal(referrals.rows[0].business_name,'My Store');
+await as(company);assert.equal((await one('select public.my_vendor_referrals(1)')).total,0);
+assert.equal(await one("select has_function_privilege('anon','public.my_vendor_access()','execute')"),false);
+assert.equal(await one("select has_table_privilege('authenticated','private.vendor_identities','select')"),false);
+console.log('PASS accepted agreement plus admin approval required; isolated seller orders, member-only referral records and private identity table');
+
+await db.exec(await readFile(source+'/supabase/migrations/20261111044130_dual_role_vendor_access.sql','utf8'));
+await db.exec(await readFile(source+'/supabase/migrations/20261111061500_vendor_metadata_pricing_guard.sql','utf8'));
+await db.exec(await readFile(source+'/supabase/migrations/20261111062000_vendor_assignment_step_up.sql','utf8'));
+// Reproduce a legacy zero-price record without changing the pricing rules.
+await db.exec('alter table public.products disable trigger user');
+await q('update public.products set vendor_submitted_price_pkr=0 where id=$1',[product]);
+await db.exec('alter table public.products enable trigger user');
+
+await as(buyer);
+await assert.rejects(()=>q('select public.admin_assign_vendor_account($1,$2,$3)',[vendor,'checkout-buyer@example.invalid',memberCode]),/Workspace/);
+await as(company);
+await q("select set_config('request.jwt.claims','{}',false)");
+await assert.rejects(()=>q('select public.admin_assign_vendor_account($1,$2,$3)',[vendor,'checkout-buyer@example.invalid',memberCode]),/authenticator/);
+await q("select set_config('request.jwt.claims',$1,false)",[JSON.stringify({aal:'aal2',amr:[{method:'totp',timestamp:Math.floor(Date.now()/1000)}]})]);
+await assert.rejects(()=>q('select public.admin_assign_vendor_account($1,$2,$3)',[vendor,'checkout-buyer@example.invalid',memberCode]),/verified/);
+await q('update auth.users set email_confirmed_at=now() where id=$1',[buyer]);
+await assert.rejects(()=>q('select public.admin_assign_vendor_account($1,$2,$3)',[vendor,'checkout-buyer@example.invalid','INVALID']),/introducing/);
+await assert.rejects(()=>q('update public.vendors set commission_rate=.29 where id=$1',[vendor]),/positive submitted price/);
+const productCount=await one('select count(*) from public.products where vendor_id=$1',[vendor]);
+const balance=await one('select balance from public.mio_wallet_accounts where member_id=$1',[buyer]);
+await q('select public.admin_assign_vendor_account($1,$2,$3)',[vendor,'checkout-buyer@example.invalid',memberCode]);
+await as(buyer);access=await one('select public.my_vendor_access()');
+assert.equal(access.has_member,true);assert.equal(access.vendor_only,false);assert.equal(access.has_store,true);
+assert.equal(await one('select owner_user_id from public.vendors where id=$1',[vendor]),buyer);
+assert.equal(await one('select introduced_by from public.vendors where id=$1',[vendor]),buyer);
+assert.equal(await one('select count(*) from public.products where vendor_id=$1',[vendor]),productCount);
+assert.equal(await one('select balance from public.mio_wallet_accounts where member_id=$1',[buyer]),balance);
+assert.equal((await one('select public.my_vendor_referrals(1)')).total,2);
+assert.equal((await one('select public.my_vendor_referrals(1)')).rows.filter(r=>r.business_name==='My Store').length,1);
+assert.equal((await one('select public.seller_portal_orders($1,1)',[vendor])).total,0);
+await as(other);await assert.rejects(()=>q('select public.seller_portal_orders($1,1)',[vendor]),/Seller access/);
+assert.equal(await one("select has_function_privilege('anon','public.admin_assign_vendor_account(uuid,text,text)','execute')"),false);
+assert.equal(await one("select count(*) from public.audit_logs where action='VENDOR_ACCOUNT_ASSIGNED'"),1);
+console.log('PASS dual-role access uses one identity, admin-only verified store assignment, immutable balances/products, audited transfer and deduplicated referral history');
+
+
+await db.exec(await readFile(source+'/supabase/migrations/20261111044130_dual_role_vendor_access.sql','utf8'));
+await db.exec(await readFile(source+'/supabase/migrations/20261111202828_member_vendor_reporting.sql','utf8'));
+await as(buyer);
+let report=await one('select public.my_vendor_report()');
+assert.equal(report.summary.vendors,2);
+assert.ok(report.vendors.some(v=>v.id===sellerVendor));
+await as(company);assert.equal((await one('select public.my_vendor_report()')).summary.vendors,0);
+await assert.rejects(()=>q('select public.my_vendor_report(null,null,$1,1)',[sellerVendor]),/access denied/);
+await as(other);await assert.rejects(()=>q('select public.my_vendor_report()'),/Member access/);
+await as(company);await q('update auth.users set email_confirmed_at=now() where id=$1',[company]);
+const dualApp=await one("select public.submit_vendor_application('Dual Role Shop','dual@example.invalid','0300000000','Beauty','Products',.3,$1)",[await one('select member_code from public.member_profiles where user_id=$1',[company])]);
+assert.ok(dualApp);assert.equal((await one('select public.my_vendor_access()')).has_member,true);
+await assert.rejects(()=>q("select public.submit_vendor_application('Duplicate','dual@example.invalid','0300000000','Beauty','Products',.3,$1)",[memberCode]),/already exists/);
+assert.equal(await one("select has_function_privilege('anon','public.my_vendor_report(date,date,uuid,integer)','execute')"),false);
+console.log('PASS scoped vendor reports, cross-member denial, dual role registration and duplicate prevention');
+
+await as(buyer);
+const oid=await one("insert into orders(order_code,buyer_id,subtotal_pkr,total_pkr,payment_status,status,shipping_name,shipping_phone,shipping_address,shipping_city,idempotency_key,created_at,usd_to_pkr_rate) values('REPORT-1',$1,2000,2000,'confirmed','delivered','Test','00000','Test','Test','report-1','2026-11-10T20:00:00Z',300) returning id",[buyer]);
+await q("insert into order_items(order_id,product_id,vendor_id,product_name_snapshot,unit_price_pkr,quantity,fulfillment_status) values($1,$2,$3,'Report item',1000,2,'delivered')",[oid,listed,sellerVendor]);
+report=await one("select my_vendor_report('2026-11-11','2026-11-11',$1,1)",[sellerVendor]);assert.equal(report.summary.sales,2000);assert.equal(report.summary.units,2);assert.equal(report.summary.orders,1);assert.equal(report.orders[0].items[0].quantity,2);assert.equal('shipping_phone' in report.orders[0],false);
+assert.equal((await one("select my_vendor_report('2026-11-10','2026-11-10',$1,1)",[sellerVendor])).summary.orders,0);
+await q("update order_items set fulfillment_status='returned' where order_id=$1",[oid]);assert.equal((await one('select my_vendor_report()')).summary.sales,0);
+console.log('PASS report totals, PK date boundaries, returned-item exclusion and customer privacy');
+await db.close();
