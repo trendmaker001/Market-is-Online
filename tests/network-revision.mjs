@@ -1,0 +1,13 @@
+import {JSDOM} from 'jsdom';
+import {readFile} from 'node:fs/promises';
+import assert from 'node:assert/strict';
+const source=await readFile('dist/app.js','utf8'),dom=new JSDOM('<div id="networkCard">Sign in to view your network</div>',{runScripts:'outside-only'}),w=dom.window;
+const start=source.indexOf('let sponsorNetworkRequest='),end=source.indexOf('async function loadNetworkViews()',start);
+let session={user:{id:'signed-in'}},response={data:[]},pending=null;
+w.el=id=>w.document.getElementById(id);w.esc=s=>String(s).replaceAll('<','&lt;');w.db={rpc:async()=>pending?pending:response};w.session=session;w.hasApprovedPackage=true;w.isAdmin=false;
+w.eval(source.slice(start,end));await w.loadSponsorNetwork();assert.match(w.el('networkCard').textContent,/No referrals yet/);assert.doesNotMatch(w.el('networkCard').textContent,/Sign in/);
+response={data:[{full_name:'Member One',member_code:'MIO-ONE',status:'active',created_at:'2026-11-12'}]};await w.loadSponsorNetwork();assert.match(w.el('networkCard').textContent,/Member One/);
+response={error:{message:'Temporary network failure'}};await w.loadSponsorNetwork();assert.ok(w.el('networkCard').querySelector('[data-retry-sponsor-network]'));assert.doesNotMatch(w.el('networkCard').textContent,/Sign in/);
+let resolve;pending=new Promise(r=>resolve=r);const loading=w.loadSponsorNetwork();assert.equal(w.el('networkCard').getAttribute('aria-busy'),'true');w.session={user:{id:'different-user'}};w.el('networkCard').textContent='New account';resolve({data:[{full_name:'Old user private referral'}]});await loading;assert.equal(w.el('networkCard').textContent,'New account');
+assert.match(source,/if\(name==='network-graphical'\)return;vendorPortal\?\.networkInvite/);assert.match(await readFile('dist/shopping-network.css','utf8'),/graphical-only>:not\(#treeCard\)\{display:none!important\}/);
+console.log('PASS signed-in sponsor loading, empty state, populated state, retry, stale-session privacy and tree-only route isolation');dom.window.close();

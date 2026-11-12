@@ -51,6 +51,7 @@ begin
  perform public.submit_shopping_advance_with_proof((placed->>'order_id')::uuid,bank_id,'QA-TXN-'||other_id,proof);
  perform set_config('request.jwt.claim.sub',admin_id::text,true);
  perform public.admin_review_shopping_advance((placed->>'order_id')::uuid,true,required_pkr,'Rollback proof verified');
+ perform public.advance_order_status((placed->>'order_id')::uuid,'confirmed');
  perform set_config('request.jwt.claim.sub',other_id::text,true);
  if public.shopping_messages()::text not like '%Payment approved%' or public.shopping_messages()::text not like '%Order confirmed%' then raise exception 'Payment/status notifications missing';end if;
  if public.shopping_order_details((placed->>'order_id')::uuid)->>'status'<>'confirmed' then raise exception 'Own order detail missing';end if;

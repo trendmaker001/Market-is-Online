@@ -12,9 +12,10 @@
   const selectedUnits=()=>[...quantities.values()].reduce((total,qty)=>total+qty,0);
   const limitFor=(type,product)=>Math.min(Number(product.stock_quantity)||0,
    type.allow_repeats ? type.max_per_product ?? type.required_units : 1);
+  const allowsMany=type=>type?.allow_multiple_vendors===true;
   const regularProducts=()=>publicProducts.filter(p=>!p.bundle_definition && Number(p.stock_quantity)>0);
   function preselectVendor(vendor){
-   if(selectedVendor!==vendor){selectedVendor=vendor;quantities.clear();quote=null;quoteVersion++;}
+   if(selectedVendor!==vendor){selectedVendor=vendor;if(!allowsMany(types?.find(t=>t.id===selectedType)))quantities.clear();quote=null;quoteVersion++;}
   }
   function renderMarketplace(host,all=false,keepVendor=false){
    if(!host)return;
@@ -40,8 +41,8 @@
      <button type="button" class="btn bundle-select" data-bundle-type="${row.id}" aria-pressed="${row.id===selectedType}" ${row.status!=='enabled'?'disabled':''}>${row.status==='draft'?'Coming soon':row.id===selectedType?'✓ Selected':'Select bundle'}</button>
     </article>`;}).join('')||'<p>Bundles are currently unavailable.</p>'}</div>
     ${type?`<div class="configured-bundle-builder">
-     <label class="bundle-vendor-field">Vendor<select id="configuredBundleVendor"><option value="">Select a vendor</option>${activeVendors.map(v=>`<option value="${v.id}" ${v.id===selectedVendor?'selected':''}>${esc(v.business_name)}</option>`).join('')}</select></label>
-     ${selectedVendor?`<div class="bundle-builder-progress"><strong>${units} of ${type.required_units} units</strong><span>${type.allow_repeats?'You can repeat products':'Choose one unit per product'}</span></div>
+     <label class="bundle-vendor-field">${allowsMany(type)?'Browse vendor products':'Vendor'}<select id="configuredBundleVendor"><option value="">Select a vendor</option>${activeVendors.map(v=>`<option value="${v.id}" ${v.id===selectedVendor?'selected':''}>${esc(v.business_name)}</option>`).join('')}</select></label>
+     <p class="helper">${allowsMany(type)?'Mix products from different vendors. Your selection stays when you change the vendor. Delivery is charged once per vendor.':'Choose all products from one vendor.'}</p>${allowsMany(type)&&quantities.size?`<div class="bundle-selection-vendors">${[...new Set([...quantities.keys()].map(id=>publicProducts.find(p=>p.id===id)?.vendor_id))].map(id=>`<span>${esc(activeVendors.find(v=>v.id===id)?.business_name||'Vendor')} · ${[...quantities].filter(([pid])=>publicProducts.find(p=>p.id===pid)?.vendor_id===id).reduce((n,[,qty])=>n+qty,0)} units</span>`).join('')}</div>`:''}${selectedVendor?`<div class="bundle-builder-progress"><strong>${units} of ${type.required_units} units</strong><span>${type.allow_repeats?'You can repeat products':'Choose one unit per product'}</span></div>
      <div class="bundle-picker-grid">${products.map(p=>{const qty=quantities.get(p.id)||0;return `<article class="bundle-picker-row">
       ${image(p.image_url)?`<img src="${esc(image(p.image_url))}" alt="" width="56" height="56" loading="lazy">`:''}
       <div><h3>${esc(p.name)}</h3><small>${money(p.price_pkr)}</small></div>
@@ -70,8 +71,8 @@
     const next=types.find(row=>row.id===selectedType);
     let remaining=next.required_units;
     for(const [id,qty] of quantities){
-     const p=products.find(row=>row.id===id);
-     const keep=p?Math.min(remaining,qty,limitFor(next,p)):0;
+     const p=publicProducts.find(row=>row.id===id);
+     const keep=p&&(allowsMany(next)||p.vendor_id===selectedVendor)?Math.min(remaining,qty,limitFor(next,p)):0;
      if(keep)quantities.set(id,keep);else quantities.delete(id);
      remaining-=keep;
     }

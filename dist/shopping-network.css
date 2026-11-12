@@ -6,3 +6,24 @@
 @media(max-width:720px){.shopping-inline-fields{grid-template-columns:1fr}.shopping-inline-account{padding:14px 12px}.shopping-inline-tabs{display:grid;grid-template-columns:1fr 1fr}.shopping-inline-tabs button{font-size:11px;padding:9px}.shopping-account-nav nav{grid-template-columns:repeat(3,minmax(0,1fr))!important}.shopping-account-nav nav button{position:relative;min-width:0;white-space:normal;font-size:10px!important;justify-content:center}.shopping-unread-badge{position:absolute;right:5px;top:4px;min-width:16px;height:16px;font-size:8px;margin:0}.shopping-earn-hero{padding:22px 18px}.shopping-earn-hero h2{font-size:24px;line-height:1.25}.shopping-earn-hero>p{font-size:12px}.shopping-earn-pills{gap:6px}.shopping-earn-pills span{font-size:9px;padding:5px 8px}.shopping-earning-grid{grid-template-columns:1fr;gap:11px;margin:14px 0}.shopping-earning-card{padding:20px}.shopping-earning-top{margin-bottom:13px}.shopping-earning-card h3{font-size:18px}.shopping-earning-card p{font-size:12px}.shopping-membership-cta{padding:19px 15px}.shopping-membership-actions{display:grid;grid-template-columns:1fr}.shopping-message-toolbar{padding:15px;align-items:flex-start;flex-direction:column;gap:12px}.shopping-message{padding:15px 12px;gap:10px}.shopping-message-icon{width:30px;height:30px;flex-basis:30px}.shopping-message h3{font-size:14px}.shopping-message p{font-size:11px}.shopping-message small{font-size:9px}.shopping-membership-queue{padding:17px 13px}.shopping-queue-heading{flex-direction:column;gap:12px}.shopping-queue-heading h2{font-size:19px!important}.shopping-queue-search{grid-template-columns:1fr;gap:10px;margin-top:18px}.shopping-queue-search>.btn{justify-self:stretch}.shopping-membership-row>summary{padding:14px 11px;grid-template-columns:minmax(0,1fr) 110px;gap:10px}.shopping-request-state{font-size:9px;padding:5px 7px}.shopping-request-details{grid-template-columns:1fr}.shopping-request-details>div{padding:17px}.shopping-membership-review{border-left:0;border-top:1px solid #e4eae4;padding:17px}.shopping-membership-queue .btn{min-height:44px}.shopping-message-actions{gap:9px}.shopping-membership-cta h3{font-size:19px}}
 
 .shopping-membership-queue [hidden],.shopping-unread-badge[hidden]{display:none!important}
+
+/* Requests belong under invitations; the existing tree remains a dedicated view. */
+.membership-requests-shortcut{display:flex;margin:0 0 14px;max-width:100%;gap:8px}
+#shoppingMembershipQueue-sponsor{margin:22px 0 0;padding:0;border:1px solid var(--line,#dbe6df);border-radius:12px;overflow:hidden;scroll-margin-top:100px}
+.shopping-requests-toggle{display:flex;align-items:center;gap:10px;list-style:none;padding:14px 16px;cursor:pointer;font-size:13px;font-weight:750;background:#f5f9f6;color:#105b40}
+.shopping-requests-toggle::-webkit-details-marker{display:none}
+.shopping-requests-toggle b{margin-left:auto;padding:2px 8px;border-radius:20px;background:#e0f0e7}
+#shoppingMembershipQueue-sponsor> :not(summary){margin:16px}
+#shoppingMembershipQueue-sponsor:not([open])> :not(summary){display:none}
+#shoppingMembershipQueue-sponsor .shopping-queue-heading h2{font-size:16px}
+#shoppingMembershipQueue-sponsor .shopping-queue-search{display:grid;grid-template-columns:1fr;gap:10px}
+#shoppingMembershipQueue-sponsor .shopping-membership-row summary{flex-wrap:wrap}
+#page-network.graphical-only>:not(#treeCard){display:none!important}
+#page-network.graphical-only .network-tree-tabs{flex-shrink:0;min-width:0;overflow-x:auto!important;overflow-y:hidden!important;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-gutter:stable;padding-bottom:10px!important;isolation:isolate}
+#page-network.graphical-only .network-tree-tabs>*{flex-shrink:0}
+@media(max-width:760px){
+ #page-network.graphical-only #treeCard>.card-body{grid-template-rows:52px 48px minmax(0,1fr)!important}
+ #page-network.graphical-only .network-tree-tabs{height:52px!important;align-items:center}
+ #page-network.graphical-only .tree-toolbar{height:48px!important;min-height:48px!important;overflow-y:hidden!important;padding-bottom:9px!important}
+ #page-network.graphical-only .tree-workspace,#page-network.graphical-only .tree-canvas-column,#page-network.graphical-only .tree-canvas-column>.tree-scroll{min-height:0!important}
+}

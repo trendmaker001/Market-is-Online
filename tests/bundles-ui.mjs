@@ -9,6 +9,7 @@ const config=[{config_key:'MARKETPLACE_CATEGORIES',config_value:original},{confi
 const calls=[];
 const types=[{id:'three',name:'Bundle 1',required_units:3,ppv_divider:3,minimum_pkr:3000,status:'enabled',allow_repeats:true},
  {id:'five',name:'Bundle 2',required_units:5,ppv_divider:4,minimum_pkr:3000,status:'enabled',allow_repeats:true},
+ {id:'seven',name:'Bundle 3',required_units:7,ppv_divider:5,minimum_pkr:3000,status:'enabled',allow_repeats:true,allow_multiple_vendors:true},
  {id:'draft',name:'Bundle 5',required_units:15,ppv_divider:null,minimum_pkr:3000,status:'draft',allow_repeats:true}];
 const db={from(table){const q={select(){return q},eq(){return q},in(){return q},is(){return q},order(){return q},limit(){return q},then(resolve){return Promise.resolve({data:table==='products'?items:table==='vendors'?[{id:'v1',business_name:'Allure Care'},{id:'v2',business_name:'Other'}]:config}).then(resolve)}};return q},
  rpc:async(name,args)=>{calls.push({name,args});return {data:{
@@ -41,6 +42,16 @@ assert.equal(checkouts[0].quote.price_pkr,3887.94);
 click('[data-bundle-type=five]');
 assert.equal(w.document.querySelector('.bundle-quantity output').textContent,'3');
 assert.equal(w.document.querySelector('[data-configured-bundle-checkout]').disabled,true);
+click('[data-bundle-type=seven]');
+let vendorPicker=w.document.getElementById('configuredBundleVendor');vendorPicker.value='v2';vendorPicker.dispatchEvent(new w.Event('change',{bubbles:true}));
+for(let i=0;i<4;i++)click('[data-component=other][data-step="1"]');await tick();
+assert.equal(calls.filter(c=>c.name==='quote_marketplace_bundle').at(-1).args.p_items.length,2);
+assert.match(w.document.querySelector('.bundle-selection-vendors').textContent,/Allure Care.*3.*Other.*4/);
+vendorPicker=w.document.getElementById('configuredBundleVendor');vendorPicker.value='v1';vendorPicker.dispatchEvent(new w.Event('change',{bubbles:true}));
+assert.equal(w.document.querySelector('[data-component=p1][data-step="1"]').closest('.bundle-quantity').querySelector('output').textContent,'3');
+click('[data-bundle-type=three]');await tick();
+assert.equal(calls.filter(c=>c.name==='quote_marketplace_bundle').at(-1).args.p_items.length,1);
+console.log('PASS multi-vendor tier retains selections across vendor browsing; returning to Bundle 1 removes other-vendor selections');
 console.log('PASS vendor preselection, draft state, product eligibility, repeat units, controls, tier switch and checkout');
 await api.mountAdmin();
 click('[data-add-type]');
