@@ -10,7 +10,7 @@
    if(access.vendor_only)return {route:'vendor-register',message:'Complete your vendor registration to continue.'};
    return {error:'No vendor account is registered with this email. Use a member’s vendor registration link or contact support.'};
   }
-  if(access.has_customer)return {route:'shopping'};
+  if(access.has_customer)return {route:'account/orders'};
   if(access.vendor_only||access.has_member===false)return {error:'No member account is registered with this email. Please choose Vendor Account.'};
   return {route:'dashboard'};
  }

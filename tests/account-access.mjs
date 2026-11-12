@@ -14,5 +14,5 @@ assert.match(choose({application_status:'rejected'},'vendor').error,/not approve
 assert.match(choose({store_status:'suspended'},'vendor').error,/paused/);
 assert.match(choose({has_store:true,email_verified:false},'vendor').error,/Verify/);
 assert.equal(choose({has_store:false,role:'vendor',has_member:true},'vendor').route,undefined);
-assert.equal(choose({has_member:false,has_customer:true,email_verified:true},'member').route,'shopping');
+assert.equal(choose({has_member:false,has_customer:true,email_verified:true},'member').route,'account/orders');
 console.log('PASS 11 account routing cases: dual role, missing roles, unverified, pending, rejected, paused and no client-side privilege escalation');

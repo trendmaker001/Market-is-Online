@@ -1,7 +1,7 @@
 begin;
 create temporary table shopping_smoke_result(result jsonb) on commit drop;
 do $$
-declare admin_id uuid;shopper uuid:=gen_random_uuid();product_id uuid;bank_id uuid;placed jsonb;retried jsonb;req numeric;o public.orders%rowtype;before_stock integer;
+declare admin_id uuid;shopper uuid:=gen_random_uuid();product_id uuid;bank_id uuid;placed jsonb;retried jsonb;req numeric;o public.orders%rowtype;before_stock integer;proof text;guest jsonb;user_ref text;
 begin
  select f.company_id into admin_id from private.network_foundation f where singleton and exists(select 1 from public.user_roles r where r.user_id=f.company_id and r.role='admin');
  if admin_id is null then raise exception 'QA admin identity not found';end if;
@@ -21,7 +21,11 @@ begin
  begin perform public.advance_order_status(o.id,'confirmed');raise exception 'QA unfunded dispatch accepted';exception when others then if sqlerrm not like '%Advance payment%' then raise;end if;end;
  bank_id:=public.admin_save_shopping_payment_account(null,'Rollback QA Bank','Rollback QA Company','QA-'||shopper,'Temporary test, rolled back',true);
  perform set_config('request.jwt.claim.sub',shopper::text,true);
- perform public.submit_shopping_advance(o.id,bank_id,'QA-TXN-'||shopper);
+ proof:=shopper::text||'/'||o.id::text||'/rollback-proof.png';
+ if not private.shopping_proof_access(proof,true) then raise exception 'QA own proof upload denied';end if;
+ insert into storage.objects(bucket_id,name,metadata) values('customer-payment-proofs',proof,'{"mimetype":"image/png","size":2048}');
+ perform public.submit_shopping_advance_with_proof(o.id,bank_id,'QA-TXN-'||shopper,proof);
+ if private.shopping_proof_access(proof,true) then raise exception 'QA submitted proof remains uploadable';end if;
  perform set_config('request.jwt.claim.sub',admin_id::text,true);
  perform public.admin_review_shopping_advance(o.id,true,req,'Rollback test verification only');
  if not exists(select 1 from public.orders where id=o.id and status='confirmed' and payment_status='unconfirmed' and customer_advance_pkr=req and cod_due_pkr=total_pkr-req) then raise exception 'QA advance or COD accounting failed';end if;
@@ -29,7 +33,12 @@ begin
  if (select status from private.customer_order_funding where order_id=o.id)<>'refund_due' then raise exception 'QA advance refund tracking failed';end if;
  if (select stock_quantity from public.products where id=product_id)<>before_stock then raise exception 'QA cancellation stock restore failed';end if;
  if (private.customer_order_requirement(6000,290)->>'required_pkr')::numeric<>600 or (private.customer_order_requirement(12000,290)->>'required_pkr')::numeric<>1200 or (private.customer_order_requirement(12000,290)->>'hold_mio')::numeric<>4.1380 then raise exception 'QA formula failed';end if;
- insert into shopping_smoke_result values(jsonb_build_object('identity','User only','idempotency','passed','ownership','passed','dispatch_guard','passed','advance_approval','passed','cod_remaining','passed','refund_tracking','passed','stock_restore','passed','formula','passed','all_changes','rolled back'));
+ select regexp_replace(member_code,'^MIO-','USR-') into user_ref from public.member_profiles where user_id=admin_id;
+ perform set_config('request.jwt.claim.sub','',true);
+ guest:=public.place_guest_affiliate_order(jsonb_build_array(jsonb_build_object('product_id',product_id,'quantity',1)),'Rollback Guest QA','03000000000','QA only - rollback transaction','Lahore','qa-guest-'||shopper||'@example.invalid','rollback-guest-request','rollback-private-token-'||shopper,user_ref);
+ if (public.guest_order_status(guest->>'order_code','rollback-private-token-'||shopper)->>'hold_mio')::numeric is distinct from (guest->>'hold_mio')::numeric then raise exception 'QA guest security receipt failed';end if;
+ if exists(select 1 from private.customer_order_funding where order_id=(guest->>'order_id')::uuid) then raise exception 'QA guest unexpectedly has account funding';end if;
+ insert into shopping_smoke_result values(jsonb_build_object('identity','User only','idempotency','passed','ownership','passed','dispatch_guard','passed','advance_approval','passed','cod_remaining','passed','refund_tracking','passed','stock_restore','passed','formula','passed','private_proof','passed','affiliate_guest','passed','all_changes','rolled back'));
 end $$;
 select result from shopping_smoke_result;
 rollback;

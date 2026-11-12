@@ -40,10 +40,12 @@ await db.exec("create table if not exists private.founder_invites(email text,tok
 await as(company);await q("select public.admin_save_product_economics($1,1000,null,null,0,'reserve')",[product]);
 await db.exec(await readFile(source+'/supabase/migrations/20261111220641_shopping_user_signup_fields.sql','utf8'));
 await db.exec('create trigger require_signup_gender before insert on auth.users for each row execute function private.validate_signup_gender()');
+await db.exec(`create schema storage;create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);create table storage.objects(id uuid default gen_random_uuid() primary key,bucket_id text references storage.buckets(id),name text,metadata jsonb,unique(bucket_id,name));alter table storage.objects enable row level security;grant usage on schema storage to authenticated;grant select,insert on storage.objects to authenticated;`);
+await db.exec(await readFile(source+'/supabase/migrations/20261112083603_shopping_account_and_affiliate_guest_flow.sql','utf8'));
 console.log('PASS migration replay');
 const shopper=uid(101),stranger=uid(102),unverified=uid(103),affiliate=uid(104),sponsor=buyer;
 const signup=async(id,referral=null,verified=true)=>q("insert into auth.users(id,email,raw_user_meta_data,raw_app_meta_data,email_confirmed_at) values($1,$2,$3,'{\"provider\":\"email\"}',$4)",[id,id+'@example.invalid',JSON.stringify({full_name:'Shopping Customer',phone:'03000000000',terms_accepted:true,affiliate_code:referral,registration_type:'customer'}),verified?new Date().toISOString():null]);
-await signup(shopper);await signup(stranger);await signup(unverified,null,false);await signup(affiliate,await one('select member_code from public.member_profiles where user_id=$1',[sponsor]));
+await signup(shopper);await signup(stranger);await signup(unverified,null,false);await signup(affiliate,(await one('select member_code from public.member_profiles where user_id=$1',[sponsor])).replace(/^MIO-/,'USR-'));
 for(const id of [shopper,stranger,unverified,affiliate]){assert.equal(Number(await one('select count(*) from public.member_profiles where user_id=$1',[id])),0);assert.equal(Number(await one('select count(*) from public.user_roles where user_id=$1',[id])),0);assert.equal(Number(await one('select count(*) from public.mio_wallet_accounts where member_id=$1',[id])),0)}
 await as(shopper);assert.equal((await one('select public.my_shopping_account()')).customer_only,true);
 console.log('PASS normal and affiliate signup creates shopping identity only, no member, role or wallet');
@@ -54,7 +56,7 @@ let count=0;
 const place=async(id,{qty=1,method='ADVANCE',key='shopping-order-'+(++count),code=null}={})=>{await as(id);return one("select public.place_shopping_order($1,'Customer Name','03000000000','Complete street address','Lahore',$2,$3,$4)",[JSON.stringify([{product_id:product,quantity:qty}]),key,method,code])};
 await assert.rejects(()=>place(unverified),/Verify your email/);
 await assert.rejects(()=>place(shopper,{method:'SPONSOR'}),/linked sponsor/);
-await as('');await assert.rejects(()=>one("select public.place_guest_affiliate_order('[]','a','b','c','d','e','abcdefghijkl','abcdefghijklmnopqrstuvwxabcdefghijkl',null)"),/User account/);
+await as('');await assert.rejects(()=>one("select public.place_guest_affiliate_order('[]','a','b','c','d','e','abcdefghijkl','abcdefghijklmnopqrstuvwxabcdefghijkl',null)"),/valid User referral/);
 const first=await place(shopper,{key:'stable-checkout-request'}),retry=await place(shopper,{key:'stable-checkout-request'});assert.equal(retry.order_id,first.order_id);assert.equal(retry.duplicate,true);
 await as(stranger);assert.equal((await one('select public.my_shopping_orders()')).length,0);await assert.rejects(()=>q('select public.cancel_unpaid_order($1)',[first.order_id]),/Order not found/);
 await assert.rejects(()=>q("select public.submit_shopping_advance($1,$2,'TRANS-123')",[first.order_id,uid(202)]),/Order not found/);
@@ -92,4 +94,28 @@ const bundle=await one('select public.place_configured_bundle_order($1,$2,$3,$4,
 assert.equal(await one('select count(*) from public.order_items where order_id=$1',[bundle.order_id]),1);
 console.log('PASS configured bundle checkout and authenticated-only API grants');
 await q('update auth.users set email_confirmed_at=now() where id=$1',[buyer]);const memberAffiliate=await place(buyer,{method:'SPONSOR',code:await one('select member_code from public.member_profiles where user_id=$1',[company])});assert.equal(await one('select selling_affiliate_id from public.orders where id=$1',[memberAffiliate.order_id]),company);assert.equal((await one('select public.my_shopping_account()')).customer_only,false);assert.equal((await one('select public.my_shopping_orders()'))[0].id,memberAffiliate.order_id);console.log('PASS existing member affiliate purchases retain seller attribution and authenticated order ownership');
+
+// Public affiliate guests retain private receipt access and a sponsor-backed hold.
+await as('');const userRef=(await one('select member_code from public.member_profiles where user_id=$1',[buyer])).replace(/^MIO-/,'USR-');
+assert.equal((await one('select public.shopping_referral($1)',[userRef])).code,userRef);
+const guestArgs=[JSON.stringify([{product_id:product,quantity:2}]),'Guest Customer','03000000000','Complete guest address','Lahore','guest@example.invalid','guest-unique-request','private-guest-token-12345678901234567890',userRef];
+const guest=await one('select public.place_guest_affiliate_order($1,$2,$3,$4,$5,$6,$7,$8,$9)',guestArgs);
+assert.equal(guest.guest,true);assert.equal(guest.hold_mio,2);assert.equal((await one('select public.place_guest_affiliate_order($1,$2,$3,$4,$5,$6,$7,$8,$9)',guestArgs)).order_id,guest.order_id);
+const receipt=await one('select public.guest_order_status($1,$2)',[guest.order_code,guestArgs[7]]);assert.equal(receipt.hold_mio,2);assert.equal(receipt.cod_due_pkr,receipt.total_pkr);
+await assert.rejects(()=>one('select public.guest_order_status($1,$2)',[guest.order_code,'wrong-token-123456789012345678901234567890']),/denied/);
+assert.equal(await one('select count(*) from private.customer_order_funding where order_id=$1',[guest.order_id]),0);
+await as(stranger);await q("select public.save_shopping_profile('Updated Name','03123456789','PK','New Street','Karachi',true)");assert.equal((await one('select public.my_shopping_account()')).shipping_city,'Karachi');
+const proofOrder=await place(stranger);const proofPath=stranger+'/'+proofOrder.order_id+'/proof.png';
+assert.equal(await one('select private.shopping_proof_access($1,true)',[proofPath]),true);
+await as(affiliate);assert.equal(await one('select private.shopping_proof_access($1,false)',[proofPath]),false);
+await as(stranger);await assert.rejects(()=>q("select public.submit_shopping_advance_with_proof($1,$2,'PROOF-TXN-123',$3)",[proofOrder.order_id,bank,proofPath]),/screenshot/);
+await q(`insert into storage.objects(bucket_id,name,metadata)values('customer-payment-proofs',$1,'{"mimetype":"image/png","size":2048}')`,[proofPath]);
+await q("select public.submit_shopping_advance_with_proof($1,$2,'PROOF-TXN-123',$3)",[proofOrder.order_id,bank,proofPath]);
+assert.equal(await one('select private.shopping_proof_access($1,true)',[proofPath]),false);
+assert.equal(await one('select proof_path from private.customer_order_funding where order_id=$1',[proofOrder.order_id]),proofPath);
+assert.equal(await one("select has_function_privilege('authenticated','public.submit_shopping_advance(uuid,uuid,text)','execute')"),false);
+await as(company);assert.equal(await one('select private.shopping_proof_access($1,false)',[proofPath]),true);
+const admin=await one('select public.admin_shopping_payments()');assert.ok(admin.summary.submitted>=1);assert.equal(admin.payments[0].status,'submitted');
+assert.equal(await one("select account_title from private.customer_payment_accounts where account_number='0302042932'"),'Abdul Rehman Abbasi');
+console.log('PASS distinct User referral, affiliate guest receipt, owner-only profile, private order proof, mandatory screenshot, admin priority queue and Easypaisa account');
 await db.close();
