@@ -14,3 +14,9 @@ Validation:
 - Chrome browser preview: install panel at 320px, 390px and 1200px viewport widths; no panel horizontal overflow; close and Escape work. Member/customer navigation install entries observed.
 
 Limits: responsive browser previews and mocked lifecycle tests are not physical Android/iPhone installation tests. Native install availability depends on browser support; iOS uses Safari Add to Home Screen. Authenticated production actions were not submitted for this release.
+
+## Installation retry correction
+
+Browser Download App entries now remain visible after prompt cancellation, acceptance and the browser's installation event. They remain hidden only when actually running in standalone/app mode (including iOS standalone). The install action becomes installation guidance when no reusable native prompt is available; it consumes each browser prompt once and accepts later fresh prompts. Samsung Internet, Android Chrome and iOS each receive relevant instructions, with expandable missing-icon guidance. Messages no longer claim an app-launcher icon is ready merely because the browser reported installation.
+
+Regression tests cover repeat opening, cancellation, fresh prompt retry, late-mounted navigation, Samsung guidance, browser visibility after appinstalled and hiding in app mode. A 320px Chrome preview verified close/reopen and visible install help. Physical Samsung installation remains unverified.
