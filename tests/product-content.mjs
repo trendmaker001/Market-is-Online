@@ -24,3 +24,29 @@ get('prodStock').value='250';step(2).click();assert.equal(get('listingStep2').hi
 step(0).click();assert.equal(get('prodSku').value,'SKU-123');assert.equal(get('prodPrice').value,'1250');assert.equal(get('listingStep0').hidden,false);
 get('productForm').reset();assert.equal(get('listingStep0').hidden,false);assert.equal(get('prodSku').value,'');assert.equal(get('prodStock').value,'300');assert.equal(get('productContentFields').open,false);
 console.log('PASS guided listing: step navigation, required fields, price and stock constraints, escaped review, retained edits, reset');gw.close();
+// Regression: the real listing submit handler must accept every rendered category,
+// including built-in categories absent from the saved admin configuration.
+const listing=new JSDOM(html,{runScripts:'outside-only'}),lw=listing.window,ld=lw.document;
+const appLine=prefix=>app.split('\n').find(line=>line.startsWith(prefix));
+let pending,calls=[],errors=[],resets=0,opened='',rpcError=null;
+Object.assign(lw,{el:id=>ld.getElementById(id),esc:s=>String(s).replaceAll('&','&amp;').replaceAll('"','&quot;'),session:{user:{id:'seller'}},selectedVendor:'store',isAdmin:false,marketplaceCategories:[{name:'Skincare'},{name:'Custom category'}],submit:(_form,fn)=>{pending=fn().catch(e=>errors.push(e.message))},uploadListingPhotos:async()=>['https://example.test/product.jpg'],db:{rpc:async(name,args)=>{calls.push({name,args});return{error:rpcError}}},toast:()=>{},resetProductForm:()=>resets++,loadSellerProducts:async()=>{},showSellerListingPanel:panel=>opened=panel});
+lw.MioProductContent={read:()=> 'Product description'};
+const country=ld.createElement('select');country.id='productCountry';country.innerHTML='<option value="PK">Pakistan</option>';ld.getElementById('productForm').append(country);
+lw.eval([appLine('const marketplaceCategoryPack='),appLine('function mergeMarketplaceCategories('),appLine('function renderProductCategoryOptions('),appLine("el('productForm').addEventListener('submit'")].join('\n'));
+lw.eval('renderProductCategoryOptions()');
+ld.getElementById('productVendor').innerHTML='<option value="store">Store</option>';
+ld.getElementById('prodName').value='Test perfume';ld.getElementById('prodPrice').value='1250';ld.getElementById('prodStock').value='300';
+async function submitListing(category,mode='submit'){
+ ld.getElementById('prodCategory').value=category;const button=ld.createElement('button');button.value=mode;
+ ld.getElementById('productForm').dispatchEvent(new lw.SubmitEvent('submit',{cancelable:true,submitter:button}));await pending;
+}
+assert.ok(!lw.marketplaceCategories.some(c=>c.name==='Fragrances'));
+const categoryNames=Array.from(ld.getElementById('prodCategory').options,o=>o.value).filter(Boolean);
+for(const category of categoryNames){await submitListing(category);assert.equal(errors.length,0,category+' must submit');assert.equal(calls.at(-1).name,'save_product_listing_country');assert.equal(calls.at(-1).args.p_category,category);assert.equal(calls.at(-1).args.p_submit,true)}
+assert.equal(resets,categoryNames.length);assert.equal(opened,'existing');
+await submitListing('Fragrances','draft');assert.equal(calls.at(-1).args.p_submit,false);
+ld.getElementById('editingProduct').value='existing-product';await submitListing('Fragrances');assert.equal(calls.at(-1).args.p_product_id,'existing-product');
+const before=calls.length;await submitListing('');assert.equal(calls.length,before);assert.match(errors.pop(),/Choose a product category/);
+const bad=ld.createElement('option');bad.value='Invalid category';ld.getElementById('prodCategory').append(bad);await submitListing('Invalid category');assert.equal(calls.length,before);assert.match(errors.pop(),/Choose a product category/);
+rpcError={message:'Please retry'};const oldResets=resets;await submitListing('Fragrances');assert.equal(errors.pop(),'Please retry');assert.equal(resets,oldResets);assert.equal(ld.getElementById('prodCategory').value,'Fragrances');
+console.log('PASS listing submission: every dropdown category, Fragrances, custom categories, draft/edit mode, blank/invalid rejection and retained input on RPC failure');lw.close();
