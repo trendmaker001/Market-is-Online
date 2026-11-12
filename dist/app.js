@@ -60,7 +60,7 @@ let marketplaceCategories=[{name:'Electronics & Accessories',slug:'electronics',
 let sellerListingRows=[],sellerListingView='existing',sellerListingStatus='all',sellerListingSearch='';
 const el=id=>document.getElementById(id), money=n=>'PKR '+new Intl.NumberFormat('en-PK',{maximumFractionDigits:2}).format(Number(n||0)), mioFmt=n=>Number(n||0).toFixed(2)+' MIO', esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const feedback=window.MioFeedback.create({db,getSession:()=>session,toast});
-const premium=window.MioPremium.create({db,categoryIcon:categoryImageFor,categories:()=>publicCategoryNames(),hero:()=>campaignSlides(),main:(items,interval)=>{heroBanners=items;renderHeroSlides(items,interval)}});
+const premium=window.MioPremium.create({db,vendors:()=>marketplaceVendors().map(v=>({id:v.id,business_name:v.name,logo_url:v.logo})),categoryIcon:categoryImageFor,categories:()=>publicCategoryNames(),hero:()=>campaignSlides(),main:(items,interval)=>{heroBanners=items;renderHeroSlides(items,interval)}});
 window.MioProductEconomics.mount({db,toast,reload:async()=>{await loadAdmin();await loadCatalog()}});
 let vendorPortal=null;let shoppingAccount=null;
 const bundles=window.MioBundles?.create({db,toast,checkout:openConfiguredBundleCheckout,isAdmin:()=>isAdmin,shopView:()=>activeShopView,categories:()=>marketplaceCategories,setCategories:rows=>{marketplaceCategories=rows},categoryImage:categoryImageFor,slug:categorySlug,reload:loadCatalog});
