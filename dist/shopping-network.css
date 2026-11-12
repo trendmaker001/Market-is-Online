@@ -101,3 +101,8 @@ body.graphical-network-active>.top,body.graphical-network-active>.account-footer
 :is(#page-network.graphical-only,#page-admin) #treeCard .tree-member-details{inset:10px 56px 10px auto!important;width:min(340px,calc(100% - 70px))!important;box-sizing:border-box}
 #treeCard .tree-profile-top>div{min-width:0;overflow-wrap:anywhere}
 @media(max-width:420px){#treeCard #treeSearchForm>div{flex-direction:column}#treeCard #treeSearchInput{width:100%!important;flex:auto!important}#treeCard #treeSearchForm button{width:100%}#treeCard .tree-profile-top{flex-wrap:wrap}}
+
+/* Unbounded camera translation: dragging never reaches a scroll-area edge. */
+#networkVisual.tree-scroll{overflow:hidden!important;touch-action:none}
+#networkVisual .tree-pan-surface{width:100%;height:100%;overflow:hidden}
+#networkVisual .tree-pan-surface>svg.genealogy-canvas{left:0;top:0;transform:translate(var(--tree-pan-x,0px),var(--tree-pan-y,0px));transform-origin:0 0}
