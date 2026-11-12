@@ -134,3 +134,80 @@
 #page-seller #productForm.listing-compact-form .row{grid-template-columns:repeat(2,minmax(0,1fr))}
 #page-seller #productForm.listing-compact-form .listing-form-actions{display:flex}
 @media(max-width:360px){#page-seller #productForm.listing-compact-form .listing-basics>.row{grid-template-columns:minmax(0,1fr)}}
+/* Guided creation: one task at a time, with an explicit review before submission. */
+#sellerCreatePanel #productForm.listing-wizard{display:block;width:100%;max-width:none;padding:0}
+#productForm.listing-wizard .listing-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:0 0 14px;padding:0;background:none;border:0;position:static}
+#productForm.listing-wizard .listing-steps button{display:flex;justify-content:center;align-items:center;gap:7px;min-width:0;min-height:42px;padding:8px;border:1px solid #d6e4dc;border-radius:8px;background:#fff;color:#62776c;cursor:pointer;font:12px system-ui}
+#productForm.listing-wizard .listing-steps button>span{display:grid;place-items:center;flex:0 0 22px;height:22px;background:#edf3ef;border-radius:50%;font-size:11px;font-weight:700}
+#productForm.listing-wizard .listing-steps button.active{border-color:#0e8059;color:#075c3c;background:#eaf6ef}
+#productForm.listing-wizard .listing-steps button.active>span{background:#0b7851;color:white}
+#productForm.listing-wizard .listing-step-panel[hidden],#productForm.listing-wizard .listing-step-controls [hidden]{display:none!important}
+#productForm.listing-wizard .listing-step-panel{min-width:0;display:block}
+#productForm.listing-wizard .listing-form-section{padding:14px;border-radius:10px}
+#productForm.listing-wizard .listing-form-section legend{font-size:14px}
+#productForm.listing-wizard .listing-basics>.row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0}
+#productForm.listing-wizard .listing-basics>.listing-name-row{grid-template-columns:minmax(0,1fr)}
+#productForm.listing-wizard .field{margin:0 0 12px}
+#productForm.listing-wizard label{font-size:12px;font-weight:600;color:#294b3c}
+#productForm.listing-wizard input:not([type=hidden]):not([type=file]),#productForm.listing-wizard select,#productForm.listing-wizard textarea{min-height:42px;padding:10px;font-size:14px;border:1px solid #cbded2;border-radius:7px;background:white;line-height:1.4}
+#productForm.listing-wizard textarea.listing-description{height:110px;min-height:110px}
+#productForm.listing-wizard .listing-basics>.field:last-child{margin-bottom:0}
+#productForm.listing-wizard .listing-more{margin-top:10px}
+#productForm.listing-wizard .listing-form-side{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:12px;align-items:start}
+#productForm.listing-wizard .listing-pricing .row{grid-template-columns:minmax(0,1fr);gap:0}
+#productForm.listing-wizard .listing-pricing .field:last-child{margin-bottom:0}
+#productForm.listing-wizard .photo-drop{padding:16px;background:#f5faf7}
+#productForm.listing-wizard .photo-drop input{font-size:12px}
+#productForm.listing-wizard .photo-preview{grid-template-columns:repeat(4,minmax(0,1fr))}
+#productForm.listing-wizard .photo-tile img{height:90px}
+#productForm.listing-wizard .photo-tile .btn{min-height:32px;font-size:11px}
+#productForm.listing-wizard .listing-step-controls{display:flex;gap:10px;align-items:center;border-top:1px solid #dce8e0;margin-top:14px;padding-top:12px}
+#productForm.listing-wizard .listing-step-controls .btn{min-height:40px;padding:8px 16px;min-width:90px;font-size:13px}
+#productForm.listing-wizard .listing-step-status{flex:1;color:#677b70;font-size:12px}
+#productForm.listing-wizard .listing-form-actions{display:flex;flex-wrap:wrap;gap:8px;padding:0;border:0;margin:12px 0 0}
+#productForm.listing-wizard .listing-form-actions .btn{min-height:42px;padding:10px 16px;font-size:13px}
+#productForm.listing-wizard .listing-clear{margin-left:auto!important;font-size:12px!important;border:0!important;background:transparent!important;padding:8px!important;color:#6e7f73!important}
+#productForm.listing-wizard .listing-submit-note{font-size:12px;line-height:1.6;color:#5f7669;margin:10px 0 0}
+#productForm.listing-wizard .listing-review{padding:16px;border:1px solid #d8e5dc;border-radius:10px;background:white}
+#productForm.listing-wizard .listing-review h3{margin:0 0 14px;font-size:16px;color:#194a34}
+#productForm.listing-wizard .listing-review-product{display:flex;align-items:center;gap:12px;margin-bottom:14px;overflow-wrap:anywhere}
+#productForm.listing-wizard .listing-review-product img{width:64px;height:64px;object-fit:contain;border:1px solid #e1ebe4;border-radius:8px}
+#productForm.listing-wizard .listing-review-values{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0;padding:12px;background:#f4f9f6;border-radius:8px}
+#productForm.listing-wizard .listing-review-values>div{min-width:0}
+#productForm.listing-wizard .listing-review-values dt{font-size:11px;color:#6a7e71;margin-bottom:4px}
+#productForm.listing-wizard .listing-review-values dd{font-size:13px;font-weight:600;margin:0;overflow-wrap:anywhere}
+#productForm.listing-wizard .listing-review-description{font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere;max-height:180px;overflow:auto;line-height:1.6;margin:12px 0}
+#productForm.listing-wizard .listing-review-edit{padding:6px 0;border:0;background:none;color:#08754c;font:600 12px system-ui;cursor:pointer}
+@media(max-width:600px){
+ #sellerCreatePanel .seller-panel-heading{margin-bottom:10px}
+ #sellerCreatePanel .seller-panel-heading h3{font-size:16px}
+ #productForm.listing-wizard .listing-steps{gap:4px;margin-bottom:10px}
+ #productForm.listing-wizard .listing-steps button{padding:7px 3px;gap:4px;font-size:10px;min-height:42px}
+ #productForm.listing-wizard .listing-steps button>span{flex-basis:18px;height:18px;font-size:10px}
+ #productForm.listing-wizard .listing-steps button b{font-weight:600}
+ #productForm.listing-wizard .listing-form-section{padding:10px}
+ #productForm.listing-wizard .listing-form-section legend{font-size:13px}
+ #productForm.listing-wizard input:not([type=hidden]):not([type=file]),#productForm.listing-wizard select,#productForm.listing-wizard textarea{font-size:16px;padding:9px;min-height:42px}
+ #productForm.listing-wizard .listing-form-side{grid-template-columns:minmax(0,1fr);gap:10px}
+ #productForm.listing-wizard .listing-pricing .row{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+ #productForm.listing-wizard .photo-preview{grid-template-columns:repeat(3,minmax(0,1fr))}
+ #productForm.listing-wizard .photo-tile img{height:70px}
+ #productForm.listing-wizard .listing-review-values{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:10px}
+ #productForm.listing-wizard .listing-review{padding:12px}
+ #productForm.listing-wizard .listing-form-actions .btn{flex:1 1 auto;padding:9px 10px;font-size:12px}
+ #productForm.listing-wizard .listing-form-actions .listing-clear{flex:0 0 auto;margin-left:0!important}
+}
+@media(max-width:360px){#productForm.listing-wizard .listing-basics>.row{grid-template-columns:minmax(0,1fr)}#productForm.listing-wizard .listing-steps button{flex-direction:column;gap:3px}}
+#page-seller #sellerListingWorkspace:has(#sellerCreatePanel:not(.hidden))>.seller-listing-nav{display:none}
+#page-seller #sellerProducts #productForm.listing-wizard .listing-basics>.row{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px}
+#page-seller #sellerProducts #productForm.listing-wizard .listing-basics>.listing-name-row{grid-template-columns:minmax(0,1fr)!important}
+#page-seller #sellerProducts #productForm.listing-wizard .listing-pricing .row{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px}
+#page-seller #sellerProducts #productForm.listing-wizard .listing-step-panel{width:100%;max-width:none}
+#page-seller #productForm.listing-wizard .field{padding:0;margin-bottom:10px}
+@media(max-width:600px){#page-seller .vendor-portal-bar{padding:10px 14px}#page-seller .vendor-portal-bar h1{font-size:17px}#page-seller .vendor-portal-main{padding:8px}#page-seller #sellerCreatePanel{padding:8px}#page-seller #productForm.listing-wizard .listing-step-controls .btn{min-width:78px;padding:8px 12px}}
+@media(max-width:360px){#page-seller #sellerProducts #productForm.listing-wizard .listing-basics>.row{grid-template-columns:minmax(0,1fr)!important}}
+#page-seller #sellerProducts #productForm.listing-wizard{width:100%!important;max-width:none!important;margin:0!important}
+@media(min-width:800px){#page-seller #productForm.listing-wizard .listing-basics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}#page-seller #productForm.listing-wizard .listing-basics>.row:not(.listing-name-row),#page-seller #productForm.listing-wizard .listing-basics>.field:last-child{grid-column:1/-1}#page-seller #productForm.listing-wizard .listing-basics .field{margin-bottom:0}}
+#page-seller #productForm.listing-wizard .listing-steps button>span{width:22px;min-width:22px}
+#page-seller #productForm.listing-wizard .field{margin:0 0 10px!important;padding:0!important}
+@media(max-width:600px){#page-seller #productForm.listing-wizard .listing-steps button>span{width:18px;min-width:18px}}

@@ -10,3 +10,17 @@ const view=w.document.createElement('div');view.innerHTML=c.render(saved);assert
 w.document.getElementById('productForm').reset();assert.equal(w.document.getElementById('listing-features').value,'');
 const app=await readFile('dist/app.js','utf8');assert.match(app,/p_description:window.MioProductContent.read\(\)/);assert.match(app,/MioProductContent.fill\(p.description\)/);assert.ok(app.split('MioProductContent.render(p.description)').length>=3);
 console.log('PASS Product details: legacy preservation, form save/edit round trip, reset, safe rendering, optional sections, seller/admin integration');dom.window.close();
+// Exercise the guided form with native constraints and real preserved input nodes.
+const guided=new JSDOM(html,{runScripts:'outside-only',pretendToBeVisual:true}),gw=guided.window,gd=gw.document;
+gw.HTMLElement.prototype.scrollIntoView=()=>{};
+gw.eval(await readFile('dist/product-content.js','utf8'));gw.MioProductContent.mount();
+const get=id=>gd.getElementById(id),step=n=>gd.querySelector('[data-listing-step="'+n+'"]');
+assert.equal(get('listingStep0').hidden,false);assert.equal(get('listingStep1').hidden,true);assert.equal(get('productContentFields').open,false);
+step(2).click();assert.equal(get('listingStep0').hidden,false,'missing details prevent skipping ahead');
+get('productVendor').innerHTML='<option value="store">My Store</option>';get('prodCategory').innerHTML='<option value="care">Skin care</option>';get('prodName').value='<img src=x onerror=alert(1)>';get('prodDescription').value='Accurate description';get('prodSku').value='SKU-123';
+step(1).click();assert.equal(get('listingStep1').hidden,false);step(2).click();assert.equal(get('listingStep1').hidden,false,'price required before review');
+get('prodPrice').value='1250';get('prodStock').value='199';step(2).click();assert.equal(get('listingStep1').hidden,false,'minimum stock stays enforced');
+get('prodStock').value='250';step(2).click();assert.equal(get('listingStep2').hidden,false);assert.match(get('listingReview').textContent,/PKR 1,250/);assert.match(get('listingReview').textContent,/250 units/);assert.equal(get('listingReview').querySelector('img'),null,'review escapes the product title');
+step(0).click();assert.equal(get('prodSku').value,'SKU-123');assert.equal(get('prodPrice').value,'1250');assert.equal(get('listingStep0').hidden,false);
+get('productForm').reset();assert.equal(get('listingStep0').hidden,false);assert.equal(get('prodSku').value,'');assert.equal(get('prodStock').value,'300');assert.equal(get('productContentFields').open,false);
+console.log('PASS guided listing: step navigation, required fields, price and stock constraints, escaped review, retained edits, reset');gw.close();
