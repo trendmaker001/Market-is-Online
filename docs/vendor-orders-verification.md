@@ -31,3 +31,11 @@
 Production rollback scripts are in `tests/live-vendor-orders-rollback.sql` and `tests/live-membership-rollback.sql`. UI browser checks used explicit sample fixtures; live database tests exercised real production functions with every write rolled back. No actual payment transfer, customer dispatch, email delivery or authenticated human browser session was claimed by these tests.
 
 Existing database advisor warnings predate this release and remain outside this change. The private shipment table has RLS enabled and all direct customer permissions revoked; its no-policy informational notice is intentional: https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy.
+
+## Production release verification
+
+The production Git deployment reported success for `c114f30fcd073055f8af19e1ed3646f6ecc733d5`. All 12 changed frontend/library assets returned HTTP 200 and matched the tested Git blob hashes. The live desktop and 390px mobile bundle layouts loaded correctly. Selecting Bundle 3 focused vendor selection; the live quote returned product total PKR 11,165, discount PKR 1,965.04, retained PPV 1.6940 and final product total PKR 9,199.96. Direct checkout displayed the vendor delivery breakdown and inline account fields, with PKR 600 advance and the correct remaining COD for the tested basket. No order was submitted through the browser.
+
+Only one active vendor was available in the public catalog; the two-vendor purchase and combined bundle/cart delivery calculation were exercised in the live rollback test. The final follow-up corrects the singular vendor label and attaches the responsive UI evidence below.
+
+![Implemented desktop and mobile order components using sample test data](qa/order-ui-desktop-mobile.jpg)
