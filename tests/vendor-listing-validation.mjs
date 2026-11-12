@@ -1,0 +1,48 @@
+import {PGlite} from '@electric-sql/pglite';
+import {readFile,readdir} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+import assert from 'node:assert/strict';
+const source=new URL('..',import.meta.url).pathname.replace(/\/$/,'');
+const db=new PGlite(),q=(sql,args=[])=>db.query(sql,args),one=async(sql,args=[])=>Object.values((await q(sql,args)).rows[0])[0];
+const uid=n=>{const h=createHash('sha256').update('checkout-wallets:'+n).digest('hex').slice(0,32);return `${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20)}`};
+const company=uid(1),buyer=uid(2),as=id=>q("select set_config('request.jwt.claim.sub',$1,false)",[id]);
+await db.exec(`create role anon;create role authenticated;create role service_role;create schema auth;
+create table auth.users(id uuid primary key,email text,raw_user_meta_data jsonb,raw_app_meta_data jsonb);
+create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
+alter default privileges grant execute on functions to anon,authenticated,service_role;
+grant usage on schema auth to anon,authenticated;grant execute on function auth.uid() to anon,authenticated;`);
+for(const file of (await readdir(source+'/schema')).filter(x=>/^\d+.*\.sql$/.test(x)).sort())await db.exec(await readFile(source+'/schema/'+file,'utf8'));
+// The production PIN helper is installed by the Supabase-only security migration.
+await db.exec("create function private.require_transaction_pin(text,uuid) returns void language sql as $$select$$");
+for(const file of ['20261103161000_maintenance_foundation.sql','20261103162000_maintenance_payments.sql','20261103163000_maintenance_bonus_eligibility.sql','20261104100000_monthly_maintenance_company_leftover.sql'])
+ await db.exec(await readFile(source+'/supabase/migrations/'+file,'utf8'));
+await q("update private.operator_setup set email='checkout-company@example.invalid'");
+await q("insert into auth.users(id,email,raw_user_meta_data,raw_app_meta_data) values($1,'checkout-company@example.invalid',$2,'{\"provider\":\"google\"}')",[company,JSON.stringify({full_name:'Checkout company',phone:'00000000',terms_accepted:true})]);
+await q("insert into public.user_roles(user_id,role) values($1,'admin')",[company]);await q("update public.member_profiles set status='active',terms_accepted_at=now() where user_id=$1",[company]);
+const ref=await one('select referral_code from public.member_profiles where user_id=$1',[company]);
+await q("insert into auth.users(id,email,raw_user_meta_data,raw_app_meta_data) values($1,'checkout-buyer@example.invalid',$2,'{}')",[buyer,JSON.stringify({full_name:'Checkout buyer',phone:'00000000',terms_accepted:true,referral_code:ref})]);await q("update public.member_profiles set status='active',terms_accepted_at=now() where user_id=$1",[buyer]);
+await as(company);await q("select set_config('request.jwt.claims',$1,false)",[JSON.stringify({aal:'aal2',amr:[{method:'totp',timestamp:Math.floor(Date.now()/1000)}]})]);await q("select public.admin_set_usd_to_pkr_rate(300,'Checkout test rate')");await q("select public.set_company_delivery(0,'Checkout test delivery')");
+const vendor=await one("select public.create_company_brand('Checkout shop','','')");await q('select public.set_vendor_commission($1,.30)',[vendor]);const product=await one("insert into public.products(vendor_id,name,description,category,price_pkr,stock_quantity,status) values($1,'Checkout product','Checkout test','Tests',1000,100,'approved') returning id",[vendor]);
+await q("update public.mio_wallet_accounts set balance=100 where member_id=$1",[buyer]);await q("insert into public.member_income_wallets(member_id,shopping_points,promotion_points) values($1,10000,20) on conflict(member_id)do update set shopping_points=10000,promotion_points=20",[buyer]);await as(buyer);
+
+const countrySql=await readFile(source+'/supabase/migrations/20261105091030_country_gender_marketplace_controls.sql','utf8');
+await db.exec("alter table public.products add column if not exists country_code text");
+await db.exec(countrySql.slice(countrySql.indexOf('create or replace function private.valid_market_country'),countrySql.indexOf('create or replace function private.validate_signup_gender')));
+await db.exec(countrySql.slice(countrySql.indexOf('create or replace function public.save_product_listing_country'),countrySql.indexOf('create or replace function private.vendor_country_default')));
+await q('update public.vendors set owner_user_id=$1 where id=$2',[buyer,vendor]);await as(buyer);
+const photos=n=>Array.from({length:n},(_,i)=>'https://example.invalid/'+i+'.jpg');
+const defaults={id:null,vendor,name:'TIJARAT Desire Eau de Parfum 50ml',sku:'',description:'Desire perfume in elegant packaging.',category:'Fragrances',price:4500,stock:300,images:photos(3),submit:true,country:'PK'};
+const save=(patch={})=>{const x={...defaults,...patch};return one('select public.save_product_listing_country($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)',[x.country,x.id,x.vendor,x.name,x.sku,x.description,x.category,x.price,x.stock,JSON.stringify(x.images),x.submit])};
+await assert.rejects(()=>save(),/Complete product details/);console.log('PASS reproduced production Fragrances rejection with 3 photos and complete required fields');
+await db.exec(await readFile(source+'/supabase/migrations/20261112194117_vendor_listing_validation_and_three_photos.sql','utf8'));
+const pid=await save();let row=(await q('select * from public.products where id=$1',[pid])).rows[0];assert.equal(row.status,'pending');assert.equal(row.category,'Fragrances');assert.equal(row.sku,null);assert.equal(row.image_urls.length,3);assert.equal(row.country_code,'PK');
+const draft=await save({submit:false,images:[]});assert.equal(await one('select status from public.products where id=$1',[draft]),'draft');
+await save({id:draft,images:photos(8)});assert.equal(await one('select status from public.products where id=$1',[draft]),'pending');
+for(const n of [0,1,2])await assert.rejects(()=>save({images:photos(n)}),/at least 3/);
+await assert.rejects(()=>save({images:photos(9)}),/no more than 8/);
+await assert.rejects(()=>save({images:null}),/photos as a list/);await assert.rejects(()=>save({images:[null,null,null]}),/HTTPS/);await assert.rejects(()=>save({images:['http://bad',...photos(2)]}),/HTTPS/);
+for(const [patch,message] of [[{name:''},/title/],[{description:''},/description/],[{category:'Invalid'},/category/],[{price:0},/positive PKR/],[{price:1.123},/decimal/],[{stock:199},/stock/],[{country:'ZZ'},/country/]])await assert.rejects(()=>save(patch),message);
+const sourceApp=await readFile(source+'/dist/app.js','utf8');const builtin=Array.from(sourceApp.split('const marketplaceCategoryPack=')[1].split(';')[0].matchAll(/name:'([^']*)'/g),m=>m[1]);
+for(const category of builtin)await save({category});await save({category:'Skincare'});
+await as(null);await assert.rejects(()=>save(),/Active seller access/);await as(buyer);await q("update public.vendors set status='suspended' where id=$1",[vendor]);await assert.rejects(()=>save(),/Active seller access/);
+console.log('PASS backend listing: 3/8 photo boundaries, optional blank SKU/details, draft/resubmit, every built-in category, configured category, exact validation errors and owner/active-store guards');await db.close();
