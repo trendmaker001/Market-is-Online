@@ -4,16 +4,16 @@
  function create(api){
   let summaries=new Map(),loaded=false,ticker=null,reviewRequest=0;
   function ratingContent(id){
-   if(!loaded)return '<small>Ratings loading…</small>';
+   if(!loaded)return '<span class="rating-score"><span class="rating-stars" aria-hidden="true">☆☆☆☆☆</span><small>Loading…</small></span>';
    const r=summaries.get(id),count=Number(r?.rating_count)||0,score=count?Number(r.average_rating):0;
-   if(!count)return '<small class="rating-empty">Not rated yet</small>';
+   if(!count)return '<span class="rating-score rating-empty" aria-label="Not rated yet"><span class="rating-stars" aria-hidden="true">☆☆☆☆☆</span><small>Not rated yet</small></span>';
    return `<span class="rating-score" aria-label="${score.toFixed(1)} out of 5, ${count} ratings"><span class="rating-stars" aria-hidden="true"><span style="width:${score*20}%">★★★★★</span>☆☆☆☆☆</span><b>${score.toFixed(1)}</b><small class="customer-rating-label">(${count})</small></span>`;
   }
   function markup(p){return `<span class="product-rating" data-product-rating="${escape(p.id)}">${ratingContent(p.id)}</span>`;}
   function refresh(){document.querySelectorAll('[data-product-rating]').forEach(e=>e.innerHTML=ratingContent(e.dataset.productRating));}
   async function loadRatings(ids){
    try {const next=new Map();for(let i=0;i<ids.length;i+=1000){const {data,error}=await api.db.rpc('marketplace_rating_summaries',{p_ids:ids.slice(i,i+1000)});if(error)throw error;for(const r of data||[])next.set(r.product_id,r);}summaries=next;loaded=true;refresh();}
-   catch {document.querySelectorAll('[data-product-rating]').forEach(e=>e.innerHTML='<small>Ratings temporarily unavailable</small>');}
+   catch {document.querySelectorAll('[data-product-rating]').forEach(e=>e.innerHTML='<span class="rating-score"><span class="rating-stars" aria-hidden="true">☆☆☆☆☆</span><small>Unavailable</small></span>');}
   }
   function setSummary(id,data){summaries.set(id,{rating_count:data.count,average_rating:data.average});loaded=true;refresh();}
   async function mountReviews(id){

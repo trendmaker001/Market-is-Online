@@ -45,4 +45,20 @@ for(const [patch,message] of [[{name:''},/title/],[{description:''},/description
 const sourceApp=await readFile(source+'/dist/app.js','utf8');const builtin=Array.from(sourceApp.split('const marketplaceCategoryPack=')[1].split(';')[0].matchAll(/name:'([^']*)'/g),m=>m[1]);
 for(const category of builtin)await save({category});await save({category:'Skincare'});
 await as(null);await assert.rejects(()=>save(),/Active seller access/);await as(buyer);await q("update public.vendors set status='suspended' where id=$1",[vendor]);await assert.rejects(()=>save(),/Active seller access/);
+
+await q("update public.vendors set status='active' where id=$1",[vendor]);
+await db.exec("create schema if not exists storage;create table if not exists storage.objects(name text)");
+await db.exec(await readFile(source+'/supabase/migrations/20261112200701_product_photo_verification.sql','utf8'));
+assert.equal(await one("select has_function_privilege('authenticated','public.record_verified_product_photo(uuid,uuid,text,integer,integer,integer,text)','execute')"),false);
+assert.equal(await one("select has_function_privilege('anon','public.can_upload_product_photo(uuid)','execute')"),false);
+assert.equal(await one('select public.can_upload_product_photo($1)',[vendor]),true);
+await assert.rejects(()=>save(),/Upload new photos/);
+await save({id:pid}); // Only the same listing may retain its legacy images.
+const verified=Array.from({length:3},(_,i)=>'https://example.invalid/storage/v1/object/public/product-images/'+vendor+'/'+uid(800+i)+'.jpg');
+for(const url of verified)await q('select public.record_verified_product_photo($1,$2,$3,1000,1000,12345,\'image/jpeg\')',[vendor,buyer,url]);
+const verifiedId=await save({images:verified});assert.equal(await one('select status from public.products where id=$1',[verifiedId]),'pending');
+await assert.rejects(()=>save({id:verifiedId,images:photos(3)}),/Upload new photos/);
+await assert.rejects(()=>q('select public.record_verified_product_photo($1,$2,$3,900,1000,12345,\'image/jpeg\')',[vendor,buyer,verified[0]+'x']),/Invalid product photo location|check constraint/);
+await as(null);assert.equal(await one('select public.can_upload_product_photo($1)',[vendor]),false);await as(buyer);
+console.log('PASS photo database: unverified URLs rejected, original legacy photos retained, verified images submitted, recording permission limited to server');
 console.log('PASS backend listing: 3/8 photo boundaries, optional blank SKU/details, draft/resubmit, every built-in category, configured category, exact validation errors and owner/active-store guards');await db.close();
