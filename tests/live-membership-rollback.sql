@@ -1,0 +1,74 @@
+-- Production smoke test: every fixture and mutation is rolled back in this transaction.
+begin;
+create temporary table membership_smoke_result(result jsonb) on commit drop;
+do $$
+declare admin_id uuid;founder uuid;linked uuid:=gen_random_uuid();direct_id uuid:=gen_random_uuid();other_id uuid:=gen_random_uuid();user_ref text;member_ref text;r jsonb;req uuid;product_id uuid;placed jsonb;hold_order jsonb;proof text;bank_id uuid;required_pkr numeric;owned_message uuid;
+begin
+ select company_id,founder_id into admin_id,founder from private.network_foundation where singleton;
+ if admin_id is null or founder is null or admin_id=founder or not exists(select 1 from public.user_roles where user_id=admin_id and role='admin') or not private.package_eligible(founder) then raise exception 'Configured admin / Founder not ready for QA';end if;
+ select member_code,regexp_replace(member_code,'^MIO-','USR-') into member_ref,user_ref from public.member_profiles where user_id=founder;
+ insert into auth.users(id,email,raw_user_meta_data,raw_app_meta_data,email_confirmed_at,created_at,updated_at)
+ select x.id,'qa-membership-'||x.id||'@example.invalid',jsonb_build_object('registration_type','customer','full_name','Rollback Membership QA','phone','03000000000','country_code','PK','terms_accepted',true,'affiliate_code',case when x.id=linked then user_ref else null end,'shipping_address','QA only rollback address','shipping_city','Islamabad'),'{"provider":"email","providers":["email"]}',now(),now(),now() from (values(linked),(direct_id),(other_id)) x(id);
+ perform set_config('request.jwt.claim.sub',linked::text,true);
+ if public.my_shopping_account()->>'shipping_city'<>'Islamabad' or exists(select 1 from public.member_profiles where user_id=linked) then raise exception 'Inline signup identity isolation/address failed';end if;
+ r:=public.request_shopping_membership(true);req:=(r->'request'->>'id')::uuid;
+ if r->'request'->>'status'<>'pending_sponsor' or r->>'member_referral_code'<>member_ref or r->'request'->>'sponsor_id'<>founder::text then raise exception 'Linked sponsor/code mapping failed';end if;
+ if public.request_shopping_membership(true)->'request'->>'id'<>req::text then raise exception 'Duplicate membership request';end if;
+ perform set_config('request.jwt.claim.sub',other_id::text,true);
+ begin perform public.review_shopping_membership(req,true,'LEFT');raise exception 'Unauthorized sponsor accepted';exception when others then if sqlerrm not like '%assigned sponsor%' then raise;end if;end;
+ if (public.shopping_messages()->>'total')::int<>0 then raise exception 'Inbox leaked another customer';end if;
+ perform set_config('request.jwt.claim.sub',founder::text,true);
+ begin perform public.review_shopping_membership(req,true);raise exception 'Missing leg accepted';exception when others then if sqlerrm not like '%Left or Right%' then raise;end if;end;
+ r:=public.review_shopping_membership(req,true,'LEFT');
+ if r->>'status'<>'completed' or not exists(select 1 from public.member_profiles where user_id=linked and sponsor_id=founder) or not exists(select 1 from public.binary_placements where member_id=linked and side='LEFT') or exists(select 1 from public.package_activations where member_id=linked) then raise exception 'Sponsor placement failed';end if;
+ if (public.review_shopping_membership(req,true,'RIGHT')->>'already_reviewed')::boolean is distinct from true then raise exception 'Approval retry failed';end if;
+ perform set_config('request.jwt.claim.sub',direct_id::text,true);
+ r:=public.request_shopping_membership(true);req:=(r->'request'->>'id')::uuid;
+ if r->'request'->>'status'<>'pending_admin' then raise exception 'Direct request routed incorrectly';end if;
+ perform set_config('request.jwt.claim.sub',admin_id::text,true);
+ r:=public.review_shopping_membership(req,true);
+ if r->>'status'<>'awaiting_founder' or exists(select 1 from public.member_profiles where user_id=direct_id) then raise exception 'Admin prematurely created membership';end if;
+ perform public.review_shopping_membership(req,true,'RIGHT');
+ if exists(select 1 from public.member_profiles where user_id=direct_id) then raise exception 'Admin bypassed Founder placement';end if;
+ perform set_config('request.jwt.claim.sub',direct_id::text,true);
+ if public.shopping_messages()::text not like '%Admin approved your request%' then raise exception 'Admin notification missing';end if;
+ perform set_config('request.jwt.claim.sub',founder::text,true);
+ if public.shopping_membership_queue()::text not like '%'||req::text||'%' then raise exception 'Founder queue missing';end if;
+ r:=public.review_shopping_membership(req,true,'RIGHT');
+ if r->>'status'<>'completed' or not exists(select 1 from public.member_profiles where user_id=direct_id and sponsor_id=founder) then raise exception 'Direct Founder membership failed';end if;
+ -- A third shopping-only account exercises payment/status/detail notifications.
+ select p.id into product_id from public.products p join public.vendors v on v.id=p.vendor_id where p.status='approved' and v.status='active' and p.stock_quantity>=2 and p.bundle_definition is null and p.price_pkr>600 order by p.id limit 1;
+ if product_id is null then raise exception 'No eligible product available for rollback test';end if;
+ perform set_config('request.jwt.claim.sub',other_id::text,true);
+ placed:=public.place_shopping_order(jsonb_build_array(jsonb_build_object('product_id',product_id,'quantity',1)),'Rollback Membership QA','03000000000','QA only rollback address','Islamabad','membership-live-advance','ADVANCE',null);
+ if public.shopping_messages()::text not like '%account/prepayments/'||(placed->>'order_id')||'%' then raise exception 'Order payment link notification missing';end if;
+ required_pkr:=(placed->>'required_pkr')::numeric;
+ perform set_config('request.jwt.claim.sub',admin_id::text,true);
+ bank_id:=public.admin_save_shopping_payment_account(null,'Rollback QA Bank','Rollback QA Company','QA-'||other_id,'Temporary rollback test',true);
+ perform set_config('request.jwt.claim.sub',other_id::text,true);
+ proof:=other_id::text||'/'||(placed->>'order_id')||'/rollback-proof.png';
+ insert into storage.objects(bucket_id,name,metadata) values('customer-payment-proofs',proof,'{"mimetype":"image/png","size":2048}');
+ perform public.submit_shopping_advance_with_proof((placed->>'order_id')::uuid,bank_id,'QA-TXN-'||other_id,proof);
+ perform set_config('request.jwt.claim.sub',admin_id::text,true);
+ perform public.admin_review_shopping_advance((placed->>'order_id')::uuid,true,required_pkr,'Rollback proof verified');
+ perform set_config('request.jwt.claim.sub',other_id::text,true);
+ if public.shopping_messages()::text not like '%Payment approved%' or public.shopping_messages()::text not like '%Order confirmed%' then raise exception 'Payment/status notifications missing';end if;
+ if public.shopping_order_details((placed->>'order_id')::uuid)->>'status'<>'confirmed' then raise exception 'Own order detail missing';end if;
+ owned_message:=(public.shopping_messages()->'rows'->0->>'id')::uuid;
+ perform set_config('request.jwt.claim.sub',linked::text,true);
+ if public.shopping_order_details((placed->>'order_id')::uuid) is not null then raise exception 'Foreign order detail leaked';end if;
+ perform public.read_shopping_messages(owned_message);
+ if exists(select 1 from private.shopping_notifications where id=owned_message and read_at is not null) then raise exception 'Foreign message marked read';end if;
+ perform set_config('request.jwt.claim.sub',other_id::text,true);
+ perform public.read_shopping_messages();
+ if (public.shopping_messages()->>'unread')::integer<>0 then raise exception 'Mark read failed';end if;
+ -- Exercise real authenticated grants on invoker wrappers, not only postgres calls.
+ execute 'set local role authenticated';
+ perform public.shopping_messages();perform public.shopping_membership_status();
+ begin perform public.shopping_membership_queue(true);raise exception 'Customer obtained admin queue';exception when others then if sqlerrm not like '%Admin access required%' then raise;end if;end;
+ execute 'reset role';
+ if has_function_privilege('anon','public.place_guest_affiliate_order(jsonb,text,text,text,text,text,text,text,text)','execute') or has_function_privilege('authenticated','public.join_network_from_shopping(text,boolean)','execute') then raise exception 'Legacy bypass still allowed';end if;
+ insert into membership_smoke_result values(jsonb_build_object('inline_signup_metadata','pass','linked_sponsor_request','pass','distinct_referral_codes','pass','duplicate_protection','pass','required_leg','pass','sponsor_membership_placement','pass','admin_then_founder','pass','no_automatic_paid_package','pass','payment_proof_and_approval','pass','order_payment_notifications','pass','inbox_and_order_privacy','pass','authenticated_rpc_permissions','pass','legacy_bypass_blocked','pass','test_data','rolled back'));
+end $$;
+select result from membership_smoke_result;
+rollback;
