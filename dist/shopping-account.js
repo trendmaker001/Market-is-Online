@@ -39,6 +39,9 @@
    const hasSponsor=!!affiliate||!!identity?.has_sponsor;document.getElementById('shoppingSponsorChoice').hidden=!hasSponsor;
    if(!hasSponsor)box.querySelector('[value="ADVANCE"]').checked=true;
    const sponsor=box.querySelector('[name="shoppingFunding"]:checked').value==='SPONSOR',guest=!session&&hasSponsor&&sponsor;
+   // Registration comes before delivery validation for new advance-paying shoppers.
+   // Guest sponsor orders and authenticated orders still require valid delivery fields.
+   form.noValidate=show&&!session&&!guest;
    document.getElementById('shoppingSponsorLabel').textContent=session?'Request sponsor hold':'Guest order · sponsor hold';
    document.getElementById('shoppingSponsorHelp').textContent=session?'Your linked member approves refundable security. Full order value is paid on delivery.':'Order without an account through this referral link. Dispatch requires your linked member’s security approval.';
    document.getElementById('shoppingGuestEmailField').hidden=!guest;document.getElementById('shoppingGuestEmail').required=show&&guest;document.getElementById('shoppingGuestEmail').disabled=!show||!guest;
