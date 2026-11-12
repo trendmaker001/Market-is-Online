@@ -1,0 +1,36 @@
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+import {readFile} from 'node:fs/promises';
+import {JSDOM} from 'jsdom';
+import sharp from 'sharp';
+const manifest=JSON.parse(await readFile('dist/app.webmanifest','utf8'));
+assert.equal(manifest.display,'standalone');assert.equal(manifest.start_url,'/#shop');assert.equal(manifest.scope,'/');
+for(const icon of manifest.icons){const meta=await sharp('dist'+icon.src).metadata();assert.equal(icon.sizes,meta.width+'x'+meta.height);assert.equal(meta.width,meta.height)}
+const apple=await sharp('dist/icons/mio-apple-180.png').metadata();assert.equal(apple.width,180);
+const handlers={},cacheWrites=[],deleted=[];let networkFail=false,claimed=0,skipped=0;
+const offline=new Response('Offline screen'),cache={addAll:async paths=>cacheWrites.push(...paths)};
+const swContext={URL,Response,caches:{open:async()=>cache,match:async key=>key==='/offline.html'?offline:undefined,keys:async()=>['unrelated-cache','mio-pwa-public-obsolete'],delete:async key=>deleted.push(key)},fetch:async()=>{if(networkFail)throw Error('offline');return new Response('Fresh network')},self:{location:{origin:'https://marketisonline.com'},addEventListener:(name,fn)=>handlers[name]=fn,clients:{claim:async()=>claimed++},skipWaiting:()=>skipped++}};
+vm.runInNewContext(await readFile('dist/sw.js','utf8'),swContext);
+await new Promise((resolve,reject)=>handlers.install({waitUntil:p=>p.then(resolve,reject)}));assert.deepEqual(cacheWrites,['/offline.html','/icons/mio-192.png','/icons/mio-512.png']);assert.equal(skipped,0);
+await new Promise((resolve,reject)=>handlers.activate({waitUntil:p=>p.then(resolve,reject)}));assert.deepEqual(deleted,['mio-pwa-public-obsolete']);assert.equal(claimed,1);
+for(const request of [{method:'POST',url:'https://marketisonline.com/order',mode:'cors'},{method:'GET',url:'https://project.supabase.co/rest/v1/orders',mode:'cors'},{method:'GET',url:'https://marketisonline.com/app.js',mode:'cors'},{method:'GET',url:'https://marketisonline.com/api/wallet',mode:'cors'}]){let intercepted=false;handlers.fetch({request,respondWith:()=>intercepted=true});assert.equal(intercepted,false)}
+let response;handlers.fetch({request:{method:'GET',url:'https://marketisonline.com/',mode:'navigate'},respondWith:p=>response=p});assert.equal(await (await response).text(),'Fresh network');networkFail=true;handlers.fetch({request:{method:'GET',url:'https://marketisonline.com/?affiliate=USR-QA',mode:'navigate'},respondWith:p=>response=p});assert.equal(await (await response).text(),'Offline screen');handlers.message({data:{type:'ACTIVATE_UPDATE'}});assert.equal(skipped,1);
+console.log('PASS worker: public-only precache, network-only APIs/mutations/code, offline fallback, scoped cleanup and explicit activation');
+const dom=new JSDOM('<body><aside id="memberSidebar"><button class="sidebar-signout">Sign out</button></aside><div class="shopping-account-nav"></div><nav class="vendor-portal-nav"></nav><nav class="control-nav"></nav><footer id="marketplaceFooter"></footer></body>',{url:'https://marketisonline.com'}),w=dom.window;
+w.matchMedia=()=>({matches:false,addEventListener(){}});w.isSecureContext=true;
+w.HTMLDialogElement.prototype.showModal=function(){this.open=true};w.HTMLDialogElement.prototype.close=function(){this.open=false;this.dispatchEvent(new w.Event('close'))};
+const serviceHandlers={},regHandlers={};let reloads=0,prompts=0,activation=0;
+const reg={waiting:null,addEventListener:(name,fn)=>regHandlers[name]=fn,update:async()=>{}};
+const nav={onLine:true,userAgent:'Chrome Android',platform:'Linux',maxTouchPoints:1,serviceWorker:{controller:null,addEventListener:(name,fn)=>serviceHandlers[name]=fn,register:async(path,options)=>{assert.equal(path,'/sw.js');assert.equal(options.updateViaCache,'none');return reg}}};
+const context={window:w,document:w.document,navigator:nav,location:{reload:()=>reloads++},MutationObserver:w.MutationObserver,requestAnimationFrame:fn=>setTimeout(fn,0),setTimeout:()=>0};
+vm.runInNewContext(await readFile('dist/pwa.js','utf8'),context);await new Promise(r=>setTimeout(r,10));
+assert.equal(w.document.querySelectorAll('[data-pwa-install]').length,5);w.document.querySelector('[data-pwa-install]').click();assert.equal(w.document.querySelector('dialog').open,true);assert.match(w.document.querySelector('#pwaInstallSteps').textContent,/browser menu/);
+nav.userAgent='iPhone';w.document.querySelector('dialog').close();w.document.querySelector('[data-pwa-install]').click();assert.match(w.document.querySelector('#pwaInstallSteps').textContent,/Safari/);
+const event=new w.Event('beforeinstallprompt',{cancelable:true});event.prompt=async()=>prompts++;event.userChoice=Promise.resolve({outcome:'dismissed'});w.dispatchEvent(event);assert.equal(event.defaultPrevented,true);assert.equal(w.document.querySelector('#pwaInstallNow').hidden,false);w.document.querySelector('#pwaInstallNow').click();await new Promise(r=>setTimeout(r,10));assert.equal(prompts,1);assert.match(w.document.querySelector('#pwaInstallStatus').textContent,/cancelled/);assert.equal(w.document.querySelector('#pwaInstallNow').hidden,true);
+nav.onLine=false;w.dispatchEvent(new w.Event('offline'));assert.equal(w.document.querySelector('#pwaConnection').hidden,false);nav.onLine=true;w.dispatchEvent(new w.Event('online'));assert.equal(w.document.querySelector('#pwaConnection').hidden,true);assert.equal(reloads,0);
+serviceHandlers.controllerchange();assert.equal(reloads,0);
+let stateChanged;reg.installing={state:'installing',addEventListener:(_name,fn)=>stateChanged=fn};regHandlers.updatefound();reg.waiting={postMessage:data=>{assert.equal(data.type,'ACTIVATE_UPDATE');activation++}};reg.installing.state='installed';nav.serviceWorker.controller={};stateChanged();assert.equal(w.document.querySelector('#pwaUpdate').hidden,false);assert.equal(reloads,0);w.document.querySelector('[data-pwa-update]').click();assert.equal(activation,1);serviceHandlers.controllerchange();assert.equal(reloads,1);serviceHandlers.controllerchange();assert.equal(reloads,1);
+w.dispatchEvent(new w.Event('appinstalled'));assert.ok([...w.document.querySelectorAll('[data-pwa-install]')].every(b=>b.hidden));
+const fresh=w.document.createElement('nav');fresh.className='vendor-portal-nav';w.document.body.append(fresh);await new Promise(r=>setTimeout(r,20));assert.equal(fresh.querySelectorAll('[data-pwa-install]').length,1);assert.equal(fresh.querySelector('[data-pwa-install]').hidden,true);
+console.log('PASS installation UI: all sidebars, iPhone/browser fallback, one-use prompt, cancellation, installed state, offline/online and opt-in update reload');
+dom.window.close();
