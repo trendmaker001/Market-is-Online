@@ -4,7 +4,7 @@
 /* Shared card geometry: content length never controls the grid's row height. */
 #page-shop .product.mio-product-card{display:flex!important;flex-direction:column!important;align-self:start;min-width:0;min-height:0!important;height:auto!important;padding:0!important;gap:0!important;overflow:hidden;border-radius:12px!important;background:#fff}
 #page-shop .mio-product-card .product-image{display:block!important;position:relative!important;flex:none!important;width:100%!important;height:auto!important;min-height:0!important;aspect-ratio:1!important;margin:0!important;padding:0!important;overflow:hidden;background:#f7f8f5}
-#page-shop .product.mio-product-card .product-image img.product-photo,#page-shop .product.mio-product-card .product-image img.image-fallback{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:cover!important;object-position:center center!important;transform:none!important}
+#page-shop .product.mio-product-card .product-image img.product-photo,#page-shop .product.mio-product-card .product-image img.image-fallback{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:contain!important;object-position:center center!important;transform:none!important}
 #page-shop .product.mio-product-card .product-info{display:flex!important;flex-direction:column!important;flex:none!important;gap:4px!important;height:auto!important;min-height:0!important;padding:10px!important;justify-content:flex-start!important}
 #page-shop .product.mio-product-card .pill{align-self:flex-start;max-width:100%;box-sizing:border-box;min-height:0!important;height:18px;line-height:14px;padding:2px 6px!important;font-size:10px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #page-shop .product.mio-product-card h3{display:block!important;min-height:0!important;height:36px!important;margin:0!important;padding:0!important;font-size:13px!important;line-height:18px!important;overflow:hidden;flex:none!important}
@@ -25,10 +25,10 @@
 @media(max-width:600px){#page-shop .product.mio-product-card .product-info{padding:8px!important;gap:3px!important}#page-shop .product.mio-product-card h3{font-size:12px!important;height:34px!important;line-height:17px!important}#page-shop .product.mio-product-card .price{font-size:14px!important}#page-shop .mio-product-card .card-current{flex-wrap:wrap;align-content:center;gap:0 3px}#page-shop .product.mio-product-card .product-foot{grid-template-rows:15px 38px 34px}#page-shop .product.mio-product-card .ppv-label{font-size:9px!important;line-height:12px!important;padding:1px 3px!important}}
 @media(max-width:600px){#page-shop #catalog{padding:12px 0!important}#page-shop .product.mio-product-card .product-foot{grid-template-rows:15px 23px 34px}}
 @media(max-width:360px){#page-shop .product.mio-product-card .product-foot{grid-template-rows:15px 39px 34px}#page-shop .mio-product-card .rating-stars{font-size:12px}#page-shop .mio-product-card .product-rating small{font-size:9px!important}#page-shop .mio-product-card .rating-score{gap:3px!important}}
-/* Fixed mobile cards: 128px media + 170px information, including padding. */
+/* Square media at every viewport; retain the compact, equal-height information area. */
 @media(max-width:600px){
- #page-shop .product.mio-product-card{height:300px!important;box-sizing:border-box}
- #page-shop .product.mio-product-card .product-image{height:128px!important;aspect-ratio:auto!important}
+ #page-shop .product.mio-product-card{height:auto!important;box-sizing:border-box}
+ #page-shop .product.mio-product-card .product-image{height:auto!important;aspect-ratio:1 / 1!important}
  #page-shop .product.mio-product-card .product-info{box-sizing:border-box;height:170px!important;padding:7px!important;gap:2px!important;overflow:hidden}
  #page-shop .product.mio-product-card .pill{height:16px!important;font-size:9px!important;padding:1px 5px!important}
  #page-shop .product.mio-product-card h3{height:32px!important;font-size:11px!important;line-height:16px!important}
@@ -44,4 +44,3 @@
  #page-shop .product.mio-product-card .ppv-label{font-size:8px!important;line-height:11px!important;padding:1px 2px!important}
  #page-shop .product.mio-product-card .add-cart{height:30px!important;min-height:30px!important;padding:4px 6px!important;font-size:11px!important;line-height:20px!important}
 }
-@media(max-width:360px){#page-shop .product.mio-product-card{height:280px!important}#page-shop .product.mio-product-card .product-image{height:108px!important}}
