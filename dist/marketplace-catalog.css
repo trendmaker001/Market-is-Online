@@ -4,7 +4,7 @@
 /* Shared card geometry: content length never controls the grid's row height. */
 #page-shop .product.mio-product-card{display:flex!important;flex-direction:column!important;align-self:start;min-width:0;min-height:0!important;height:auto!important;padding:0!important;gap:0!important;overflow:hidden;border-radius:12px!important;background:#fff}
 #page-shop .mio-product-card .product-image{display:block!important;position:relative!important;flex:none!important;width:100%!important;height:auto!important;min-height:0!important;aspect-ratio:1!important;margin:0!important;padding:0!important;overflow:hidden;background:#f7f8f5}
-#page-shop .product.mio-product-card .product-image img.product-photo,#page-shop .product.mio-product-card .product-image img.image-fallback{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:contain!important;object-position:center center!important;transform:none!important}
+#page-shop .product.mio-product-card .product-image img.product-photo,#page-shop .product.mio-product-card .product-image img.image-fallback{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:var(--product-photo-fit,cover)!important;object-position:center center!important;transform:none!important}
 #page-shop .product.mio-product-card .product-info{display:flex!important;flex-direction:column!important;flex:none!important;gap:4px!important;height:auto!important;min-height:0!important;padding:10px!important;justify-content:flex-start!important}
 #page-shop .product.mio-product-card .pill{align-self:flex-start;max-width:100%;box-sizing:border-box;min-height:0!important;height:18px;line-height:14px;padding:2px 6px!important;font-size:10px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #page-shop .product.mio-product-card h3{display:block!important;min-height:0!important;height:36px!important;margin:0!important;padding:0!important;font-size:13px!important;line-height:18px!important;overflow:hidden;flex:none!important}
@@ -44,3 +44,15 @@
  #page-shop .product.mio-product-card .ppv-label{font-size:8px!important;line-height:11px!important;padding:1px 2px!important}
  #page-shop .product.mio-product-card .add-cart{height:30px!important;min-height:30px!important;padding:4px 6px!important;font-size:11px!important;line-height:20px!important}
 }
+
+/* Per-product admin choices; legacy and new listings default to centered zoom. */
+#page-shop .mio-product-card[data-image-mode="fit"]{--product-photo-fit:contain}
+#page-shop .mio-product-card[data-image-mode="stretch"]{--product-photo-fit:fill}
+#page-shop .mio-product-card[data-image-mode="zoomed"]{--product-photo-fit:cover}
+.product-image-display-editor{display:flex;align-items:flex-start;gap:14px;padding:12px;margin:12px 0;border:1px solid #dce8e1;border-radius:10px;background:#f7faf8}
+.image-display-preview{flex:0 0 112px;width:112px;aspect-ratio:1;overflow:hidden;border-radius:8px;background:#fff}
+.image-display-preview img{display:block;width:100%;height:100%;object-fit:cover;object-position:center}
+.image-display-preview[data-image-mode="fit"] img{object-fit:contain}
+.image-display-preview[data-image-mode="stretch"] img{object-fit:fill}
+.image-display-controls{flex:1;min-width:0}.image-display-controls label{display:grid;gap:5px;font-size:13px;font-weight:600}.image-display-controls select{width:100%;min-width:0;min-height:38px}.image-display-controls .helper{font-size:11px;margin:7px 0}.image-display-status{display:block;font-size:12px;margin-top:5px}
+@media(max-width:400px){.product-image-display-editor{gap:9px;padding:9px}.image-display-preview{flex-basis:80px;width:80px}.image-display-controls select{font-size:12px}}

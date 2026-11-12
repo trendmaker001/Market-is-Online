@@ -1,0 +1,27 @@
+import {JSDOM} from 'jsdom';
+import {PGlite} from '@electric-sql/pglite';
+import {readFile} from 'node:fs/promises';
+import assert from 'node:assert/strict';
+const source=await readFile('dist/product-image-display.js','utf8');
+const dom=new JSDOM('<body></body>',{runScripts:'outside-only'}),w=dom.window,d=w.document;w.eval(source);
+const ui=w.MioProductImageDisplay,esc=s=>String(s).replaceAll('"','&quot;');
+assert.equal(ui.mode({}),'zoomed');assert.equal(ui.mode({product_image_display:{mode:'bad'}}),'zoomed');
+let admin=true,fail=false,calls=[],saved=[];
+ui.mount({isAdmin:()=>admin,db:{from:name=>({upsert:(row,options)=>({select:()=>({single:async()=>{calls.push({name,row,options});return fail?{error:{message:'Save failed'}}:{data:row};}})})})},onSaved:(...args)=>saved.push(args)});
+const product={id:'p1',image_url:'https://example.test/image.jpg',product_image_display:{mode:'fit'}};
+d.body.innerHTML=ui.editor(product,esc,s=>s);const form=d.querySelector('form'),select=form.elements.mode,status=form.querySelector('[role=status]');
+assert.equal(select.value,'fit');select.value='stretch';select.dispatchEvent(new w.Event('change',{bubbles:true}));assert.equal(form.querySelector('.image-display-preview').dataset.imageMode,'stretch');assert.equal(calls.length,0);
+const send=()=>form.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true})),tick=()=>new Promise(r=>setTimeout(r,0));send();send();await tick();assert.equal(calls.length,1);assert.deepEqual(saved,[['p1','stretch']]);assert.equal(status.textContent,'Saved');assert.equal(select.disabled,false);
+fail=true;select.value='fit';send();await tick();assert.equal(saved.length,1);assert.equal(status.textContent,'Save failed');admin=false;send();await tick();assert.equal(calls.length,2);assert.equal(status.textContent,'Admin access required.');dom.window.close();
+const db=new PGlite();await db.exec(`create role anon;create role authenticated;create role service_role;create table public.vendors(id uuid primary key,status text);create table public.products(id uuid primary key,vendor_id uuid references vendors(id),status text,price numeric);create function public.current_user_is_admin() returns boolean language sql stable as $$select current_setting('test.admin',true)='yes'$$;grant select on public.products,public.vendors to anon,authenticated;`);
+await db.exec(await readFile('supabase/migrations/20261112215856_product_card_image_display.sql','utf8'));
+const id='00000000-0000-0000-0000-000000000001',draft='00000000-0000-0000-0000-000000000002';
+await db.exec(`insert into vendors values('${id}','active');insert into products values('${id}','${id}','approved',4500),('${draft}','${id}','draft',2500);set role authenticated;select set_config('test.admin','no',false);`);
+await assert.rejects(db.exec(`insert into product_image_display values('${id}','fit')`),/row-level security/);
+await db.exec(`select set_config('test.admin','yes',false);insert into product_image_display values('${id}','fit'),('${draft}','stretch');`);
+for(const mode of ['zoomed','stretch','fit']){await db.query(`insert into product_image_display values($1,$2) on conflict(product_id) do update set mode=excluded.mode`,[id,mode]);assert.equal((await db.query('select mode from product_image_display where product_id=$1',[id])).rows[0].mode,mode);}
+await assert.rejects(db.exec(`update product_image_display set mode='invalid' where product_id='${id}'`),/check constraint/);
+await db.exec(`select set_config('test.admin','no',false);update product_image_display set mode='stretch' where product_id='${id}';set role anon;`);
+const rows=(await db.query('select * from product_image_display')).rows;assert.equal(rows.length,1);assert.equal(rows[0].mode,'fit');await assert.rejects(db.exec(`insert into product_image_display values('${id}','fit')`),/permission denied/);
+assert.equal((await db.query('select price from products where id=$1',[id])).rows[0].price,'4500');await db.close();
+console.log('PASS photo preview, explicit save, retry, duplicate submit, admin-only writes, public reads, allowed modes and unchanged price');
