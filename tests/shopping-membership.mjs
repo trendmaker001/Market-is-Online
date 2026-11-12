@@ -85,4 +85,45 @@ for(const sig of ['public.place_guest_affiliate_order(jsonb,text,text,text,text,
 assert.equal(await one("select has_function_privilege('authenticated','public.join_network_from_shopping(text,boolean)','execute')"),false);
 await as(other);await q('set role authenticated');await assert.rejects(()=>q('select * from private.shopping_membership_requests'),/permission denied/);await assert.rejects(()=>q("select public.review_shopping_membership($1,true,'LEFT','')",[lr.id]),/assigned sponsor/);await q('reset role');
 console.log('PASS anonymous placement and old upgrade revoked; request tables private; actual authenticated role enforced');
+// Install the current read functions and exercise visibility after real User-to-Member approval.
+await db.exec(`alter table public.member_profiles add column if not exists country_code text;
+alter table public.member_profiles add column if not exists gender text;
+create table if not exists private.member_admin_baselines(member_id uuid primary key,package_assigned boolean default false,package_code text,activation_id uuid,package_assigned_at timestamptz,consumed_left numeric default 0,consumed_right numeric default 0);`);
+for(const file of ['20261103161000_maintenance_foundation.sql','20261103162000_maintenance_payments.sql','20261103163000_maintenance_bonus_eligibility.sql'])await db.exec(await readFile(source+'/supabase/migrations/'+file,'utf8'));
+await db.exec(await readFile(source+'/tests/fixtures/production-binary-qualification.sql','utf8'));
+await db.exec(await readFile(source+'/tests/fixtures/network-visibility-production.sql','utf8'));
+await as(buyer);
+const beforeBinary=await one("select public.my_network_identity('binary',null,10)");
+assert.ok(beforeBinary.nodes.some(n=>n.id===linked&&n.package===null));
+await db.exec(await readFile(source+'/supabase/migrations/20261112130218_paid_binary_tree_visibility.sql','utf8'));
+for(const kind of ['binary','single_line','pool']){
+ const tree=await one('select public.my_network($1,null,10)',[kind]);
+ assert.ok(tree.nodes.some(n=>n.id===buyer));assert.ok(tree.nodes.every(n=>n.package));
+ assert.ok(!tree.nodes.some(n=>n.id===linked||n.id===direct));
+ const original=beforeBinary.nodes.find(n=>n.id===buyer),visible=await one("select public.my_network_identity('binary',null,10)");
+ const {placement_path,...unchanged}=visible.nodes.find(n=>n.id===buyer);assert.deepEqual(unchanged,original);assert.equal(placement_path,'');
+}
+assert.ok((await one("select public.my_network_identity('generation',null,10)")).nodes.some(n=>n.id===linked));
+await as(linked);assert.equal((await one("select public.my_network_identity('single_line',null,30)")).nodes.length,0);
+console.log('PASS approved User-to-Member remains Free and hidden from both binary views; paid metrics and Generation membership unchanged');
+const paidChild=await signup(506,code),pc=await request(paidChild);await as(buyer);await review(pc.id,true,'LEFT');
+assert.equal(await one('select parent_id from public.binary_placements where member_id=$1',[paidChild]),linked);
+await q('update public.mio_wallet_accounts set balance=100 where member_id=$1',[paidChild]);await as(paidChild);
+await q("select public.activate_package_with_mio('BASIC_1','paid-child-tree-test')");
+await as(buyer);const nested=await one("select public.my_network_identity('binary',null,10)");
+assert.ok(!nested.nodes.some(n=>n.id===linked));const child=nested.nodes.find(n=>n.id===paidChild);
+assert.equal(child.parent_id,linked);assert.equal(child.placement_path,'LL');assert.equal(child.depth,2);
+await as(linked);const fromFree=await one("select public.my_network_identity('single_line',null,30)");assert.equal(fromFree.nodes.length,1);assert.equal(fromFree.nodes[0].id,paidChild);assert.equal(fromFree.nodes[0].placement_path,'L');
+await as(company);const adminTree=await one("select public.my_network_identity('binary',null,0)");assert.ok(adminTree.nodes.every(n=>n.package));assert.ok(adminTree.nodes.some(n=>n.id===paidChild));
+await as(buyer);await q('set role authenticated');assert.ok((await one("select public.my_network_identity('binary',null,10)")).nodes.every(n=>n.package));await assert.rejects(()=>q("select private.paid_binary_tree_view('{}','binary')"),/permission denied/);await q('reset role');
+await as(other);await assert.rejects(async()=>q("select public.my_network_identity('binary',$1,10)",[await one('select member_code from public.member_profiles where user_id=$1',[paidChild])]),/Active account|outside/);
+console.log('PASS paid descendant below hidden Free parent preserves exact side/depth, admin view, private helper permissions and unrelated-user rejection');
+const snapshot=async()=>{const result={};for(const table of ['binary_placements','member_profiles','point_ledger','package_activations','system_config'])result[table]=await one("select coalesce(jsonb_agg(to_jsonb(t) order by to_jsonb(t)::text),'[]') from public."+table+' t');return result};
+const originalData=await snapshot();await as(buyer);
+for(const kind of ['binary','single_line','generation','vendor'])await one('select public.my_network_identity($1,null,10)',[kind]);
+assert.deepEqual(await snapshot(),originalData);
+await q('update public.mio_wallet_accounts set balance=100 where member_id=$1',[linked]);await as(linked);await q("select public.activate_package_with_mio('BASIC_1','free-to-paid-tree-test')");await as(buyer);
+assert.ok((await one("select public.my_network_identity('binary',null,10)")).nodes.some(n=>n.id===linked));
+console.log('PASS tree reads leave placement, points, package and config records untouched; actual paid activation makes the member visible');
+
 await db.close();
