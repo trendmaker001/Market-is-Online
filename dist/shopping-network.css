@@ -82,3 +82,22 @@ body.graphical-network-active>.top,body.graphical-network-active>.account-footer
  :is(#page-network.graphical-only,#page-admin) #treeCard .tree-control-group>label{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
  :is(#page-network.graphical-only,#page-admin) #treeCard .network-tree-tabs:has(#managerTreeTab:not(.hidden)) .network-tree-tab{font-size:9px!important}
 }
+
+/* Consistent floating tools and dismissible panels. */
+:is(#page-network.graphical-only,#page-admin) #treeCard .tree-action-rail{flex-direction:column!important;height:auto!important;width:34px!important;padding:2px!important;gap:2px}
+:is(#page-network.graphical-only,#page-admin) #treeCard .tree-action-rail>button,:is(#page-network.graphical-only,#page-admin) #treeCard .tree-more-tools>summary{height:30px!important;min-height:30px!important}
+:is(#page-network.graphical-only,#page-admin) #treeCard .tree-more-panel{top:0;right:39px;max-height:calc(100dvh - 175px);overflow:auto}
+:is(#page-network.graphical-only,#page-admin) #treeCard :is(.tree-search-drawer,.tree-filter-drawer){position:absolute!important;inset:10px 56px auto auto!important;width:min(340px,calc(100% - 70px))!important;max-width:calc(100% - 70px);max-height:calc(100% - 20px);padding:14px!important;box-sizing:border-box;overflow:auto;background:#fff;border:1px solid #d8e5dc;border-radius:10px;box-shadow:0 8px 28px #183c2420}
+:is(#page-network.graphical-only,#page-admin) #treeCard :is(.tree-search-drawer,.tree-filter-drawer)[hidden]{display:none!important}
+#treeCard .tree-panel-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 12px;font-size:13px}
+#treeCard .tree-panel-heading button,#treeCard [data-tree-close="treeUplinePanel"]{display:grid!important;place-items:center;width:28px!important;min-width:28px;height:28px!important;min-height:28px!important;padding:0!important;border:1px solid #dbe5df;background:#fff;border-radius:6px;font-size:18px!important;line-height:1;cursor:pointer}
+#treeCard [data-tree-close="treeUplinePanel"]{float:right}
+#treeCard :is(#treeSearchForm,#treeFilterForm){display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:10px!important;margin:0;min-width:0}
+#treeCard #treeSearchForm>div{display:flex!important;gap:8px;min-width:0;align-items:stretch}
+#treeCard #treeSearchInput{flex:1 1 0!important;width:0!important;min-width:0!important;max-width:100%;height:38px!important;margin:0;padding:8px 10px;box-sizing:border-box}
+#treeCard #treeSearchForm button{flex:0 0 auto;min-height:38px;margin:0;padding:8px 12px}
+#treeCard :is(#treeSearchForm,#treeFilterForm) :is(label,small){margin:0;line-height:1.5;overflow-wrap:anywhere}
+#treeCard #treeFilterForm select{width:100%;min-width:0;box-sizing:border-box}
+:is(#page-network.graphical-only,#page-admin) #treeCard .tree-member-details{inset:10px 56px 10px auto!important;width:min(340px,calc(100% - 70px))!important;box-sizing:border-box}
+#treeCard .tree-profile-top>div{min-width:0;overflow-wrap:anywhere}
+@media(max-width:420px){#treeCard #treeSearchForm>div{flex-direction:column}#treeCard #treeSearchInput{width:100%!important;flex:auto!important}#treeCard #treeSearchForm button{width:100%}#treeCard .tree-profile-top{flex-wrap:wrap}}

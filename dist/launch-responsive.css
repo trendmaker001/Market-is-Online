@@ -1,0 +1,18 @@
+/* Scoped corrections for constrained customer/member layouts. */
+#cartLines .list-row{display:flex;flex-wrap:wrap;align-items:flex-start;gap:12px}
+#cartLines .list-row>div:first-child{flex:1 1 170px;min-width:0;overflow-wrap:anywhere}
+#cartLines .list-row>div:last-child{flex-wrap:wrap;max-width:100%;gap:6px}
+#shoppingMembershipQueue-sponsor .shopping-membership-row>summary{grid-template-columns:minmax(0,1fr) auto;gap:8px}
+#shoppingMembershipQueue-sponsor .shopping-request-details{grid-template-columns:minmax(0,1fr)}
+#shoppingMembershipQueue-sponsor summary>*{min-width:0;overflow-wrap:anywhere}
+#accountPageTitle{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.account-topbar-actions{flex-shrink:0}
+.dashboard-balance>div{min-width:0}.dashboard-balance :is(strong,b){overflow-wrap:anywhere}
+.shopping-account-stats>div,.shopping-totals>div,.shopping-order header>div{min-width:0}
+.shopping-account-stats strong,.shopping-totals strong,.shopping-order-reference h2{overflow-wrap:anywhere}
+.order-management-body :is(h2,h3,p,small),.vendor-shipment li>span{overflow-wrap:anywhere;min-width:0}
+.order-primary-actions,.shipment-actions{flex-wrap:wrap}.order-primary-actions>.btn,.shipment-actions>.btn{white-space:normal}
+@media(max-width:720px){#page-shopping :is(input,select,textarea),#treeCard :is(#treeSearchInput,#treeFilterForm select){font-size:16px!important}.shopping-profile-form input,.shopping-payment-form input{max-width:100%;min-width:0;box-sizing:border-box}}
+@media(max-width:420px){.shopping-order .shopping-totals{grid-template-columns:minmax(0,1fr)}.shopping-order .shopping-totals span{min-height:0}.account-topbar{gap:6px;padding:10px}.fulfillment-statuses{gap:6px}.fulfillment-status{max-width:100%;overflow-wrap:anywhere}.order-detail-totals{grid-template-columns:1fr}.shopping-account-stats>div{flex-wrap:wrap}.shopping-account-content>.heading{flex-wrap:wrap}}
+
+html:has(#cartModal.open),body:has(#cartModal.open){overflow:hidden}
