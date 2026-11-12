@@ -6,7 +6,7 @@ import sharp from 'sharp';
 const manifest=JSON.parse(await readFile('dist/app.webmanifest','utf8'));
 assert.equal(manifest.display,'standalone');assert.equal(manifest.start_url,'/#shop');assert.equal(manifest.scope,'/');
 for(const icon of manifest.icons){const meta=await sharp('dist'+icon.src).metadata();assert.equal(icon.sizes,meta.width+'x'+meta.height);assert.equal(meta.width,meta.height)}
-const apple=await sharp('dist/icons/mio-apple-180.png').metadata();assert.equal(apple.width,180);
+const apple=await sharp('dist/icons/mio-black-apple-180.png').metadata();assert.equal(apple.width,180);
 const handlers={},cacheWrites=[],deleted=[];let networkFail=false,claimed=0,skipped=0;
 const offline=new Response('Offline screen'),cache={addAll:async paths=>cacheWrites.push(...paths)};
 const swContext={URL,Response,caches:{open:async()=>cache,match:async key=>key==='/offline.html'?offline:undefined,keys:async()=>['unrelated-cache','mio-pwa-public-obsolete'],delete:async key=>deleted.push(key)},fetch:async()=>{if(networkFail)throw Error('offline');return new Response('Fresh network')},self:{location:{origin:'https://marketisonline.com'},addEventListener:(name,fn)=>handlers[name]=fn,clients:{claim:async()=>claimed++},skipWaiting:()=>skipped++}};

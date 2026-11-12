@@ -10,8 +10,8 @@
   "background_color": "#ffffff",
   "theme_color": "#0d7652",
   "icons": [
-    {"src":"/icons/mio-192.png","sizes":"192x192","type":"image/png","purpose":"any"},
-    {"src":"/icons/mio-512.png","sizes":"512x512","type":"image/png","purpose":"any"},
-    {"src":"/icons/mio-maskable-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}
+    {"src":"/icons/mio-black-192.png","sizes":"192x192","type":"image/png","purpose":"any"},
+    {"src":"/icons/mio-black-512.png","sizes":"512x512","type":"image/png","purpose":"any"},
+    {"src":"/icons/mio-black-maskable-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}
   ]
 }
