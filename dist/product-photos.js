@@ -3,7 +3,8 @@
 const MAX_BYTES=5*1024*1024,TYPES=['image/jpeg','image/png','image/webp'];
 async function validate(file){
  if(!TYPES.includes(file.type))throw Error('Use a JPG, PNG or WebP photo');
- if(!file.size||file.size>MAX_BYTES)throw Error('Each photo must be no more than 5 MB');
+ if(!file.size)throw Error('This photo is empty. Choose the original image again');
+ if(file.size>MAX_BYTES)throw Error('Each photo must be no more than 5 MB');
  const url=URL.createObjectURL(file);
  try{return await new Promise((resolve,reject)=>{const img=new Image(),timer=setTimeout(()=>reject(Error('Photo could not be read. Please choose it again')),15000);img.onload=()=>{clearTimeout(timer);if(!img.naturalWidth||!img.naturalHeight)return reject(Error('This photo cannot be opened'));resolve({width:img.naturalWidth,height:img.naturalHeight,size:file.size})};img.onerror=()=>{clearTimeout(timer);reject(Error('This photo cannot be opened. Choose a valid JPG, PNG or WebP image'))};img.src=url})}finally{URL.revokeObjectURL(url)}
 }
@@ -18,7 +19,7 @@ async function fromURL(url){
 }
 async function upload(db,vendor,file){
  await validate(file);
- const {data,error}=await db.functions.invoke('product-photo-upload',{body:file,headers:{'Content-Type':file.type,'x-vendor-id':vendor}});
+ const {data,error}=await db.functions.invoke('product-photo-upload',{body:file,headers:{'x-vendor-id':vendor}});
  if(error){let message='Photo upload failed. Please retry';try{const result=await error.context.json();if(result.error)message=result.error}catch{}throw Error(message)}
  if(data?.error||!data?.url)throw Error(data?.error||'Photo upload failed. Please retry');return data;
 }

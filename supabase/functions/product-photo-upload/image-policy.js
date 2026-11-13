@@ -1,7 +1,8 @@
 // Read dimensions from image bytes, never from caller-provided metadata.
 export const MAX_BYTES=5*1024*1024;
 export function inspectImage(bytes,mime){
- if(!bytes.length||bytes.length>MAX_BYTES)throw Error('Each photo must be no more than 5 MB');
+ if(!bytes.length)throw Error('No photo data received. Refresh the page and choose the photo again');
+ if(bytes.length>MAX_BYTES)throw Error('Each photo must be no more than 5 MB');
  const v=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength),text=(at,n)=>String.fromCharCode(...bytes.subarray(at,at+n));
  let width=0,height=0,type='';
  if(bytes.length>=33&&text(0,8)==='\x89PNG\r\n\x1a\n'&&text(12,4)==='IHDR'&&v.getUint32(8)===13){type='image/png';width=v.getUint32(16);height=v.getUint32(20)}
@@ -16,7 +17,7 @@ export function inspectImage(bytes,mime){
   else if(tag==='VP8 '&&size>=10&&text(23,3)==='\x9d\x01\x2a'){width=v.getUint16(26,true)&16383;height=v.getUint16(28,true)&16383}
   else if(tag==='VP8L'&&size>=5&&bytes[20]===47){const bits=v.getUint32(21,true);width=1+(bits&16383);height=1+((bits>>>14)&16383)}
  }
- if(!width||!height||type!==mime)throw Error('Upload a valid JPG, PNG or WebP photo matching its file type');
+ if(!width||!height||(type!==mime&&mime!=='application/octet-stream'))throw Error('Upload a valid JPG, PNG or WebP photo matching its file type');
  return {width,height,type,bytes:bytes.length,extension:{'image/jpeg':'jpg','image/png':'png','image/webp':'webp'}[type]};
 }
 export async function readLimitedBody(req){
