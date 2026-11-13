@@ -241,4 +241,23 @@ const beforeProfile=walletRpcCalls.length;await ww.MioDashboard.refresh('profile
 assert.deepEqual(walletRpcCalls.slice(beforeProfile).map(([name])=>name),['my_member_dashboard_identity']);
 assert.match(dd.querySelector('#dashboardProfile').textContent,/My Network|Profile picture/);
 console.log('PASS profile refresh requests identity only, without wallet, tree or dashboard programs');
+const rankNames=['Leader','Team Leader','Senior Team Leader','Executive','Senior Executive','Director'];
+managerData.rank_history=[{code:'leader'}];managerData.rules.track_rate=.07;managerData.rules.network_rate=.12;
+managerData.manager_direct_points=125;
+managerData.rank_qualification={metrics:{left_brp:6000,right_brp:5000,direct_left:5,direct_right:5,direct_dp:500},ranks:rankNames.map((name,i)=>({code:name.toLowerCase().replaceAll(' ','_'),name,sort_order:(i+1)*10,left_brp:5000*(i+1),right_brp:5000*(i+1),direct_left:5*(i+1),direct_right:5*(i+1),required_dp:500*(i+1)}))};
+await ww.MioDashboard.refresh();
+assert.match(dd.querySelector('.manager-balances').textContent,/Manager Direct Points125\.00 MDP7%/);assert.match(dd.querySelector('.manager-balances').textContent,/12% when admin distributes/);assert.doesNotMatch(dd.querySelector('.manager-balances').textContent,/MTP|Manager Track/);
+const ranksPanel=dd.querySelector('#dashboardRankQualifications');assert.ok(ranksPanel);assert.equal(ranksPanel.open,false);ranksPanel.open=true;
+assert.equal(ranksPanel.querySelectorAll('.rank-qualification-card').length,6);for(const name of rankNames)assert.ok(ranksPanel.textContent.includes(name));
+assert.match(ranksPanel.querySelector('summary').textContent,/Next rank · Team Leader/);assert.ok(ranksPanel.querySelector('[data-rank-code="leader"]').classList.contains('is-achieved'));
+assert.equal(ranksPanel.querySelector('[data-rank-code="team_leader"]').open,true);assert.match(ranksPanel.querySelector('[data-rank-code="team_leader"]').textContent,/6,000 \/ 10,0004,000 remaining/);
+managerData.rank_qualification.ranks[1].left_brp=20000;await ww.MioDashboard.refresh();assert.match(dd.querySelector('[data-rank-code="team_leader"]').textContent,/6,000 \/ 20,00014,000 remaining/);
+managerData.rank_qualification.metrics.left_brp=0;await ww.MioDashboard.refresh();assert.match(dd.querySelector('[data-rank-code="leader"] summary').textContent,/100%/);
+managerData.rank_qualification.ranks.push({code:'future_rank',name:'Future <script>Rank</script>',sort_order:70,left_brp:0,right_brp:0,direct_left:0,direct_right:0,required_dp:0});await ww.MioDashboard.refresh();assert.equal(dd.querySelectorAll('.rank-qualification-card').length,7);assert.equal(dd.querySelector('.rank-qualifications script'),null);assert.match(dd.querySelector('[data-rank-code="future_rank"]').textContent,/Targets met/);assert.doesNotMatch(dd.querySelector('[data-rank-code="future_rank"]').innerHTML,/NaN|Infinity/);
+managerData.rank_qualification.ranks.pop();managerData.rank_qualification.metrics.left_brp=6000;await ww.MioDashboard.refresh();
+if(process.env.MIO_RANK_PREVIEW){const {mkdir,writeFile}=await import('node:fs/promises');await mkdir(process.env.MIO_RANK_PREVIEW,{recursive:true});dd.querySelector('#dashboardRankQualifications').open=true;dd.querySelector('.manager-progress-card').open=true;dd.querySelectorAll('.page').forEach(e=>e.classList.toggle('active',e.id==='page-dashboard'));await writeFile(process.env.MIO_RANK_PREVIEW+'/ranks.html','<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/account-dashboard.css"><link rel="stylesheet" href="/styles.css"><style>body{padding:12px;margin:0;background:#f2f7f4}.qa-wrap{max-width:1200px;margin:auto}</style><main class="qa-wrap">'+dd.querySelector('.manager-progress-card').outerHTML+dd.querySelector('#dashboardRankQualifications').outerHTML+'</main>');}
+managerData.rank_qualification={metrics:{},ranks:[]};await ww.MioDashboard.refresh();assert.match(dd.querySelector('#dashboardRankQualifications').textContent,/No rank requirements are available/);
+assert.match(appUiSource,/MDP rate %/);assert.match(appUiSource,/Manager Direct Points/);assert.doesNotMatch(appUiSource,/\bMTP\b|Manager Track Points/);
+console.log('PASS MDP member/admin labels, live bonus rates, all dynamic ranks, remaining values, next rank, permanent achievements, zero targets, safe labels and empty state');
+
 await new Promise(r=>setTimeout(r,100));w.close();ww.close();
