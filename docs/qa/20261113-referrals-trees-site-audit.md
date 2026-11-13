@@ -27,3 +27,7 @@ Reviews have readable padding, explicit imported-rating/empty states, recoverabl
 ## Scope limits
 
 No real signup emails, customer purchases, wallet transfers or paid package activations were generated for QA. Authenticated browser admin/vendor flows were exercised with local test fixtures and database regressions, not a live signed-in account. Page overflow checks are not proof of every visual state. Invalid PIN, unauthenticated permission, insufficient funds and missing required country errors are intentional guards; these were not removed. This report does not claim an error-free guarantee for all future data/network conditions.
+
+## Final live finding: direct product refresh
+
+A live product deep link incorrectly remained unavailable after its catalog finished loading. Product routes now show a loading state, render after catalog completion, provide a retry for transport failures, and ignore completion after navigation away. Regression tests cover cold loading, genuinely missing product, failure/retry and route changes.

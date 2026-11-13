@@ -203,7 +203,7 @@ async function loadMarketplace(){
    el('productsGrid').innerHTML='<p class="market-loading" role="status">Products could not load. Refresh to try again.</p>';
    el('featured').innerHTML='<p class="market-loading" role="status">Featured products could not load.</p>';
   }
-  return;
+  return false;
  }
  products=loaded;
  marketplaceCategories=Array.isArray(categoryCfg.data?.[0]?.config_value)?categoryCfg.data[0].config_value:marketplaceCategories;
@@ -218,6 +218,7 @@ async function loadMarketplace(){
  renderShopDirectory();
  void Promise.allSettled([premium.load(products),featuredRequest.then(renderFeatured),feedback.loadRatings(products.map(p=>p.id))]);
  await bundles?.load(products);
+ return true;
 }
 async function renderFeatured(response){const {data,error}=response??await db.from('featured_products').select('position,product_id').order('position');if(error){console.error(error);el('featured').innerHTML='<p class="market-loading" role="status">Featured products could not load.</p>';return}featuredIds=(data||[]).map(x=>x.product_id);const fp=featuredIds.map(id=>products.find(p=>p.id===id)).filter(Boolean);if(!fp.length){el('featured').innerHTML='<div class="feature-empty">No featured products selected yet<span>Discover our own product picks here soon.</span></div>';return}el('featured').innerHTML=fp.map(p=>marketplaceProductCard(p,true)).join('')}
 function autoCategoryPicks(category,manualIds=[]){const candidates=products.filter(p=>p.category===category&&Number(p.stock_quantity)>0&&!manualIds.includes(p.id));const ranked=candidates.sort((a,b)=>Number(b.seo_score||b.rating||0)-Number(a.seo_score||a.rating||0)||new Date(b.created_at||0)-new Date(a.created_at||0)||String(a.id).localeCompare(String(b.id)));if(!ranked.length)return[];const day=Math.floor(Date.now()/86400000),count=Math.min(7,ranked.length),start=day%ranked.length;return Array.from({length:count},(_,i)=>ranked[(start+i)%ranked.length])}
@@ -1689,7 +1690,14 @@ function loadRequestedPage(name){
  const key=(session?.user.id||'guest')+':'+name;if(pageLoads.has(key))return pageLoads.get(key);
  const task=Promise.resolve().then(async()=>{
   const uid=session?.user.id;
-  if(['shop','vendors','categories','bundles'].includes(name)||/^(vendor|category|product)\//.test(name))return loadCatalog();
+  if(name.startsWith('product/')){
+   const id=name.slice(8);if(!products.some(p=>p.id===id))el('productDetail').innerHTML='<p class="market-loading" role="status">Loading product…</p>';
+   let loaded;try{loaded=await loadCatalog()}catch(error){console.warn('Product load failed',error);loaded=false}
+   if(location.hash.slice(1)!==name)return;
+   if(loaded===false&&!products.some(p=>p.id===id)){el('productDetail').innerHTML='<div class="empty-card"><h2>Product could not load</h2><p>Please check your connection and try again.</p><button type="button" class="btn primary product-load-retry">Try again</button></div>';el('productDetail').querySelector('button').onclick=()=>loadRequestedPage(name);return;}
+   renderProduct(id);return;
+  }
+  if(['shop','vendors','categories','bundles'].includes(name)||/^(vendor|category)\//.test(name))return loadCatalog();
   if(name==='packages')return Promise.all([loadPlanCatalog(),loadOfflineInstructions(),uid?loadPlatinumPurchases():Promise.resolve()]);
   if(name==='vendor-register'){await loadVendorRegistrationSetting();return vendorPortal?.registration()}
   if(!uid){if(name==='sell')return vendorPortal?.referrals();if(name==='orders')return loadGuestOrders();return}

@@ -15,7 +15,7 @@
     "build": "node scripts/build-pwa.mjs",
     "test:pwa": "node tests/pwa.mjs",
     "test:referrals": "node tests/referral-codes.mjs && node tests/registration-links.mjs",
-    "test:audit": "node tests/site-structure.mjs && node tests/review-recovery.mjs"
+    "test:audit": "node tests/site-structure.mjs && node tests/review-recovery.mjs && MIO_SIGNUP_URL=https://mio.example.test/#product/deep-link-product MIO_PRODUCT_ROUTE_TEST=1 node tests/interface.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.8",
