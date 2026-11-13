@@ -50,10 +50,17 @@ const featuredVendor=await scalar("insert into public.vendors(owner_user_id,busi
 for(const category of ['Clothes','Sports','Home']){const ids=[];for(let i=0;i<3;i++)ids.push(await scalar("insert into public.products(vendor_id,name,description,category,price_pkr,stock_quantity,status) values($1,$2,'Approved featured item',$3,1000,10,'approved') returning id",[featuredVendor,category+' '+i,category]));featured.push({category,product_ids:ids})}
 const savedFeatured=await scalar('select public.admin_set_featured_categories($1)',[JSON.stringify(featured)]);assert.equal(savedFeatured.categories,3);assert.deepEqual(await scalar("select config_value from public.system_config where config_key='MARKETPLACE_FEATURED_CATEGORIES' and effective_to is null"),featured);
 await db.exec(await readFile(source+'/supabase/migrations/20261111213240_unlimited_featured_products.sql','utf8'));
+const safeReplace=await readFile(source+'/supabase/migrations/20261113090449_featured_products_safe_replace.sql','utf8');
+assert.match(safeReplace,/delete from public\.featured_products where position >= 1/i);
+await db.exec(safeReplace);
 const picks=featured.flatMap(x=>x.product_ids);
 assert.equal(await scalar('select set_featured_products($1)',[picks]),9);
 assert.deepEqual((await q('select product_id from featured_products order by position')).rows.map(x=>x.product_id),picks);
 await assert.rejects(()=>q('select set_featured_products($1)',[[...picks,picks[0]]]),/Duplicate/);
+await assert.rejects(()=>q('select set_featured_products($1)',[['00000000-0000-0000-0000-000000000001']]),/Choose approved/);
+assert.deepEqual((await q('select product_id from featured_products order by position')).rows.map(x=>x.product_id),picks);
+assert.equal(await scalar('select set_featured_products($1)',[[...picks].reverse()]),9);
+assert.deepEqual((await q('select product_id from featured_products order by position')).rows.map(x=>x.product_id),[...picks].reverse());
 await as(root);await assert.rejects(()=>q('select set_featured_products($1)',[picks]),/Admin access/);await as(company);
 assert.equal(await scalar('select set_featured_products($1)',[picks.slice(0,2)]),2);
 assert.equal(Number(await scalar('select count(*) from featured_products')),2);
