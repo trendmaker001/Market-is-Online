@@ -400,3 +400,15 @@ body:has(#page-shop:not(.hidden)) .top-main{padding-top:6px!important;padding-bo
 .network-rate-form{max-width:540px}.network-rate-form label{display:block;max-width:300px}
 .network-quick-detail .helper{line-height:1.6}
 @media(max-width:700px){.network-tier-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.network-quick-card [data-network-value]{font-size:.98rem}.network-quick-detail{padding:14px}.network-fee-grid{gap:10px}.network-fee-card strong{font-size:1rem}}
+
+/* Reviews share the same inset and readable empty/error states as product details. */
+#productReviews{padding:20px;min-width:0;overflow-wrap:anywhere}
+#productReviews .review-summary{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+#productReviews .review-summary .rating-score{font-size:16px;gap:8px}
+#productReviews .review-summary .rating-stars{font-size:20px}
+#productReviews .review-summary small{font-size:13px}
+#productReviews .reviews-empty{margin:0;color:#5c7467;font-size:13px;line-height:1.6}
+#productReviews .review-more{margin-top:12px;min-height:42px}
+#productReviews .customer-review>div{flex-wrap:wrap}
+.shopping-welcome .code,.shopping-profile-form .code,.selling-links .code,.referral-tile .code{overflow-wrap:anywhere;word-break:break-word}
+@media(max-width:600px){#productReviews{padding:16px}#productReviews .customer-review{padding:14px 0}}

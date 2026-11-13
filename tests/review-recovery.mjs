@@ -1,0 +1,13 @@
+import {JSDOM} from 'jsdom';import {readFile} from 'node:fs/promises';import assert from 'node:assert/strict';
+const dom=new JSDOM('<div id="productReviews"></div>',{runScripts:'outside-only'}),w=dom.window;
+w.eval(await readFile('dist/marketplace-feedback.js','utf8'));
+let handler,uid=null;const api=w.MioFeedback.create({db:{rpc:(name,args)=>handler(args)},getSession:()=>uid?{user:{id:uid}}:null,toast:()=>{}}),host=w.document.getElementById('productReviews');
+handler=async()=>({data:{count:88,average:4.5,review_count:0,reviews:[]}});await api.mountReviews('imported');assert.match(host.textContent,/No written customer reviews/);assert.ok(host.querySelector('.review-more').classList.contains('hidden'));
+handler=async()=>{throw Error('Network unavailable')};await api.mountReviews('failed');assert.ok(host.querySelector('.review-retry'));assert.match(host.textContent,/could not load/);
+const row={rating:5,body:'Great <script>unsafe</script>',updated_at:'2026-11-13T00:00:00Z'};
+handler=async()=>({data:{count:3,average:5,review_count:3,reviews:[row]}});await api.mountReviews('first');const more=host.querySelector('.review-more');assert.equal(more.classList.contains('hidden'),false);assert.equal(host.querySelector('script'),null);
+handler=async()=>{throw Error('Disconnected')};await more.onclick();assert.equal(more.disabled,false);assert.match(host.textContent,/Please try again/);
+let resolve;handler=()=>new Promise(r=>{resolve=r});const pending=more.onclick();assert.equal(more.disabled,true);
+handler=async()=>({data:{count:0,average:0,review_count:0,reviews:[]}});await api.mountReviews('second');resolve({data:{reviews:[row]}});await pending;assert.match(host.textContent,/No customer ratings yet/);assert.doesNotMatch(host.textContent,/Great/);
+handler=()=>new Promise(r=>{resolve=r});const stale=api.mountReviews('signed');uid='changed';resolve({data:{count:5,average:5,reviews:[row]}});await stale;assert.doesNotMatch(host.textContent,/Great/);
+console.log('PASS imported rating empty state, thrown network errors, retry recovery, safe content, pagination navigation and account-change races');dom.window.close();

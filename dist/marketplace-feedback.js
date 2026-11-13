@@ -18,16 +18,23 @@
   function setSummary(id,data){summaries.set(id,{rating_count:data.count,average_rating:data.average});loaded=true;refresh();}
   async function mountReviews(id){
    const host=document.getElementById('productReviews');if(!host)return;const token=++reviewRequest,uid=api.getSession()?.user.id;
+   const current=()=>token===reviewRequest&&host.isConnected&&uid===api.getSession()?.user.id;
    host.innerHTML='<p role="status">Loading customer feedback…</p>';
-   const {data,error}=await api.db.rpc('marketplace_product_reviews',{p_product_id:id,p_offset:0});
-   if(token!==reviewRequest||!host.isConnected||uid!==api.getSession()?.user.id)return;
-   if(error){host.innerHTML='<p>Customer feedback could not load.</p><button type="button" class="btn review-retry">Try again</button>';host.querySelector('button').onclick=()=>mountReviews(id);return;}
+   let data;
+   try{const result=await api.db.rpc('marketplace_product_reviews',{p_product_id:id,p_offset:0});if(result.error)throw result.error;data=result.data;if(!data)throw Error('No feedback response');}
+   catch{if(!current())return;host.innerHTML='<p role="status">Customer feedback could not load.</p><button type="button" class="btn review-retry">Try again</button>';host.querySelector('button').onclick=()=>mountReviews(id);return;}
+   if(!current())return;
    setSummary(id,data);let offset=0;
-   host.innerHTML=`<div class="review-summary">${markup({id})}</div><div class="customer-reviews"></div><button type="button" class="btn review-more hidden">Load more ratings</button>`;
-   const list=host.querySelector('.customer-reviews'),more=host.querySelector('.review-more');
-   function append(rows){for(const r of rows){list.insertAdjacentHTML('beforeend',`<article class="customer-review"><div><strong>${r.is_mine?'Your rating':'Member rating'}</strong><time>${escape(new Date(r.updated_at).toLocaleDateString('en-GB'))}</time></div><span class="customer-stars" aria-label="${Number(r.rating)} out of 5 stars">${'★'.repeat(Number(r.rating))}${'☆'.repeat(5-Number(r.rating))}</span>${r.body?`<p>${escape(r.body)}</p>`:'<small>Rating only</small>'}</article>`);}offset+=rows.length;more.classList.toggle('hidden',offset>=Number(data.review_count??data.count));}
-   append(data.reviews||[]);if(!data.count)list.innerHTML='<p class="reviews-empty">No customer ratings yet.</p>';
-   more.onclick=async()=>{more.disabled=true;const response=await api.db.rpc('marketplace_product_reviews',{p_product_id:id,p_offset:offset});if(response.error){more.textContent='Could not load · Try again';}else append(response.data.reviews||[]);more.disabled=false;};
+   host.innerHTML=`<div class="review-summary">${markup({id})}</div><div class="customer-reviews"></div><button type="button" class="btn review-more hidden">Load more reviews</button><p class="review-status" role="status"></p>`;
+   const list=host.querySelector('.customer-reviews'),more=host.querySelector('.review-more'),status=host.querySelector('.review-status');
+   function append(rows){for(const r of rows){const rating=Math.max(1,Math.min(5,Math.round(Number(r.rating)||1)));list.insertAdjacentHTML('beforeend',`<article class="customer-review"><div><strong>${r.is_mine?'Your rating':'Customer rating'}</strong><time>${escape(new Date(r.updated_at).toLocaleDateString('en-GB'))}</time></div><span class="customer-stars" aria-label="${rating} out of 5 stars">${'★'.repeat(rating)}${'☆'.repeat(5-rating)}</span>${r.body?`<p>${escape(r.body)}</p>`:'<small>Rating only</small>'}</article>`);}offset+=rows.length;more.classList.toggle('hidden',!rows.length||offset>=Number(data.review_count??data.count));}
+   append(data.reviews||[]);
+   if(!offset)list.innerHTML='<p class="reviews-empty">'+(Number(data.count)?'No written customer reviews yet. Ratings are shown above.':'No customer ratings yet.')+'</p>';
+   more.onclick=async()=>{if(more.disabled)return;more.disabled=true;status.textContent='';try{
+    const response=await api.db.rpc('marketplace_product_reviews',{p_product_id:id,p_offset:offset});if(response.error)throw response.error;
+    if(!current())return;append(response.data?.reviews||[]);more.textContent='Load more reviews';
+   }catch{if(current()){status.textContent='More reviews could not load. Please try again.';more.textContent='Try again';}}
+   finally{if(current())more.disabled=false;}};
   }
   async function mountOrder(orderId){
    const host=document.getElementById('orderReviewPanel'),uid=api.getSession()?.user.id;if(!host||!uid)return;

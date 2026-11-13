@@ -50,8 +50,9 @@ await db.exec(notificationSource.slice(notificationSource.indexOf('create or rep
 await q('insert into public.binary_placements(member_id,parent_id,side,placed_by) values($1,null,null,$2) on conflict do nothing',[buyer,company]);
 await db.exec(await readFile(source+'/supabase/migrations/20261112095844_shopping_membership_requests_and_notifications.sql','utf8'));
 await q('grant usage on schema private to authenticated');
+await db.exec(await readFile(source+'/supabase/migrations/20261113200000_separate_member_user_affiliate_codes.sql','utf8'));
 const signup=async(n,referral=null,verified=true)=>{const id=uid(n);await q("insert into auth.users(id,email,raw_user_meta_data,raw_app_meta_data,email_confirmed_at) values($1,$2,$3,'{\"provider\":\"email\"}',$4)",[id,'membership-'+n+'@example.invalid',JSON.stringify({full_name:'Customer '+n,phone:'03000000000',registration_type:'customer',terms_accepted:true,affiliate_code:referral,shipping_address:'Saved street address',shipping_city:'Islamabad'}),verified?new Date().toISOString():null]);return id};
-const code=(await one('select member_code from public.member_profiles where user_id=$1',[buyer])).replace(/^MIO-/,'USR-');
+const code=await one('select affiliate_code from public.member_profiles where user_id=$1',[buyer]);
 const direct=await signup(500),linked=await signup(501,code),other=await signup(502),unverified=await signup(503,code,false);
 const request=async(id)=>{await as(id);return (await one('select public.request_shopping_membership(true)')).request};
 const review=(id,approve,side=null,note='')=>one('select public.review_shopping_membership($1,$2,$3,$4)',[id,approve,side,note]);
@@ -125,5 +126,32 @@ assert.deepEqual(await snapshot(),originalData);
 await q('update public.mio_wallet_accounts set balance=100 where member_id=$1',[linked]);await as(linked);await q("select public.activate_package_with_mio('BASIC_1','free-to-paid-tree-test')");await as(buyer);
 assert.ok((await one("select public.my_network_identity('binary',null,10)")).nodes.some(n=>n.id===linked));
 console.log('PASS tree reads leave placement, points, package and config records untouched; actual paid activation makes the member visible');
+
+// Count only paid Members while preserving hidden placement paths.
+await db.exec(await readFile(source+'/supabase/migrations/20261113210000_paid_binary_team_counts.sql','utf8'));
+await as(buyer);
+const paidCounts=await one('select private.binary_team_counts($1)',[buyer]);assert.deepEqual(paidCounts,{left:2,right:0});
+const buyerCode=await one('select member_code from public.member_profiles where user_id=$1',[buyer]);
+const detail=await one('select public.member_binary_placement_details($1)',[buyerCode]);assert.equal(detail.total_team,2);assert.equal(detail.levels.reduce((n,x)=>n+x.member_count,0),2);
+const treeCounts=(await one("select public.my_network_identity('binary',null,10)")).nodes.find(n=>n.id===buyer);assert.equal(treeCounts.left_team_count,2);assert.equal(treeCounts.right_team_count,0);
+const financialBefore=await snapshot();await one('select public.member_binary_placement_details($1)',[buyerCode]);assert.deepEqual(await snapshot(),financialBefore);
+for(const kind of ['generation','binary','single_line','vendor']){await as(other);await assert.rejects(()=>one('select public.my_network_identity($1,null,10)',[kind]),/Active account|Sign in/);}
+await db.exec('alter table private.founder_invites add column if not exists singleton boolean default true,add column if not exists pending_user_id uuid');
+const newMembers=[];
+for(const [n,side] of [[701,'L'],[702,'R']]){
+ const id=uid(n),referral=await one('select referral_code from public.member_profiles where user_id=$1',[buyer]);
+ await q("insert into auth.users(id,email,raw_user_meta_data,raw_app_meta_data,email_confirmed_at) values($1,$2,$3,'{\"provider\":\"email\"}',now())",[id,'new-member-'+n+'@example.invalid',JSON.stringify({registration_type:'member',full_name:'New Member '+side,phone:'03000000000',gender:'male',country_code:'PK',terms_accepted:true,referral_code:'MEM-'+referral+'-'+side})]);
+ newMembers.push(id);await as(buyer);
+ assert.equal(await one('select sponsor_id from public.member_profiles where user_id=$1',[id]),buyer);
+ assert.equal(Number(await one('select count(*) from public.binary_placements where member_id=$1',[id])),0);
+ assert.ok((await one("select public.my_network_identity('generation',null,10)")).nodes.some(n=>n.id===id));
+ for(const kind of ['binary','single_line'])assert.ok(!(await one('select public.my_network_identity($1,null,10)',[kind])).nodes.some(n=>n.id===id));
+ await q('update public.mio_wallet_accounts set balance=100 where member_id=$1',[id]);await as(id);await q("select public.activate_package_with_mio('BASIC_1',$1)",['new-member-activation-'+n]);await as(buyer);
+ for(const kind of ['binary','single_line']){const activated=(await one('select public.my_network_identity($1,null,10)',[kind])).nodes.find(n=>n.id===id);assert.ok(activated);assert.ok(activated.placement_path.startsWith(side));}
+ assert.equal(Number(await one('select count(*) from public.binary_placements where member_id=$1',[id])),1);
+}
+await as(buyer);const finalCounts=await one('select private.binary_team_counts($1)',[buyer]);assert.deepEqual(finalCounts,{left:3,right:1});
+assert.equal((await one('select public.member_binary_placement_details($1)',[buyerCode])).total_team,4);
+console.log('PASS shopping Users denied all trees; new MEM Left/Right joins appear in Generation only until paid activation; paid-only team/level counts and exact placement preserved without financial changes');
 
 await db.close();
