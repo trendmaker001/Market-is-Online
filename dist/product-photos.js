@@ -5,7 +5,7 @@ async function validate(file){
  if(!TYPES.includes(file.type))throw Error('Use a JPG, PNG or WebP photo');
  if(!file.size||file.size>MAX_BYTES)throw Error('Each photo must be no more than 5 MB');
  const url=URL.createObjectURL(file);
- try{return await new Promise((resolve,reject)=>{const img=new Image(),timer=setTimeout(()=>reject(Error('Photo could not be read. Please choose it again')),15000);img.onload=()=>{clearTimeout(timer);if(img.naturalWidth!==1000||img.naturalHeight!==1000)return reject(Error(`This photo is ${img.naturalWidth} × ${img.naturalHeight} px. Required: exactly 1000 × 1000 px`));resolve({width:1000,height:1000,size:file.size})};img.onerror=()=>{clearTimeout(timer);reject(Error('This photo cannot be opened. Choose a valid JPG, PNG or WebP image'))};img.src=url})}finally{URL.revokeObjectURL(url)}
+ try{return await new Promise((resolve,reject)=>{const img=new Image(),timer=setTimeout(()=>reject(Error('Photo could not be read. Please choose it again')),15000);img.onload=()=>{clearTimeout(timer);if(!img.naturalWidth||!img.naturalHeight)return reject(Error('This photo cannot be opened'));resolve({width:img.naturalWidth,height:img.naturalHeight,size:file.size})};img.onerror=()=>{clearTimeout(timer);reject(Error('This photo cannot be opened. Choose a valid JPG, PNG or WebP image'))};img.src=url})}finally{URL.revokeObjectURL(url)}
 }
 async function fromURL(url){
  if(!/^https:\/\//i.test(url))throw Error('Enter a valid HTTPS photo link');

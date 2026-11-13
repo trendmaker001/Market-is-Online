@@ -17,7 +17,6 @@ export function inspectImage(bytes,mime){
   else if(tag==='VP8L'&&size>=5&&bytes[20]===47){const bits=v.getUint32(21,true);width=1+(bits&16383);height=1+((bits>>>14)&16383)}
  }
  if(!width||!height||type!==mime)throw Error('Upload a valid JPG, PNG or WebP photo matching its file type');
- if(width!==1000||height!==1000)throw Error(`This photo is ${width} × ${height} px. Required: exactly 1000 × 1000 px`);
  return {width,height,type,bytes:bytes.length,extension:{'image/jpeg':'jpg','image/png':'png','image/webp':'webp'}[type]};
 }
 export async function readLimitedBody(req){

@@ -8,7 +8,7 @@
   const input=document.getElementById('prodDescription');if(!input||document.getElementById('productContentFields'))return;
   const form=input.form,wrap=document.createElement('details');wrap.id='productContentFields';wrap.className='listing-content-fields listing-more';
   wrap.innerHTML='<summary>More product information <span>Optional</span></summary><div class="listing-more-grid">'+fields.filter(x=>x[0]!=='description').map(([key,label,max,hint])=>`<label for="listing-${key}">${label}<textarea id="listing-${key}" maxlength="${max}" rows="2" placeholder="${esc(hint)}"></textarea></label>`).join('')+'</div>';
-  input.maxLength=8000;input.rows=4;const label=document.querySelector('label[for="prodDescription"]');if(label)label.textContent='Description';
+  input.maxLength=8000;input.rows=4;const label=document.querySelector('label[for="prodDescription"]');if(label)label.textContent='Description (optional)';
   const group=(title,cls)=>{const box=document.createElement('fieldset');box.className='listing-form-section '+cls;const legend=document.createElement('legend');legend.textContent=title;box.append(legend);return box};
   const basics=group('Product details','listing-basics'),pricing=group('Price & stock','listing-pricing'),photos=group('Product photos','listing-photos');
   const store=document.createElement('div');store.className='field';store.append(form.querySelector('label[for="productVendor"]'),document.getElementById('productVendor'));basics.append(store,document.getElementById('prodName').closest('.row'),document.getElementById('prodCategory').closest('.row'),input.closest('.field'));
@@ -16,7 +16,7 @@
   const side=document.createElement('div');side.className='listing-form-side';side.append(pricing,photos);
   const actions=document.getElementById('newProduct').closest('.row');actions.classList.add('listing-form-actions');actions.querySelector('[value="submit"]').textContent='Send for review';
   form.querySelectorAll(':scope > h3').forEach(e=>e.remove());form.append(basics,side,wrap,actions);form.classList.add('listing-compact-form');
-  const stockHelp=document.getElementById('prodStock').parentElement.querySelector('.helper');if(stockHelp){stockHelp.textContent='Minimum 200 when listing or restocking. Sales reduce stock normally.';stockHelp.parentElement.append(stockHelp);}
+  const stockHelp=document.getElementById('prodStock').parentElement.querySelector('.helper');if(stockHelp){stockHelp.textContent='Enter your actual stock. No minimum quantity is required for review.';stockHelp.parentElement.append(stockHelp);}
   mountListingSteps(form,basics,side,wrap,actions);
   const countryHelp=document.getElementById('productCountry')?.parentElement.querySelector('small');if(countryHelp)countryHelp.textContent='Where this product is available.';
  }

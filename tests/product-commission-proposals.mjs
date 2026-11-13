@@ -103,6 +103,7 @@ await as(buyer);await assert.rejects(()=>one("select public.place_checkout_order
 console.log('PASS stale component pricing blocks new bundle checkout without changing historical orders');
 
 await db.exec(await readFile(source+'/supabase/migrations/20261112200701_product_photo_verification.sql','utf8'));
+await db.exec(await readFile(source+'/supabase/migrations/20261113180000_flexible_product_review.sql','utf8'));
 // Full seller proposal -> admin revision -> approval -> new-order rewards flow.
 await as(company);
 const sellerVendor=await one("select public.create_company_brand('Specific percentage store','','')");
@@ -117,8 +118,8 @@ await as(buyer);
 const proposed=await saveProposal(.20),pending=await proposal(proposed);
 assert.equal(pending.status,'pending');assert.equal(Number(pending.requested_rate),.20);
 assert.equal(await one('select commission_rate_override from products where id=$1',[proposed]),null);
-await assert.rejects(()=>saveProposal(.02),/cover/);await assert.rejects(()=>saveProposal(1.01),/percentage/);await assert.rejects(()=>saveProposal(-.1),/percentage/);
-await assert.rejects(()=>saveProposal(.3,{images:photos.slice(0,2)}),/at least 3/);
+const lowRate=await saveProposal(.02);await as(company);await assert.rejects(()=>approve(lowRate,.02),/cover/);await as(buyer);await assert.rejects(()=>saveProposal(1.01),/percentage/);await assert.rejects(()=>saveProposal(-.1),/percentage/);
+await saveProposal(.3,{images:photos.slice(0,2)});
 await assert.rejects(()=>q('update products set commission_rate_override=.4 where id=$1',[proposed]),/Only admin/);
 await assert.rejects(()=>approve(proposed,.3),/Admin access/);
 await db.exec('set role authenticated');assert.equal((await proposal(proposed)).status,'pending');
@@ -167,4 +168,20 @@ assert.equal(await one("select has_function_privilege('anon','public.save_produc
 assert.equal(await one("select has_function_privilege('anon','public.admin_approve_product_with_economics(uuid,numeric,numeric,numeric,numeric,text,timestamptz)','execute')"),false);
 console.log('PASS default agreement, repeat reviews, atomic approval rollback, stale proposal rejection and private admin/owner access');
 
+// Realistic review submissions exercise database triggers, not just the form.
+await as(buyer);
+for(const [stock,count] of [[0,0],[1,1],[199,2],[300,9]]){
+ const list=Array.from({length:count},(_,i)=>photos[i%photos.length]);
+ const id=await one("select public.save_product_listing_with_commission('PK',null,$1,'Flexible product','','','Fragrances',1000,$2,$3,true,.02)",[sellerVendor,stock,JSON.stringify(list)]);
+ assert.equal(await one('select status from products where id=$1',[id]),'pending');
+ assert.equal(Number(await one('select ppv_per_unit from products where id=$1',[id])),0);
+ await as(company);await assert.rejects(()=>approve(id,.02),/cover/);
+ if(stock===0)await assert.rejects(()=>approve(id,.3),/available stock|product photo/);
+ await as(buyer);
+}
+const flexiblePhoto='https://example.test/storage/v1/object/public/product-images/'+sellerVendor+'/'+uid(999)+'.png';
+await q("select public.record_verified_product_photo($1,$2,$3,800,1200,12000,'image/png')",[sellerVendor,buyer,flexiblePhoto]);
+await saveProposal(.2,{images:[flexiblePhoto]});
+await assert.rejects(()=>saveProposal(.2,{images:['https://unverified.invalid/photo.jpg']}),/Upload new photos/);
+console.log('PASS flexible review: 0/1/2/9 photos, actual stock 0/1/199, optional description, non-square verified photo, low percentage queued but not approved, unverified photo rejected');
 await db.close();
