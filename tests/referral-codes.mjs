@@ -1,0 +1,101 @@
+import {PGlite} from '@electric-sql/pglite';
+import {readFile,readdir} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+import assert from 'node:assert/strict';
+const source=new URL('..',import.meta.url).pathname.replace(/\/$/,'');
+const db=new PGlite(),q=(sql,args=[])=>db.query(sql,args),one=async(sql,args=[])=>Object.values((await q(sql,args)).rows[0])[0];
+const uid=n=>{const h=createHash('sha256').update('bundles:'+n).digest('hex').slice(0,32);return `${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20)}`};
+const company=uid(1),buyer=uid(2),as=id=>q("select set_config('request.jwt.claim.sub',$1,false)",[id]);
+await db.exec(`create role anon;create role authenticated;create role service_role;create schema auth;
+create table auth.users(id uuid primary key,email text,raw_user_meta_data jsonb,raw_app_meta_data jsonb);
+create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
+alter default privileges grant execute on functions to anon,authenticated,service_role;
+grant usage on schema auth to anon,authenticated;grant execute on function auth.uid() to anon,authenticated;`);
+for(const file of (await readdir(source+'/schema')).filter(x=>/^\d+.*\.sql$/.test(x)).sort())await db.exec(await readFile(source+'/schema/'+file,'utf8'));
+await db.exec('alter table public.products add column if not exists country_code text');
+// The production PIN helper is installed by the Supabase-only security migration.
+await db.exec("create function private.require_transaction_pin(text,uuid) returns void language sql as $$select$$");
+await q("update private.operator_setup set email='checkout-company@example.invalid'");
+await q("insert into auth.users(id,email,raw_user_meta_data,raw_app_meta_data) values($1,'checkout-company@example.invalid',$2,'{\"provider\":\"google\"}')",[company,JSON.stringify({full_name:'Checkout company',phone:'00000000',terms_accepted:true})]);
+await q("insert into public.user_roles(user_id,role) values($1,'admin')",[company]);await q("update public.member_profiles set status='active',terms_accepted_at=now() where user_id=$1",[company]);
+const ref=await one('select referral_code from public.member_profiles where user_id=$1',[company]);
+await q("insert into auth.users(id,email,raw_user_meta_data,raw_app_meta_data) values($1,'checkout-buyer@example.invalid',$2,'{}')",[buyer,JSON.stringify({full_name:'Checkout buyer',phone:'00000000',terms_accepted:true,referral_code:ref})]);await q("update public.member_profiles set status='active',terms_accepted_at=now() where user_id=$1",[buyer]);
+await as(company);await q("select set_config('request.jwt.claims',$1,false)",[JSON.stringify({aal:'aal2',amr:[{method:'totp',timestamp:Math.floor(Date.now()/1000)}]})]);await q("select public.admin_set_usd_to_pkr_rate(300,'Checkout test rate')");await q("select public.set_company_delivery(0,'Checkout test delivery')");
+const vendor=await one("select public.create_company_brand('Checkout shop','','')");await q('select public.set_vendor_commission($1,.30)',[vendor]);const product=await one("insert into public.products(vendor_id,name,description,category,price_pkr,stock_quantity,status) values($1,'Checkout product','Checkout test','Tests',1000,100,'approved') returning id",[vendor]);
+await q("update public.mio_wallet_accounts set balance=100 where member_id=$1",[buyer]);await q("insert into public.member_income_wallets(member_id,shopping_points,promotion_points) values($1,10000,20) on conflict(member_id)do update set shopping_points=10000,promotion_points=20",[buyer]);await as(buyer);
+
+
+await as(company);
+await db.exec(await readFile(source+'/supabase/migrations/20261110214233_product_commission_and_vendor_rewards.sql','utf8'));
+
+await db.exec("alter table auth.users add column email_confirmed_at timestamptz");
+await db.exec(await readFile(source+'/supabase/migrations/20261110215509_separate_vendor_portal.sql','utf8'));
+
+await db.exec(await readFile(source+'/schema/network_control_mio_price_setter.sql','utf8'));
+await q('insert into private.network_foundation(singleton,company_id,founder_id) values(true,$1,$2)',[company,buyer]);
+await q("insert into public.system_config(config_key,version,config_value,effective_from,created_by) values('MIO_REFERENCE_PRICE_PKR',1,'300',now(),$1)",[company]);
+await db.exec(await readFile(source+'/supabase/migrations/20261111162534_configurable_marketplace_bundles.sql','utf8'));
+await db.exec(await readFile(source+'/supabase/migrations/20261111214405_customer_checkout_advance_and_sponsor_hold.sql','utf8'));
+await db.exec("create table if not exists private.founder_invites(email text,token_hash text,expires_at timestamptz,redeemed_at timestamptz)");
+await as(company);await q("select public.admin_save_product_economics($1,1000,null,null,0,'reserve')",[product]);
+await db.exec(await readFile(source+'/supabase/migrations/20261111220641_shopping_user_signup_fields.sql','utf8'));
+await db.exec('create trigger require_signup_gender before insert on auth.users for each row execute function private.validate_signup_gender()');
+await db.exec(`create schema storage;create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);create table storage.objects(id uuid default gen_random_uuid() primary key,bucket_id text references storage.buckets(id),name text,metadata jsonb,unique(bucket_id,name));alter table storage.objects enable row level security;grant usage on schema storage to authenticated;grant select,insert on storage.objects to authenticated;`);
+await db.exec(await readFile(source+'/supabase/migrations/20261112083603_shopping_account_and_affiliate_guest_flow.sql','utf8'));
+
+// Notifications are part of the production schema; install their exact small primitives here.
+const notificationSource=await readFile(source+'/supabase/migrations/20261103090000_marketplace_wallet_checkout_notifications.sql','utf8');
+if(!await one("select to_regclass('public.member_notifications')"))await db.exec(notificationSource.slice(notificationSource.indexOf('create table public.member_notifications('),notificationSource.indexOf('alter table public.order_payment_allocations')));
+await db.exec(notificationSource.slice(notificationSource.indexOf('create or replace function private.notify_member('),notificationSource.indexOf('create or replace function public.place_checkout_order(')));
+await q('insert into public.binary_placements(member_id,parent_id,side,placed_by) values($1,null,null,$2) on conflict do nothing',[buyer,company]);
+await db.exec(await readFile(source+'/supabase/migrations/20261112095844_shopping_membership_requests_and_notifications.sql','utf8'));
+await q('grant usage on schema private to authenticated');
+// Existing records must receive codes; future signups must get independent defaults.
+const oldCustomer=uid(800);
+await q("insert into auth.users(id,email,raw_user_meta_data,raw_app_meta_data) values($1,'existing-user@example.invalid',$2,'{\"provider\":\"email\"}')",[oldCustomer,JSON.stringify({registration_type:'customer',full_name:'Existing User',phone:'03000000000',terms_accepted:true})]);
+await db.exec("alter table private.founder_invites add column if not exists singleton boolean default true,add column if not exists pending_user_id uuid");
+await db.exec(await readFile(source+'/supabase/migrations/20261113200000_separate_member_user_affiliate_codes.sql','utf8'));
+const aff=await one('select affiliate_code from public.member_profiles where user_id=$1',[buyer]);
+const memberRef=await one('select referral_code from public.member_profiles where user_id=$1',[buyer]);
+const memberCode=await one('select member_code from public.member_profiles where user_id=$1',[buyer]);
+assert.match(aff,/^AFF-[0-9A-F]{32}$/);
+const oldCode=await one('select customer_code from private.customer_identities where user_id=$1',[oldCustomer]);assert.match(oldCode,/^USR-[0-9A-F]{32}$/);
+assert.equal(Number(await one('select count(*) from public.member_profiles where affiliate_code is null')),0);
+assert.equal(Number(await one('select count(*) from private.customer_identities where customer_code is null')),0);
+const signup=async(n,type,code,country='AE')=>{const id=uid(n);await q("insert into auth.users(id,email,raw_user_meta_data,raw_app_meta_data) values($1,$2,$3,'{\"provider\":\"email\"}')",[id,'referral-'+n+'@example.invalid',JSON.stringify({registration_type:type,full_name:'Referral Test',phone:'03000000000',gender:'male',country_code:country,terms_accepted:true,[type==='member'?'referral_code':'affiliate_code']:code})]);return id;};
+await as(buyer);await q("select public.activate_package_with_mio('BASIC_1','invitation-sponsor-plan')");
+const member=await signup(801,'member','MEM-'+memberRef+'-L');
+assert.equal(await one('select sponsor_id from public.member_profiles where user_id=$1',[member]),buyer);
+assert.equal((await one('select country_code from public.member_profiles where user_id=$1',[member])).trim(),'AE');
+assert.equal(await one("select raw_user_meta_data->>'referral_side' from auth.users where id=$1",[member]),'LEFT');
+assert.equal(Number(await one('select count(*) from private.customer_identities where user_id=$1',[member])),0);
+assert.equal(Number(await one("select count(*) from public.user_roles where user_id=$1 and role='member'",[member])),1);
+assert.match(await one('select affiliate_code from public.member_profiles where user_id=$1',[member]),/^AFF-/);
+assert.equal(Number(await one('select count(*) from public.binary_placements where member_id=$1',[member])),0);
+const preview=(await q('select * from public.lookup_side_referral($1)',['MEM-'+memberRef+'-L'])).rows[0];assert.equal(preview.member_code,memberCode);assert.equal(preview.placement_side,'LEFT');
+const legacyMember=await signup(802,'member','REF-'+memberRef+'-R');
+assert.equal(await one('select sponsor_id from public.member_profiles where user_id=$1',[legacyMember]),buyer);
+assert.equal(await one("select raw_user_meta_data->>'referral_side' from auth.users where id=$1",[legacyMember]),'RIGHT');
+const user=await signup(803,'customer',aff),direct=await signup(804,'customer',null);
+assert.equal(Number(await one('select count(*) from public.member_profiles where user_id=$1',[user])),0);
+assert.equal(await one('select sponsor_id from private.customer_identities where user_id=$1',[user]),buyer);
+assert.equal(await one('select sponsor_id from private.customer_identities where user_id=$1',[direct]),null);
+assert.equal(Number(await one('select count(*) from public.mio_wallet_accounts where member_id=$1',[user])),0);
+await as(user);const identity=await one('select public.my_shopping_account()');assert.equal(identity.customer_only,true);assert.equal(identity.sponsor_code,aff);assert.match(identity.customer_code,/^USR-/);assert.notEqual(identity.customer_code,oldCode);
+for(const code of [aff,memberCode,memberCode.replace('MIO-','USR-')])assert.equal(await one('select private.resolve_shopping_referral($1)',[code]),buyer);
+for(const code of ['MEM-'+memberRef+'-L','REF-'+memberRef+'-R',oldCode,identity.customer_code])assert.equal(await one('select private.resolve_shopping_referral($1)',[code]),null);
+assert.equal((await one('select public.shopping_referral($1)',[aff])).code,aff);
+await assert.rejects(()=>signup(805,'member',aff),/Member invitation/);
+await assert.rejects(()=>signup(806,'member',oldCode),/Member invitation/);
+await assert.rejects(()=>signup(807,'customer','MEM-'+memberRef+'-L'),/Referral link/);
+await assert.rejects(()=>signup(808,'member','MEM-INVALID-L'),/Referral code not found/);
+await assert.rejects(()=>q("update public.member_profiles set affiliate_code='AFF-'||repeat('A',32) where user_id=$1",[buyer]),/cannot be changed/);
+await assert.rejects(()=>q("update private.customer_identities set customer_code='USR-'||repeat('B',32) where user_id=$1",[user]),/cannot be changed/);
+console.log('PASS backfill, unique persisted codes, real Member vs User creation, sponsors, Left/Right metadata, selected country, legacy links and cross-type rejection');
+// Exercise real order attribution through the new affiliate code.
+await q('update auth.users set email_confirmed_at=now() where id=$1',[user]);await as(user);
+const order=await one("select public.place_shopping_order($1,'Referral Test','03000000000','Street 1','Islamabad','new-affiliate-code-order','SPONSOR',$2)",[JSON.stringify([{product_id:product,quantity:1}]),aff]);
+assert.equal(await one('select selling_affiliate_id from public.orders where id=$1',[order.order_id]),buyer);
+assert.equal(await one('select sponsor_id from private.customer_identities where user_id=$1',[user]),buyer);
+console.log('PASS AFF code preserves order attribution and sponsor funding flow');
+await db.close();
