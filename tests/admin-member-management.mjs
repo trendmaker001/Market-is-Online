@@ -97,4 +97,16 @@ assert.equal(await one('select exists(select 1 from private.binary_qualification
 const liveShares=await q('select * from private.binary_live_shares(now()) where member_id=$1',[target]);assert.equal(Number(liveShares.rows[0].left_available),200);assert.equal(Number(liveShares.rows[0].right_available),100);
 await db.exec("set test.totp='no'");await assert.rejects(save('earnings',{direct:900}),/Authenticator/);await db.exec("set test.totp='yes'");
 await as(other);await assert.rejects(state(),/Admin/);await as('');await assert.rejects(state(),/Admin/);
+await db.exec(await readFile(source+'/schema/dashboard_membership_status.sql','utf8'));
+await as(admin);await save('account',{status:'suspended'},undefined,crypto.randomUUID(),target);
+await as(target);let badge=await one('select public.my_membership_badge_status()');assert.equal(badge.account_status,'suspended');
+await assert.rejects(save('account',{status:'active'},{}),/Admin/);
+await as(admin);await save('account',{status:'closed'},undefined,crypto.randomUUID(),target);
+await as(target);badge=await one('select public.my_membership_badge_status()');assert.equal(badge.account_status,'closed');assert.equal(badge.package_active,false);
+await as(admin);await save('account',{status:'active'},undefined,crypto.randomUUID(),target);
+await save('maintenance',{annual_days:0},undefined,crypto.randomUUID(),target);
+await as(target);badge=await one('select public.my_membership_badge_status()');assert.equal(badge.account_status,'active');assert.ok(new Date(badge.annual_due_at)<=new Date());assert.equal(badge.annual_required,true);
+assert.equal(await one("select has_function_privilege('anon','public.my_membership_badge_status()','EXECUTE')"),false);
+await as('');await assert.rejects(one('select public.my_membership_badge_status()'),/Sign in/);
+console.log('PASS own-account status read, suspension/termination/restore, annual expiry, anonymous denial and non-admin write denial');
 console.log('PASS audited/idempotent migration balances, opening earnings isolation, package/rank no payout, countdowns, point carry and authority');await db.close();

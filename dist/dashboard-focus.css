@@ -192,3 +192,144 @@
 .member-account-shell .membership-rank .rank-sticker-image img{background:transparent!important;box-shadow:none!important}
 .member-account-shell[data-theme="dark"] .dashboard-personal-points b{color:#f2fbf6}
 .member-account-shell[data-theme="dark"] .dashboard-person .text-button{color:#9fc0ae}
+
+/* Original emerald dashboard, refined at the reference card proportions. */
+.member-account-shell{--dashboard-card-green:linear-gradient(115deg,#0d8057,#075c3f);--dashboard-digit:#ffbd53}
+.member-account-shell .dashboard-offer-row{gap:9px;margin-bottom:14px}
+.member-account-shell .dashboard-offer-row>details{border-radius:13px}
+.member-account-shell .dashboard-offer-row>details>summary{padding:10px 11px;gap:7px}
+.member-account-shell .dashboard-offer-row .maintenance-card-heading{padding:0 24px 0 0;text-align:left}
+.member-account-shell .dashboard-offer-row .maintenance-card-heading h3{text-align:left;font-size:14px;line-height:20px}
+.member-account-shell .dashboard-offer-row .maintenance-open{top:8px;right:9px;width:26px;height:26px;border-radius:7px;background:#ffffff0d;color:var(--dashboard-digit);border:1px solid #ffffff05}
+.member-account-shell .maintenance-open svg{width:19px;height:19px;transition:transform .18s}
+.member-account-shell details[open] .maintenance-open svg{transform:rotate(180deg)}
+.member-account-shell .dashboard-offer-row .maintenance-countdown,.member-account-shell .dashboard-offer-row .welcome-bonus-card :is(#dashboardOfferTimer,[data-dashboard-id="dashboardOfferTimer"]){background:#034c34;padding:5px 7px;border-radius:9px}
+.member-account-shell .dashboard-offer-row .maintenance-countdown b,.member-account-shell .dashboard-offer-row .welcome-bonus-card :is(#dashboardOfferTimer,[data-dashboard-id="dashboardOfferTimer"]) b{font-size:20px;line-height:22px;font-variant-numeric:tabular-nums}
+.member-account-shell .dashboard-identity{padding:16px!important;gap:14px!important;grid-template-columns:minmax(230px,1.15fr) minmax(290px,1.3fr) minmax(160px,.7fr);border-radius:14px}
+.member-account-shell .dashboard-person h1{font-size:18px;line-height:1.25}
+.member-account-shell .dashboard-identity .dashboard-person>img{width:56px;height:56px}
+.member-account-shell .country-flag img{width:22px;height:15px;display:block;border-radius:2px;object-fit:cover}
+.member-account-shell .dashboard-membership-group{gap:12px;align-items:center;padding:0 12px}
+.member-account-shell .dashboard-membership-group .dashboard-package{grid-template-columns:30px minmax(0,1fr);gap:7px}
+.member-account-shell .dashboard-membership-group .dashboard-package>img{margin-top:18px;width:30px;height:34px}
+.member-account-shell .dashboard-package>div>small{font-size:10px;line-height:15px;margin-bottom:3px}
+.member-account-shell .membership-plan-line{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.member-account-shell .membership-plan-line>strong{font-size:16px;line-height:24px}
+.member-account-shell .dashboard-status{display:inline-flex;align-items:center;gap:5px;margin:0;border:1px solid transparent;border-radius:6px;padding:4px 7px;font-size:10px;font-weight:650;line-height:14px;white-space:nowrap}
+.member-account-shell .dashboard-status i{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+.member-account-shell .dashboard-status.active{background:#e7f5ec;color:#167445;border-color:#cde9d7}
+.member-account-shell .dashboard-status.inactive{background:#fff3d9;color:#875706;border-color:#f3d99c}
+.member-account-shell .dashboard-status.suspended{background:#fff0e5;color:#a3460e;border-color:#f4c6a7}
+.member-account-shell .dashboard-status.terminated{background:#feecec;color:#ad2b32;border-color:#f5c7cb}
+.member-account-shell .dashboard-reward-toggle.compact-mode-toggle{display:flex;padding:3px;border-radius:24px;background:#edf6f0;border:1px solid #cce3d5;gap:3px;max-width:190px}
+.member-account-shell .compact-mode-toggle button{min-height:32px;flex:1;padding:5px 13px;border:0;border-radius:20px;font-size:12px;font-weight:700;background:transparent;color:#657a6e}
+.member-account-shell .compact-mode-toggle button.active{background:#0d8057;color:white;box-shadow:0 2px 4px #075c3f20}
+.member-account-shell .compact-mode-toggle button:disabled{opacity:1;cursor:default}
+.member-account-shell .membership-rank{padding:0 0 0 10px;flex:0 1 auto}
+.member-account-shell .membership-rank strong{font-size:14px}
+.member-account-shell .dashboard-identity .dashboard-total-earned{padding:14px;display:block;border-radius:12px;min-height:105px;text-align:left}
+.member-account-shell .dashboard-identity .dashboard-total-earned>span{font-size:16px;line-height:21px}
+.member-account-shell .dashboard-identity .dashboard-total-earned>strong{font-size:28px;line-height:34px;margin:5px 0}
+.member-account-shell .dashboard-identity .dashboard-total-earned>small{display:block;font-size:10px}
+.member-account-shell .qualification-panel{--qualification-color:#0d8057;--qualification-tint:#eef8f2;--qualification-border:#d1e6da}
+.member-account-shell .dashboard-program-grid>.qualification-panel>.qualification-summary{background:linear-gradient(115deg,#fff,#f9fcfa);border:1px solid #d0e5d9;border-radius:12px;min-height:91px;padding:13px;gap:6px 10px;box-shadow:0 2px 6px #075c3f04}
+.member-account-shell .qualification-panel>.qualification-summary .manager-summary-kicker{font-size:14px;line-height:19px;color:#183b2b;letter-spacing:0}
+.member-account-shell .qualification-panel>.qualification-summary p{display:block;font-size:11px;line-height:15px;margin:2px 0 0;color:#60766a}
+.member-account-shell .qualification-panel .qualification-icon{width:34px;height:34px;border-radius:10px;color:#0d8057;background:#eaf6ee;border-color:#d1e6da}
+.member-account-shell .qualification-panel .manager-progress{height:7px;background:#dbece2}
+.member-account-shell .qualification-panel .manager-progress>span{background:linear-gradient(90deg,#0c8055 0%,#159766 94%,#efb13c 100%)}
+.member-account-shell .qualification-panel>.qualification-summary .manager-summary-progress>strong{font-size:12px;color:#174c34}
+.member-account-shell .qualification-chevron{display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;border:1px solid #d0e5d9;background:#edf7f0;color:#0d8057;font-size:23px}
+.member-account-shell .qualification-panel>.qualification-summary .community-share-count{font-size:12px;font-weight:650;color:#0b704a}
+.qualification-dialog{width:min(880px,calc(100vw - 32px));border-radius:15px;border-color:#d1e6da}
+.qualification-dialog-header{background:linear-gradient(115deg,#0d8057,#075c3f);padding:13px 18px;color:white}
+.qualification-dialog-header h2{color:white;font-size:17px;line-height:24px}
+.qualification-dialog-icon{background:#ffffff14;color:#fff;border:0;width:32px;height:32px;flex-basis:32px}
+.qualification-close{background:#ffffff12;color:white;border:1px solid #ffffff30;width:36px;height:36px;flex-basis:36px}
+.qualification-dialog>.qualification-panel-body{padding:18px}
+.qualification-dialog .rank-select-label{font-size:12px}
+.qualification-dialog .rank-select-label select{font-size:14px;min-height:44px;border-radius:9px}
+.qualification-dialog .rank-selection-heading h3{font-size:17px}
+.qualification-dialog .rank-status-pill{font-size:11px;padding:5px 9px}
+.qualification-dialog .rank-table-head,.qualification-dialog .rank-requirement{font-size:12px;padding:12px;gap:12px}
+.qualification-dialog .rank-requirement-name,.qualification-dialog .rank-values{font-size:13px;line-height:18px}
+.qualification-dialog .rank-row-progress b{font-size:11px}
+.qualification-dialog .rank-progress-track{height:7px}
+.qualification-dialog .rank-remaining,.qualification-dialog .rank-help{font-size:11px;line-height:16px}
+.qualification-dialog .rank-overall{font-size:12px;margin:12px 0}
+.qualification-dialog .rank-achievement-date{font-size:12px;padding:8px 10px}
+.qualification-dialog .manager-criteria{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.qualification-dialog .manager-criterion{padding:11px;border:1px solid #d4e6da;background:#fbfdfb;border-radius:10px}
+.qualification-dialog .manager-criterion>span{font-size:12px;line-height:17px}
+.qualification-dialog .manager-criterion>b{font-size:14px;line-height:20px;margin:4px 0}
+.qualification-dialog .manager-criterion>small{font-size:10px;line-height:14px}
+.qualification-dialog .manager-mini-progress{height:6px;background:#deede3}
+.qualification-dialog .manager-mini-progress i{background:#108458}
+.qualification-dialog .manager-line-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.qualification-dialog .manager-line-grid article{padding:10px}
+.qualification-dialog .manager-line-grid strong{font-size:12px;line-height:17px}
+.qualification-dialog .manager-line-grid small{font-size:10px;line-height:15px}
+.qualification-dialog .manager-balances>div{padding:12px}
+.qualification-dialog .manager-balances span{font-size:12px;line-height:17px}
+.qualification-dialog .manager-balances b{font-size:16px;line-height:22px}
+.qualification-dialog .manager-balances small{font-size:11px;line-height:15px}
+.qualification-dialog :is(.community-share-overview,.super-member-totals)>div{padding:12px;background:#eef7f1;border:1px solid #d5e7dc;border-radius:10px}
+.qualification-dialog .community-share-overview span{font-size:12px;line-height:17px}
+.qualification-dialog .community-share-overview strong{font-size:25px;color:#0c7951}
+.qualification-dialog .super-member-benefit{padding:14px;background:linear-gradient(115deg,#eef7f1,#fff9ed);border:1px solid #d5e7dc;border-radius:11px}
+.qualification-dialog .super-member-benefit strong{font-size:20px}
+.qualification-dialog .super-member-benefit small{font-size:11px;line-height:16px}
+.qualification-dialog .super-member-totals strong{font-size:16px}
+.member-account-shell .membership-restriction{margin-top:14px;padding:20px}
+@media(max-width:1200px) and (min-width:761px){.member-account-shell .dashboard-identity{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.member-account-shell .dashboard-identity .dashboard-person{grid-column:1/-1;grid-row:1}.member-account-shell .dashboard-membership-group{grid-column:1;grid-row:2;border:0;padding:0}.member-account-shell .dashboard-identity .dashboard-total-earned{grid-column:2;grid-row:2;min-height:94px}}
+@media(max-width:760px){
+ .member-account-shell .dashboard-offer-row{gap:9px}
+ .member-account-shell .dashboard-offer-row>details>summary{padding:10px 12px;gap:7px}
+ .member-account-shell .dashboard-offer-row .maintenance-card-heading h3{font-size:15px;line-height:20px}
+ .member-account-shell .dashboard-identity{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:14px 10px!important;padding:14px!important}
+ .member-account-shell .dashboard-identity .dashboard-person{grid-column:1/-1;grid-row:1;gap:10px}
+ .member-account-shell .dashboard-identity .dashboard-person>img{width:50px;height:50px}
+ .member-account-shell .dashboard-person h1{font-size:17px}
+ .member-account-shell .dashboard-membership-group{grid-column:1;grid-row:2;flex-direction:column;align-items:stretch;border:0;padding:0;gap:9px}
+ .member-account-shell .dashboard-membership-group .dashboard-package{grid-template-columns:23px minmax(0,1fr);gap:5px}
+ .member-account-shell .dashboard-membership-group .dashboard-package>img{width:23px;height:28px;margin-top:20px}
+ .member-account-shell .membership-plan-line{gap:4px}
+ .member-account-shell .membership-plan-line>strong{font-size:14px;line-height:20px}
+ .member-account-shell .dashboard-status{font-size:9px;line-height:13px;padding:3px 5px;gap:4px}
+ .member-account-shell .membership-rank{border:0;padding:0 0 0 28px;gap:7px}
+ .member-account-shell .membership-rank .rank-sticker{width:32px;height:32px;min-width:32px;flex-basis:32px}
+ .member-account-shell .membership-rank-icon{width:28px;height:28px;flex-basis:28px}
+ .member-account-shell .dashboard-identity .dashboard-total-earned{grid-column:2;grid-row:2;display:block;padding:12px;min-height:119px;align-self:center}
+ .member-account-shell .dashboard-identity .dashboard-total-earned>span{font-size:15px}
+ .member-account-shell .dashboard-identity .dashboard-total-earned>strong{font-size:24px;white-space:normal;overflow-wrap:anywhere}
+ .member-account-shell .dashboard-identity .dashboard-total-earned>strong>small{font-size:11px}
+ .member-account-shell .dashboard-identity .dashboard-total-earned>small{display:block}
+ .member-account-shell .dashboard-program-grid>.qualification-panel>.qualification-summary{min-height:89px;padding:12px;gap:6px 9px}
+ .member-account-shell .qualification-panel>.qualification-summary .manager-summary-kicker{font-size:13px;line-height:18px}
+ .member-account-shell .qualification-panel>.qualification-summary p{display:block;font-size:11px;line-height:15px}
+ .qualification-dialog{width:100%;height:100dvh;max-height:100dvh;margin:0;border:0;border-radius:0}
+ .qualification-dialog-header{padding:max(12px,env(safe-area-inset-top)) 14px 12px}
+ .qualification-dialog-header h2{font-size:16px}
+ .qualification-dialog>.qualification-panel-body{padding:14px 14px max(16px,env(safe-area-inset-bottom))}
+ .qualification-dialog .rank-requirement{grid-template-columns:minmax(0,1fr) minmax(0,1fr);padding:11px;gap:5px 8px;min-height:78px}
+ .qualification-dialog .rank-values,.qualification-dialog .rank-requirement-name{font-size:12px;line-height:17px}
+ .qualification-dialog .rank-remaining{font-size:10px}
+ .qualification-dialog .manager-criteria,.qualification-dialog .community-qualification{grid-template-columns:1fr;gap:8px}
+ .qualification-dialog .manager-criterion{padding:10px;gap:5px 8px}
+ .qualification-dialog .manager-criterion>b{font-size:13px;margin:0}
+ .qualification-dialog .manager-line-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .qualification-dialog .manager-line-grid strong{white-space:normal}
+ .qualification-dialog .manager-line-grid small{font-size:10px;line-height:15px}
+ .qualification-dialog .community-share-overview span{font-size:10px;line-height:15px}
+ .qualification-dialog :is(.community-share-overview,.super-member-totals)>div{padding:10px 7px}
+}
+@media(max-width:359px){.member-account-shell .dashboard-identity{grid-template-columns:1fr}.member-account-shell .dashboard-identity .dashboard-total-earned{grid-column:1;grid-row:3;min-height:0}.member-account-shell .dashboard-membership-group{flex-direction:row}.member-account-shell .membership-rank{padding-left:6px}.member-account-shell .dashboard-person h1{font-size:15px}}
+.member-account-shell[data-theme="dark"] .qualification-dialog-header{background:linear-gradient(115deg,#0d8057,#075c3f)}
+.member-account-shell[data-theme="dark"] .qualification-dialog-header h2{color:white}
+.member-account-shell[data-theme="dark"] .qualification-dialog :is(.community-share-overview,.super-member-totals)>div,.member-account-shell[data-theme="dark"] .qualification-dialog .super-member-benefit{background:#163729;border-color:#315842;color:#e7f6ed}
+.member-account-shell[data-theme="dark"] .qualification-dialog .community-share-overview strong{color:#8de0b8}
+@media(max-width:760px){.member-account-shell .dashboard-program-grid>.qualification-panel>.qualification-summary p{display:block!important}}
+.qualification-dialog .manager-criterion>span,.qualification-dialog .manager-criterion>b{display:block}
+.member-account-shell[data-theme="dark"] .qualification-panel>.qualification-summary .manager-summary-progress>strong,.member-account-shell[data-theme="dark"] .dashboard-panel-title>strong,.member-account-shell[data-theme="dark"] .dashboard-panel-title>button{color:#a2dfbc}
+.member-account-shell[data-theme="dark"] .qualification-dialog :is(.super-member-totals,.community-share-overview) span{color:#b9d8c7}
+.member-account-shell[data-theme="dark"] .qualification-dialog .community-empty{background:#17362a;color:#bdd7c9}

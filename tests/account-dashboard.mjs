@@ -238,7 +238,7 @@ for(const code of [null,'BASIC_1','BASIC_2','ADVANCED_1','ADVANCED_2','PREMIUM']
 dashboardData.package_code='ADVANCED_2';await ww.MioDashboard.refresh();assert.equal(dd.querySelector('.dashboard-exchange-balance'),null);
 console.log('PASS Exchange balance is requested and shown only for Platinum, and removed on downgrade');
 const beforeProfile=walletRpcCalls.length;await ww.MioDashboard.refresh('profile');
-assert.deepEqual(walletRpcCalls.slice(beforeProfile).map(([name])=>name),['my_member_dashboard_identity']);
+assert.deepEqual(walletRpcCalls.slice(beforeProfile).map(([name])=>name),['my_membership_badge_status','my_member_dashboard_identity']);
 assert.match(dd.querySelector('#dashboardProfile').textContent,/My Network|Profile picture/);
 console.log('PASS profile refresh requests identity only, without wallet, tree or dashboard programs');
 const rankNames=['Leader','Team Leader','Senior Team Leader','Executive','Senior Executive','Director'];
@@ -296,5 +296,34 @@ dashboardData.package_active=false;await ww.MioDashboard.refresh();assert.deepEq
 assert.deepEqual([...dd.querySelectorAll('.dashboard-offer-row h3')].map(n=>n.textContent),['Welcome Bonus','Annual Maintenance','Monthly Maintenance']);
 Object.assign(maintenanceData,savedMaintenance);dashboardData.activation_offer=savedOffer;ww.Date.now=realNow;dashboardData.server_now=new Date().toISOString();await ww.MioDashboard.refresh();
 console.log('PASS focused dialog cancel/refresh cleanup, scroll lock/focus restoration, membership rank placement, MIO copy preservation, Total Earnings label and all timer boundaries including expired zero');
+
+// Account status is authoritative; annual expiry never masks administrator restrictions.
+const savedAccount={...dashboardData}, savedAnnual={...maintenanceData};
+managerData.rank_qualification={metrics:{},ranks:[{code:'team_leader',name:'Team Leader',sort_order:20,left_brp:10000,right_brp:10000,direct_left:10,direct_right:10,required_dp:1000}]};
+dashboardData.country_code='PK';dashboardData.account_status='active';dashboardData.package_active=true;
+maintenanceData.annual_due_at=new Date(Date.now()+86400000).toISOString();await ww.MioDashboard.refresh();
+assert.equal(dd.querySelector('[data-membership-status]').textContent,'Active');
+assert.ok(dd.querySelector('.country-flag img[src="/assets/flag-pk.svg"]'));
+assert.match(dd.querySelector('.rank-qualifications>.qualification-summary').textContent,/Next rank: .*In progress/);
+assert.match(dd.querySelector('.community-share-count').textContent,/0 Active Shares/);
+maintenanceData.annual_due_at=new Date(Date.now()-1000).toISOString();await ww.MioDashboard.refresh();
+assert.equal(dd.querySelector('[data-membership-status]').textContent,'Inactive');
+assert.match(dd.querySelector('[data-membership-status]').title,/Annual maintenance has expired/);
+// Lightweight polling still works when the network RPC rejects a suspended account.
+const originalRpcResult=dashboardData.account_status;
+for(const [state,label] of [['suspended','Suspended'],['closed','Terminated']]){
+ dashboardData.account_status=state;await ww.MioDashboard.refresh();
+ assert.equal(dd.querySelector('[data-membership-status]').textContent,label);
+ assert.ok(dd.querySelector('.membership-restriction'));assert.equal(dd.querySelector('.dashboard-program-grid'),null);
+}
+Object.assign(dashboardData,savedAccount,{account_status:'active'});Object.assign(maintenanceData,savedAnnual);
+// Exercise separate snapshot instances, including admin views of restricted members.
+for(const [state,label] of [['active','Active'],['suspended','Suspended'],['closed','Terminated'],['inactive','Inactive']]){
+ const root=dd.createElement('div');root.innerHTML='<div id="page-dashboard"></div><div id="dashboardProfile"></div><div id="dashboardReceiveCode"></div><button id="dashboardCopyCode"></button>';dd.body.append(root);
+ const presentation=ww.createMioDashboardPresentation(root);
+ presentation.renderSnapshot({summary:{...dashboardData,account_status:state,package_active:state==='active'},financial:{earned:20},incomeWallets:{},maintenanceStatus:{...maintenanceData,annual_due_at:new Date(Date.now()+86400000).toISOString()},rewardPreference:{}},{safeImage:v=>v,planName:()=> 'Gold',tierImage:()=>'/assets/tree-plan-advanced-2.svg'});
+ assert.equal(root.querySelector('[data-membership-status]').textContent,label);presentation.dispose();root.remove();
+}
+console.log('PASS dynamic active/inactive/suspended/terminated badge, expiry priority, restricted view, admin snapshots, Pakistan image and visible share/next-rank labels');
 
 await new Promise(r=>setTimeout(r,100));w.close();ww.close();
