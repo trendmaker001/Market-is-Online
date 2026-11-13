@@ -42,8 +42,8 @@ async function submitListing(category,mode='submit'){
 }
 assert.ok(!lw.marketplaceCategories.some(c=>c.name==='Fragrances'));
 const categoryNames=Array.from(ld.getElementById('prodCategory').options,o=>o.value).filter(Boolean);
-for(const category of categoryNames){await submitListing(category);assert.equal(errors.length,0,category+' must submit');assert.equal(calls.at(-1).name,'save_product_listing_country');assert.equal(calls.at(-1).args.p_category,category);assert.equal(calls.at(-1).args.p_submit,true)}
-assert.equal(resets,categoryNames.length);assert.equal(opened,'existing');
+for(const category of categoryNames){await submitListing(category);assert.equal(errors.length,0,category+' must submit');assert.equal(calls.at(-1).name,'save_product_listing_with_commission');assert.equal(calls.at(-1).args.p_category,category);assert.equal(calls.at(-1).args.p_submit,true)}
+assert.equal(calls.at(-1).args.p_commission,null);ld.getElementById('prodCommission').value='25';await submitListing('Fragrances');assert.equal(calls.at(-1).args.p_commission,.25);ld.getElementById('prodCommission').value='';assert.equal(resets,categoryNames.length+1);assert.equal(opened,'existing');
 await submitListing('Fragrances','draft');assert.equal(calls.at(-1).args.p_submit,false);
 ld.getElementById('editingProduct').value='existing-product';await submitListing('Fragrances');assert.equal(calls.at(-1).args.p_product_id,'existing-product');
 const before=calls.length;await submitListing('');assert.equal(calls.length,before);assert.match(errors.pop(),/Choose a product category/);

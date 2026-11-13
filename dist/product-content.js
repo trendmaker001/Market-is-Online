@@ -12,7 +12,7 @@
   const group=(title,cls)=>{const box=document.createElement('fieldset');box.className='listing-form-section '+cls;const legend=document.createElement('legend');legend.textContent=title;box.append(legend);return box};
   const basics=group('Product details','listing-basics'),pricing=group('Price & stock','listing-pricing'),photos=group('Product photos','listing-photos');
   const store=document.createElement('div');store.className='field';store.append(form.querySelector('label[for="productVendor"]'),document.getElementById('productVendor'));basics.append(store,document.getElementById('prodName').closest('.row'),document.getElementById('prodCategory').closest('.row'),input.closest('.field'));
-  pricing.append(document.getElementById('prodPrice').closest('.row'));photos.append(form.querySelector('.photo-drop'),document.getElementById('photoPreview'),form.querySelector('details'));
+  pricing.append(document.getElementById('prodPrice').closest('.row'),document.getElementById('prodCommission').closest('.field'));photos.append(form.querySelector('.photo-drop'),document.getElementById('photoPreview'),form.querySelector('details'));
   const side=document.createElement('div');side.className='listing-form-side';side.append(pricing,photos);
   const actions=document.getElementById('newProduct').closest('.row');actions.classList.add('listing-form-actions');actions.querySelector('[value="submit"]').textContent='Send for review';
   form.querySelectorAll(':scope > h3').forEach(e=>e.remove());form.append(basics,side,wrap,actions);form.classList.add('listing-compact-form');
@@ -47,7 +47,7 @@
    if(cover){const img=document.createElement('img');img.src=cover.src;img.alt='Product cover';top.append(img)}
    const name=document.createElement('strong');name.textContent=byId('prodName').value;top.append(name);review.append(top);
    const data=document.createElement('dl');data.className='listing-review-values';const option=id=>byId(id)?.selectedOptions[0]?.textContent||'—';
-   [['Store',option('productVendor')],['Category',option('prodCategory')],['Available in',option('productCountry')],['Price','PKR '+Number(byId('prodPrice').value||0).toLocaleString('en-PK',{maximumFractionDigits:2})],['Stock',byId('prodStock').value+' units'],['Photos',String(byId('photoPreview').querySelectorAll('img').length)]].forEach(([k,v])=>data.append(reviewValue(k,v)));review.append(data);
+   [['Store',option('productVendor')],['Category',option('prodCategory')],['Available in',option('productCountry')],['Price','PKR '+Number(byId('prodPrice').value||0).toLocaleString('en-PK',{maximumFractionDigits:2})],['Product percentage',byId('prodCommission').value===''?'Vendor default':byId('prodCommission').value+'% (pending review)'],['Stock',byId('prodStock').value+' units'],['Photos',String(byId('photoPreview').querySelectorAll('img').length)]].forEach(([k,v])=>data.append(reviewValue(k,v)));review.append(data);
    const description=document.createElement('p');description.className='listing-review-description';description.textContent=byId('prodDescription').value;review.append(description);
    const optionalCount=fields.filter(([key])=>key!=='description'&&byId('listing-'+key)?.value.trim()).length;
    if(optionalCount){const extra=document.createElement('p');extra.className='helper';extra.textContent=optionalCount+' additional product information sections included.';review.append(extra)}
