@@ -447,3 +447,12 @@
  .member-account-shell .dashboard-balance-row.has-exchange-wallet{grid-template-columns:repeat(3,minmax(0,1fr))}
  .member-account-shell .has-exchange-wallet>.dashboard-personal-points{grid-column:auto;display:block;padding:12px 14px!important}
 }
+
+/* Keep the action inside its grid column, without a protruding button. */
+.member-account-shell .dashboard-program-grid>.qualification-panel>.qualification-summary{grid-template-columns:36px minmax(0,1fr) 56px 20px;column-gap:10px;min-width:0;max-width:100%}
+.member-account-shell .qualification-panel>.qualification-summary .qualification-chevron{width:20px;height:24px;min-width:0;justify-self:end;box-sizing:border-box;border:0;border-radius:0;background:transparent!important;box-shadow:none;color:#0d8057;transform:none}
+.member-account-shell .qualification-chevron svg{display:block;width:18px;height:18px}
+.member-account-shell[data-theme="dark"] .qualification-panel>.qualification-summary .qualification-chevron{color:#8de0b8}
+.network-country-flag{display:inline-block!important;width:18px!important;height:12px!important;min-width:18px;object-fit:contain;border-radius:1px;vertical-align:-1px}
+.visual-person>small .network-country-flag{width:12px!important;height:8px!important;min-width:12px}
+@media(max-width:380px){.member-account-shell .dashboard-program-grid>.qualification-panel>.qualification-summary{grid-template-columns:30px minmax(0,1fr) 48px 18px;column-gap:7px;padding:12px}.member-account-shell .qualification-panel>.qualification-summary .qualification-icon{width:30px;height:30px}.member-account-shell .qualification-panel>.qualification-summary .manager-summary-progress>strong{min-width:48px}}
