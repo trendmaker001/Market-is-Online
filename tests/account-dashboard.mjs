@@ -145,7 +145,7 @@ ww.MioDashboard.setFinancial({balance:12,ppv:110,ppvExcess:390,ppvTotal:500,earn
 assert.equal(dd.querySelector('#dashboardRewardSwitch').classList.contains('ppv-limit-locked'),true);
 assert.ok([...dd.querySelectorAll('#dashboardRewardSwitch [data-reward-mode]')].every(b=>b.disabled));
 assert.match(dd.querySelector('#dashboardRewardSwitch [data-reward-mode="MIO"]').title,/Future shopping rewards use MIO/);
-assert.ok(dd.querySelector('.dashboard-package #dashboardRewardSwitch'));
+assert.ok(dd.querySelector('.dashboard-membership-group > #dashboardRewardSwitch'));
 assert.equal(dd.querySelector('#page-dashboard > #dashboardRewardSwitch'),null);
 assert.match(dd.querySelector('.dashboard-ppv-balance strong').textContent,/110\.00 PPV \+390\.00 excess/);
 assert.equal(typeof ww.MioDashboard.requestTransactionPin,'function');
@@ -197,6 +197,17 @@ assert.equal(dd.querySelector('#dashboardProfile .rank-sticker img').src,'https:
 assert.equal(dd.querySelector('.dashboard-identity .rank-sticker').textContent.trim(),'Leader');
 assert.equal(dd.querySelector('.membership-rank strong').textContent.trim(),'Leader');
 managerData.leadership_rank.badge_url='https://photos.example.test/admin-replaced-leader.png';await ww.MioDashboard.refresh('dashboard');assert.equal(dd.querySelector('.membership-rank img').src,'https://photos.example.test/admin-replaced-leader.png');assert.equal(dd.querySelector('.membership-rank img').alt,'Leader badge');managerData.leadership_rank.badge_url='https://photos.example.test/leader.webp';await ww.MioDashboard.refresh('dashboard');
+// Team Manager is a server-qualified distinction, independent of leadership rank.
+assert.equal(dd.querySelector('.membership-manager'),null);
+managerData.qualified=true;await ww.MioDashboard.refresh('dashboard');
+assert.match(dd.querySelector('.membership-manager').textContent,/Team Manager.*Qualified/);
+assert.equal(dd.querySelector('.membership-manager img').src,'https://photos.example.test/team-manager.webp');
+assert.deepEqual([...dd.querySelector('.dashboard-membership-group').children].map(n=>n.classList[0]),['dashboard-package','membership-rank','membership-manager','dashboard-reward-switch']);
+assert.equal(dd.querySelector('.membership-rank strong').textContent,'Leader');
+managerData.team_manager_badge_url=null;await ww.MioDashboard.refresh('dashboard');assert.ok(dd.querySelector('.membership-manager svg'));assert.equal(dd.querySelector('.membership-manager img'),null);
+managerData.qualified=false;managerData.progress_percent=100;await ww.MioDashboard.refresh('dashboard');assert.equal(dd.querySelector('.membership-manager'),null);
+managerData.progress_percent=46;managerData.team_manager_badge_url='https://photos.example.test/team-manager.webp';
+console.log('PASS Team Manager badge follows server qualification, preserves rank, supports uploaded image and fallback, and sits above reward mode');
 dashboardData.activation_offer.ends_at=new Date(Date.now()-86400000).toISOString();await ww.MioDashboard.refresh();
 assert.ok(dd.querySelector('.dashboard-offer'));assert.deepEqual([...dd.querySelectorAll('#dashboardOfferTimer [data-time-part]')].map(n=>n.textContent),['00','00','00','00']);
 assert.equal(dd.querySelectorAll('.dashboard-offer-row .dashboard-future').length,2);
@@ -267,7 +278,7 @@ if(process.env.MIO_RANK_PREVIEW){
  const {mkdir,writeFile}=await import('node:fs/promises');await mkdir(process.env.MIO_RANK_PREVIEW,{recursive:true});
  const previewStyles=[...(await readFile('dist/index.html','utf8')).matchAll(/<link[^>]+rel="stylesheet"[^>]+href="([^"]+)"[^>]*>/g)].map(m=>m[0]).join('');
  const now=Date.now(),previewSummary={...dashboardData,server_now:new Date(now).toISOString(),full_name:'Example Member Name',member_code:'MIO-TEST1234',package_code:'PREMIUM',package_name:'Platinum',package_active:true,country_code:'PK',activation_offer:{enabled:true,eligible:true,welcome_rate:.1,ends_at:new Date(now+10*86400000+600000).toISOString()},manager_program:managerData,community_share:communityData,super_member:superMemberData};
- previewSummary.manager_program={...managerData,leadership_rank:{...managerData.leadership_rank,badge_url:'/qa-rank-badge.svg'}};
+ previewSummary.manager_program={...managerData,qualified:true,team_manager_badge_url:null,leadership_rank:{...managerData.leadership_rank,badge_url:'/qa-rank-badge.svg'}};
  await writeFile(process.env.MIO_RANK_PREVIEW+'/qa-rank-badge.svg','<svg xmlns="http://www.w3.org/2000/svg" width="90" height="110" viewBox="0 0 90 110"><path d="M8 8H82V65L45 100 8 65Z" fill="#146b4c" stroke="#e3bd64" stroke-width="6"/><path d="M45 23 51 39 68 40 55 51 59 68 45 58 31 68 35 51 22 40 39 39Z" fill="#e3bd64"/></svg>');
  const payload={summary:previewSummary,financial:{balance:12,ppv:110,earned:20.64,held:2},incomeWallets:incomeData,maintenanceStatus:{...maintenanceData,annual_due_at:new Date(now+99*86400000+600000).toISOString(),monthly_due_at:new Date(now+25*86400000+600000).toISOString()},rewardPreference:{eligible:true,mode:'MIO',ppvUsed:110,ppvCap:110,locked:true}};
  await writeFile(process.env.MIO_RANK_PREVIEW+'/focused-data.js','window.focusedPreviewData='+JSON.stringify(payload).replaceAll('<','\\u003c')+';');

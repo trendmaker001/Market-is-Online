@@ -289,7 +289,7 @@
  .member-account-shell .dashboard-identity{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:14px 10px!important;padding:14px!important}
  .member-account-shell .dashboard-identity .dashboard-person{grid-column:1/-1;grid-row:1;gap:10px}
  .member-account-shell .dashboard-identity .dashboard-person>img{width:50px;height:50px}
- .member-account-shell .dashboard-person h1{font-size:17px}
+ .member-account-shell .dashboard-person h1{font-size:17px;min-height:0}
  .member-account-shell .dashboard-membership-group{grid-column:1;grid-row:2;flex-direction:column;align-items:stretch;border:0;padding:0;gap:9px}
  .member-account-shell .dashboard-membership-group .dashboard-package{grid-template-columns:23px minmax(0,1fr);gap:5px}
  .member-account-shell .dashboard-membership-group .dashboard-package>img{width:23px;height:28px;margin-top:20px}
@@ -333,3 +333,79 @@
 .member-account-shell[data-theme="dark"] .qualification-panel>.qualification-summary .manager-summary-progress>strong,.member-account-shell[data-theme="dark"] .dashboard-panel-title>strong,.member-account-shell[data-theme="dark"] .dashboard-panel-title>button{color:#a2dfbc}
 .member-account-shell[data-theme="dark"] .qualification-dialog :is(.super-member-totals,.community-share-overview) span{color:#b9d8c7}
 .member-account-shell[data-theme="dark"] .qualification-dialog .community-empty{background:#17362a;color:#bdd7c9}
+/* Approved profile preview: membership, rank, Team Manager, then reward mode. */
+.member-account-shell .dashboard-identity .dashboard-person>img{width:78px;height:78px;flex:0 0 78px;border:2px solid #d0e8dc;padding:3px;background:#fff;object-fit:cover}
+.member-account-shell .country-badge{color:#126441;background:#edf8f1;border-color:#cde7d7}
+.member-account-shell .country-flag,.member-account-shell .country-flag img{filter:none!important;opacity:1;mix-blend-mode:normal}
+.member-account-shell .dashboard-membership-group{display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:10px}
+.member-account-shell .dashboard-membership-group .dashboard-package{flex:none;grid-template-columns:32px minmax(0,1fr);gap:8px}
+.member-account-shell .dashboard-membership-group .dashboard-package>img{width:32px;height:36px;margin-top:15px}
+.member-account-shell .dashboard-membership-group .membership-rank{flex:none;padding:0;border:0;gap:8px}
+.member-account-shell .membership-rank :is(.rank-sticker,.membership-rank-icon){width:32px;height:36px;min-width:32px;flex:0 0 32px}
+.member-account-shell .dashboard-membership-group>.compact-reward-switch{margin:0;padding:0;border:0;background:transparent;display:block}
+.member-account-shell .dashboard-membership-group .compact-mode-toggle{width:100%;max-width:260px}
+.member-account-shell .membership-manager{display:flex;align-items:center;flex-wrap:wrap;gap:7px;padding:9px 10px;border:1px solid #dbb958;border-radius:11px;background:linear-gradient(115deg,#0d8057,#075c3f);box-shadow:0 2px 5px #075c3f12;color:#fff}
+.member-account-shell .membership-manager>strong{font-size:13px;line-height:18px;color:#fff;flex:1;white-space:nowrap}
+.member-account-shell .membership-manager-icon{display:flex;align-items:center;justify-content:center;width:24px;height:27px;flex:0 0 24px;color:#ffce72}
+.member-account-shell .membership-manager-icon :is(svg,img){width:100%;height:100%;object-fit:contain;border-radius:0;filter:none;background:transparent}
+.member-account-shell .membership-manager-qualified{display:inline-flex;align-items:center;gap:4px;padding:3px 6px;border-radius:20px;background:#e3f6e9;color:#12633f;font-size:10px;line-height:14px;font-weight:700;white-space:nowrap}
+.member-account-shell .dashboard-identity .dashboard-total-earned{background:linear-gradient(115deg,#0d8057,#075c3f);border:1px solid #0d8057;padding:18px 16px;box-shadow:0 3px 10px #075c3f12}
+.member-account-shell .dashboard-identity .dashboard-total-earned>span{font-size:17px;line-height:23px;font-weight:650;color:#fff!important}
+.member-account-shell .dashboard-identity .dashboard-total-earned>strong{color:#ffbd53!important}
+.member-account-shell .dashboard-identity .dashboard-total-earned>strong>small{color:#ffbd53!important}
+.member-account-shell .dashboard-balance-row.has-exchange-wallet{grid-template-columns:repeat(2,minmax(0,1fr))}
+.member-account-shell .has-exchange-wallet>.dashboard-personal-points{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:54px;padding:9px 14px!important}
+.member-account-shell .dashboard-balance-row>.dashboard-balance{padding:13px 15px!important;gap:12px;min-height:88px}
+.member-account-shell .dashboard-balance>svg{width:27px;height:27px;flex:0 0 27px;color:#16764e}
+.member-account-shell .dashboard-balance>div>span{display:block;font-size:12px;line-height:17px}
+.member-account-shell .dashboard-balance strong{font-size:26px;line-height:32px;letter-spacing:-.02em}
+.member-account-shell .dashboard-balance strong small{font-size:12px}
+/* Each qualification keeps a consistent accent inside and outside its dialog. */
+.member-account-shell .qualification-panel{--qualification-color:#0d8057;--qualification-header:#096b49;--qualification-tint:#eef8f2;--qualification-border:#c6e3d2}
+.member-account-shell .qualification-panel[data-program-index="1"]{--qualification-color:#7254bb;--qualification-header:#6243a5;--qualification-tint:#f4f0fc;--qualification-border:#ddd1ef}
+.member-account-shell .qualification-panel[data-program-index="2"]{--qualification-color:#a67313;--qualification-header:#865e15;--qualification-tint:#fff8e8;--qualification-border:#ecdbb1}
+.member-account-shell .qualification-panel[data-program-index="3"]{--qualification-color:#0b8187;--qualification-header:#086c72;--qualification-tint:#edf9f9;--qualification-border:#c1e3e4}
+.member-account-shell .dashboard-program-grid>.qualification-panel>.qualification-summary{background:linear-gradient(110deg,var(--qualification-tint),#fff);border:1px solid var(--qualification-border);border-left:3px solid var(--qualification-color);box-shadow:0 3px 9px #143c2906}
+.member-account-shell .dashboard-program-grid>.qualification-panel>.qualification-summary:hover{background:var(--qualification-tint);border-color:var(--qualification-color)}
+.member-account-shell .qualification-panel :is(.qualification-icon,.qualification-chevron){color:var(--qualification-color);background:var(--qualification-tint);border-color:var(--qualification-border)}
+.member-account-shell .qualification-panel>.qualification-summary .manager-summary-progress>strong,.member-account-shell .qualification-panel>.qualification-summary .community-share-count{color:var(--qualification-color)}
+.member-account-shell .qualification-panel :is(.manager-progress,.manager-mini-progress,.rank-progress-track){background:var(--qualification-tint);box-shadow:inset 0 0 0 1px var(--qualification-border)}
+.member-account-shell .qualification-panel :is(.manager-progress>span,.manager-mini-progress i,.rank-progress-track>i){background:var(--qualification-color)}
+.member-account-shell .qualification-dialog-header{background:var(--qualification-header)}
+.member-account-shell .qualification-dialog :is(.manager-criterion,.rank-requirement,.community-qualification>div){border-color:var(--qualification-border);background:linear-gradient(120deg,var(--qualification-tint),#fff)}
+.member-account-shell .qualification-dialog :is(.community-share-overview,.super-member-totals)>div,.member-account-shell .qualification-dialog .super-member-benefit{border-color:var(--qualification-border);background:var(--qualification-tint)}
+.member-account-shell .qualification-dialog .community-share-overview strong{color:var(--qualification-color)}
+@media(max-width:760px){
+ .member-account-shell .dashboard-identity .dashboard-person>img{width:66px;height:66px;flex-basis:66px}
+ .member-account-shell .dashboard-identity .dashboard-person{gap:11px}
+ .member-account-shell .dashboard-person h1{font-size:17px;min-height:0}
+ .member-account-shell .dashboard-identity{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:14px 10px!important}
+ .member-account-shell .dashboard-membership-group{padding:0;gap:9px}
+ .member-account-shell .membership-manager{gap:5px;padding:8px}
+ .member-account-shell .membership-manager>strong{font-size:12px;line-height:16px}
+ .member-account-shell .membership-manager-icon{width:21px;height:24px;flex-basis:21px}
+ .member-account-shell .membership-manager-qualified{font-size:10px;margin-left:26px}
+ .member-account-shell .dashboard-identity .dashboard-total-earned{padding:13px 11px;min-height:124px}
+ .member-account-shell .dashboard-identity .dashboard-total-earned>span{font-size:15px;line-height:21px}
+ .member-account-shell .dashboard-balance-row>.dashboard-balance{padding:11px 10px!important;gap:8px}
+ .member-account-shell .dashboard-balance>svg{width:23px;height:23px;flex-basis:23px}
+ .member-account-shell .dashboard-balance>div>span{font-size:11px;line-height:16px}
+ .member-account-shell .dashboard-balance strong{font-size:23px;line-height:29px}
+}
+@media(max-width:359px){
+ .member-account-shell .dashboard-identity{grid-template-columns:minmax(0,1fr)}
+ .member-account-shell .dashboard-identity .dashboard-total-earned{grid-column:1;grid-row:3;min-height:0}
+ .member-account-shell .dashboard-membership-group{flex-direction:column}
+ .member-account-shell .membership-manager-qualified{margin-left:0}
+ .member-account-shell .dashboard-identity .dashboard-person>img{width:58px;height:58px;flex-basis:58px}
+ .member-account-shell .dashboard-balance-row>.dashboard-balance{gap:6px;padding:9px!important}
+ .member-account-shell .dashboard-balance strong{font-size:20px}
+}
+.member-account-shell[data-theme="dark"] .qualification-panel{--qualification-color:#71d4a4;--qualification-tint:#16382b;--qualification-border:#315b47}
+.member-account-shell[data-theme="dark"] .qualification-panel[data-program-index="1"]{--qualification-color:#c7afff;--qualification-tint:#2c2340;--qualification-border:#514269}
+.member-account-shell[data-theme="dark"] .qualification-panel[data-program-index="2"]{--qualification-color:#ecc476;--qualification-tint:#382f1c;--qualification-border:#665334}
+.member-account-shell[data-theme="dark"] .qualification-panel[data-program-index="3"]{--qualification-color:#7cd5d7;--qualification-tint:#173638;--qualification-border:#30595c}
+.member-account-shell[data-theme="dark"] .dashboard-program-grid>.qualification-panel>.qualification-summary,.member-account-shell[data-theme="dark"] .qualification-dialog :is(.manager-criterion,.rank-requirement,.community-qualification>div){background:var(--qualification-tint)}
+.member-account-shell[data-theme="dark"] .qualification-panel>.qualification-summary .manager-summary-kicker{color:#f1f8f4}
+.member-account-shell[data-theme="dark"] .qualification-panel>.qualification-summary p{color:#c3d7cb}
+.member-account-shell[data-theme="dark"] .qualification-dialog-header{background:var(--qualification-header)}
