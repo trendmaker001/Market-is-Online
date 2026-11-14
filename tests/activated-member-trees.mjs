@@ -90,4 +90,40 @@ for(const node of vendor.nodes.slice(1)){assert.equal(node.depth,1);assert.equal
 const generation=await one("select public.my_network('generation',null,10)");assert.ok(generation.nodes.every(n=>n.package));assert.ok(!generation.nodes.some(n=>n.id===id(7)));
 const binary=await one("select public.my_network('binary',null,10)");assert.equal(binary.nodes.find(n=>n.id===id(3)).placement_path,'L');
 console.log('PASS all three vendors at level 1, root photo/country, paid-only generation and continuous binary paths');
+// Free tree reuses the same authorized sponsor traversal; paid ancestors are context only.
+await db.exec(await readFile('supabase/migrations/20261114184857_free_generation_tree_view.sql','utf8'));
+await member(8,3,'RIGHT');await member(9,4,'RIGHT');
+const freeTree=async(root=null,depth=10)=>one("select public.my_network('free_generation',$1,$2)",[root,depth]);
+const beforeFree=await one("select md5(coalesce(jsonb_agg(to_jsonb(b) order by member_id)::text,'')) from public.binary_placements b");
+const free=await freeTree();
+assert.equal(free.free_member_count,3);assert.equal(free.sponsor_connection_count,3);
+assert.deepEqual(free.nodes.filter(n=>n.free_account).map(n=>n.id).sort(),[id(7),id(8),id(9)]);
+for(const n of free.nodes.filter(n=>n.context_only)){assert.ok(n.package);assert.equal(n.free_account,false);}
+assert.ok(!free.nodes.some(n=>n.id===id(5)||n.id===id(2)), 'paid branches with no free accounts are omitted');
+assert.equal(free.nodes.find(n=>n.id===id(9)).parent_id,id(4));assert.equal(free.nodes.find(n=>n.id===id(9)).depth,3);
+assert.equal(free.nodes[0].profile_photo_url,'https://example.test/profile.jpg');assert.equal(free.nodes[0].country_code,'PK');
+assert.equal((await freeTree(null,2)).free_member_count,2);
+const branch=await freeTree('MIO-3');assert.equal(branch.free_member_count,2);assert.equal(branch.root_depth,1);
+await assert.rejects(()=>freeTree('MIO-9999'),/outside your visible network/);
+await assert.rejects(()=>freeTree(null,11),/Invalid tree view/);
+await q("select set_config('request.jwt.claim.sub',$1,false)",[id(8)]);
+await assert.rejects(()=>freeTree('MIO-1'),/outside your visible network/);
+await q("select set_config('request.jwt.claim.sub','',false)");await assert.rejects(()=>freeTree(),/Active account required/);
+await q("select set_config('request.jwt.claim.sub',$1,false)",[id(1)]);
+assert.equal(await one("select has_function_privilege('anon','private.free_generation_tree_view(jsonb)','execute')"),false);
+assert.equal(await one("select has_function_privilege('authenticated','private.free_generation_tree_view(jsonb)','execute')"),false);
+assert.equal(await one("select md5(coalesce(jsonb_agg(to_jsonb(b) order by member_id)::text,'')) from public.binary_placements b"),beforeFree);
+console.log('PASS free tree sponsor connections, counts, original depth, view-only safety and branch authorization');
+for(const n of [8,9,7]){
+ await q("insert into public.package_activations(member_id,package_code,status,base_value) values($1,'BASIC_1','approved',10)",[id(n)]);
+ await q("update public.member_profiles set status='active' where user_id=$1",[id(n)]);
+ await q("update public.package_activations set status='approved' where member_id=$1",[id(n)]);
+ const current=await freeTree();assert.ok(!current.nodes.some(x=>x.id===id(n)&&x.free_account));
+ assert.ok((await one("select public.my_network('generation',null,10)")).nodes.some(x=>x.id===id(n)));
+ assert.equal(await one('select count(*) from public.binary_placements where member_id=$1',[id(n)]),1);
+}
+const empty=await freeTree();assert.equal(empty.nodes.length,0);assert.equal(empty.free_member_count,0);
+// Cycle-safe pruning even if an imported snapshot contains a loop.
+const cycle=await one('select private.free_generation_tree_view($1::jsonb)',[JSON.stringify({nodes:[{id:'a',parent_id:'b',package:null},{id:'b',parent_id:'a',package:'PREMIUM'}]})]);assert.equal(cycle.nodes.length,2);
+console.log('PASS activation removes free entries, prunes unused connectors, retains paid and binary placement, and handles empty/cyclic snapshots');
 await db.close();

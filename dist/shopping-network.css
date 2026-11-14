@@ -84,6 +84,11 @@ body.graphical-network-active>.top,body.graphical-network-active>.account-footer
 }
 
 /* Consistent floating tools and dismissible panels. */
+.tree-free-summary{position:absolute;left:12px;bottom:12px;z-index:3;display:grid;gap:2px;max-width:calc(100% - 70px);padding:7px 10px;border:1px solid #d6e6dc;border-radius:7px;background:#fffffff2;color:#18573e;pointer-events:none;box-shadow:0 2px 8px #184d3208}
+.tree-free-summary strong{font-size:12px}.tree-free-summary small{font-size:10px;color:#527163}
+.visual-node.tree-sponsor-connection .tree-plan-label{color:#567267;font-weight:500}
+:is(#page-network.graphical-only,#page-admin) #treeCard .network-tree-tabs{overflow-x:auto!important;scrollbar-width:thin}
+.tree-free-information p{font-size:12px;line-height:1.5;color:#466353}
 :is(#page-network.graphical-only,#page-admin) #treeCard .tree-action-rail{flex-direction:column!important;height:auto!important;width:34px!important;padding:2px!important;gap:2px}
 :is(#page-network.graphical-only,#page-admin) #treeCard .tree-action-rail>button,:is(#page-network.graphical-only,#page-admin) #treeCard .tree-more-tools>summary{height:30px!important;min-height:30px!important}
 :is(#page-network.graphical-only,#page-admin) #treeCard .tree-more-panel{top:0;right:39px;max-height:calc(100dvh - 175px);overflow:auto}
