@@ -21,12 +21,15 @@ q.el('treeMemberDetails').querySelector('.tree-details-close').click();assert.ok
 await draw('binary',[{...root,binary_qualified:false}]);assert.match(q.el('treeMemberDetails').textContent,/Complete one active personal direct and 20 DP/);
 console.log('PASS tree-only gender defaults, preserved photos/Free/Vendor colours, two-decimal shares, compact qualification and close interaction');
 // An asymmetric tree must keep the member at the viewport midpoint on open, fit and resize.
-const asymmetric=[...nodes,{...root,id:'far',parent_id:'unknown',depth:2,side:'RIGHT'},{...root,id:'farther',parent_id:'far',depth:3,side:'RIGHT'}];
+const asymmetric=[...nodes,{...root,id:'far',parent_id:'unknown',depth:2,side:'RIGHT'},{...root,id:'farther',parent_id:'far',depth:3,side:'RIGHT'},{...root,id:'extra',parent_id:'unknown',depth:2,side:'LEFT'}];
 const visual=q.el('networkVisual');
 for(const width of [1366,390,360]){
  Object.defineProperty(visual,'clientWidth',{configurable:true,value:width});Object.defineProperty(visual,'clientHeight',{configurable:true,value:650});
  for(const kind of ['generation','binary','single_line']){
   await draw(kind,asymmetric);q.focusTreeRoot();await tick();
+  const centers=new Map(Array.from(visual.querySelectorAll('foreignObject'),box=>[box.querySelector('[data-tree-info]').dataset.treeInfo,Number(box.getAttribute('x'))+68]));
+  for(const parent of asymmetric){const xs=asymmetric.filter(n=>n.parent_id===parent.id).map(n=>centers.get(n.id));if(xs.length)assert.ok(Math.abs(centers.get(parent.id)-(Math.min(...xs)+Math.max(...xs))/2)<.01,kind+' parent centered over its own children: '+parent.id)}
+  assert.equal(visual.querySelectorAll('[data-tree-info]').length,asymmetric.length,'no member omitted or invented');
   let state=q.treeState();assert.ok(Math.abs(state.pan.x+state.root.x*state.zoom-width/2)<.01,kind+' open');
   q.fitTreeToViewport();await tick();state=q.treeState();assert.ok(Math.abs(state.pan.x+state.root.x*state.zoom-width/2)<.01,kind+' fit');
   assert.ok(state.pan.x>=-1 && state.pan.x+state.size.width*state.zoom<=width+1,kind+' fit bounds');

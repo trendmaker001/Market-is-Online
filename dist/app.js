@@ -1420,6 +1420,13 @@ function drawNetwork(nodes,kind,data={}){
  function measure(n,seen=new Set()){if(seen.has(n.id))return 178;seen=new Set(seen).add(n.id);const kids=children.get(n.id)||[];let width=178;if(kids.length){if(binary){const ordered=orderedBinaryChildren(n);width=ordered.length===1?Math.max(178,measure(ordered[0],seen)):ordered.reduce((v,k)=>v+measure(k,seen),0)}else width=kids.reduce((v,k)=>v+measure(k,seen),0)}widths.set(n.id,width);return width}roots.forEach(n=>measure(n));
  function place(n,left,depth=0){if(positions.has(n.id))return;const width=widths.get(n.id)||178;positions.set(n.id,{x:left+width/2,y:depth*142+72});maxDepth=Math.max(maxDepth,depth);let cursor=left;const kids=children.get(n.id)||[];if(binary&&kids.length){const ordered=orderedBinaryChildren(n);if(ordered.length===1)place(ordered[0],left,depth+1);else for(const k of ordered){place(k,cursor,depth+1);cursor+=widths.get(k.id)||178}}else for(const k of kids){place(k,cursor,depth+1);cursor+=widths.get(k.id)||178}}
  let totalWidth=0;for(const n of roots){place(n,totalWidth);totalWidth+=widths.get(n.id)||178}const contentWidth=totalWidth;totalWidth=Math.max(760,totalWidth);if(contentWidth<totalWidth){const shift=(totalWidth-contentWidth)/2;for(const pos of positions.values())pos.x+=shift}const height=(maxDepth+1)*142+170;treeBaseSize={width:totalWidth,height};treeRootPoint=positions.get(roots[0]?.id)||null;
+ // Center each parent over its own children, bottom-up, while retaining leaf order and spacing.
+ // Centering full rows independently breaks local parent/child alignment in asymmetric trees.
+ if(['generation','binary','single_line'].includes(kind)){
+  const centered=new Set();
+  function centerParent(n){if(centered.has(n.id))return;centered.add(n.id);const kids=(binary?orderedBinaryChildren(n):children.get(n.id)||[]).filter(k=>positions.has(k.id));kids.forEach(centerParent);if(kids.length){const xs=kids.map(k=>positions.get(k.id).x);positions.get(n.id).x=(Math.min(...xs)+Math.max(...xs))/2}}
+  roots.forEach(centerParent);
+ }
  const line=(a,b,label='')=>`<path d="M${a.x},${a.y+96} V${a.y+116} H${b.x} V${b.y}" fill="none" stroke="#9dafaa" stroke-width="1.5"/>${label?`<text x="${b.x+5}" y="${b.y-5}" fill="#587366" font-size="10">${label}</text>`:''}`;
  let svg='';for(const n of layout){const b=positions.get(n.id),a=positions.get(n.parent_id);if(a&&b)svg+=line(a,b,binary?(n.side==='LEFT'?'L':'R'):'')}
  // Retain the viewed member's real side at the existing label coordinates, without an incoming line.
