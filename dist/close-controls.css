@@ -1,0 +1,43 @@
+/* Shared icon-only close controls. Keep each surface's visibility and position. */
+button.mio-close-icon {
+  box-sizing: border-box;
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  min-height: 36px !important;
+  max-width: 36px !important;
+  max-height: 36px !important;
+  flex: 0 0 36px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: #f00000 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.6' stroke-linecap='round'%3E%3Cpath d='m6 6 12 12M18 6 6 18'/%3E%3C/svg%3E") center / 22px 22px no-repeat !important;
+  color: #fff !important;
+  font-size: 0 !important;
+  line-height: 1 !important;
+  cursor: pointer;
+  box-shadow: none !important;
+  transition: background-color .15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+button.mio-close-icon:hover { background-color: #cf0000 !important; }
+button.mio-close-icon:active { background-color: #b60000 !important; }
+button.mio-close-icon:focus-visible {
+  outline: 3px solid #991b1b !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 2px #fff !important;
+}
+@media (max-width: 760px), (pointer: coarse) {
+  button.mio-close-icon {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    max-width: 40px !important;
+    max-height: 40px !important;
+    flex-basis: 40px !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  button.mio-close-icon { transition: none; }
+}
