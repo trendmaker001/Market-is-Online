@@ -3,7 +3,7 @@ import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 // Reuse the repository's Supabase test double; do not call the real service.
 let setup=(await readFile('tests/interface.mjs','utf8')).split('const q=w.qa;')[0];
-setup=setup.replace(/^import .*;\n/gm,'').replace('w.eval(source.replace','w.eval(await readFile("dist/account-dashboard.js","utf8"));\nw.eval(source.replace');
+setup=setup.replace(/^import .*;\n/gm,'').replace('w.eval(source.replace','w.eval(await readFile("dist/subscription-plans.js","utf8"));w.eval(await readFile("dist/account-dashboard.js","utf8"));\nw.eval(source.replace');
 const AsyncFunction=Object.getPrototypeOf(async function(){}).constructor;
 const {w,q}=await new AsyncFunction('JSDOM','readFile','assert',setup+';return {w,q:w.qa};')(JSDOM,readFile,assert);
 await new Promise(r=>setTimeout(r,60));
@@ -22,6 +22,9 @@ console.log('PASS guest public menu, hidden My Orders and dashboard sign-in prot
 q.setSession({user:{id:'qa'}});q.updateAuthNavigation();q.go('wallet');
 assert.equal(d.querySelector('#memberAccountShell').classList.contains('hidden'),false);
 assert.deepEqual([...d.querySelectorAll('.top .nav button:not(.hidden)')].map(b=>b.dataset.page),['shop','packages','dashboard']);
+// Subscription accordion behaves like Wallet and keeps the account shell visible.
+const currentRoute=w.location.hash,subToggle=d.querySelector('[data-subscription-menu]');subToggle.click();assert.equal(w.location.hash,currentRoute);assert.equal(subToggle.getAttribute('aria-expanded'),'true');subToggle.click();assert.equal(subToggle.getAttribute('aria-expanded'),'false');subToggle.click();d.querySelector('[data-subscription-category="platinum"]').click();assert.equal(w.location.hash,'#packages');assert.equal(d.getElementById('memberAccountShell').classList.contains('hidden'),false);assert.equal(d.getElementById('page-packages').parentElement.id,'memberPageContent');assert.deepEqual([...d.querySelectorAll('#packageGrid .activate-package')].map(x=>x.dataset.code),['PREMIUM']);d.querySelector('[data-subscription-category="regular"]').click();assert.deepEqual([...d.querySelectorAll('#packageGrid .activate-package')].map(x=>x.dataset.code),['ADVANCED_2','ADVANCED_1','BASIC_2']);q.setSession(null);q.updateAuthNavigation();q.go('packages');assert.equal(d.getElementById('page-packages').parentElement.id,'main-content');q.setSession({user:{id:'qa'}});q.updateAuthNavigation();q.go('wallet');
+console.log('PASS subscription accordion toggles without navigation, short labels, filtered original cards and signed-in/guest page placement');
 w.MioDashboard.updateAuth(true,true,false,true);
 q.setAdmin(true);
 assert.deepEqual([...d.querySelectorAll('.top .nav button:not(.hidden)')].map(b=>b.dataset.page),['shop','packages','dashboard','workspace']);
@@ -245,7 +248,7 @@ assert.equal(dd.querySelector('#memberAccountNav [data-page="exchange"]'),null);
 console.log('PASS free account has only unstarted welcome timer and Exchange Wallet sidebar is Platinum-only');
 
 for(const code of [null,'BASIC_1','BASIC_2','ADVANCED_1','ADVANCED_2','PREMIUM']){
- dashboardData.package_code=code;const before=walletRpcCalls.filter(([name])=>name==='my_exchange_wallet').length;await ww.MioDashboard.refresh();const card=dd.querySelector('.dashboard-exchange-balance');assert.equal(!!card,code==='PREMIUM');assert.equal(walletRpcCalls.filter(([name])=>name==='my_exchange_wallet').length-before,code==='PREMIUM'?1:0);if(card){assert.match(card.textContent,/123\.46/);assert.equal(card.dataset.page,'exchange');}
+ dashboardData.package_code=code;const before=walletRpcCalls.filter(([name])=>name==='my_exchange_wallet').length;await ww.MioDashboard.refresh();const card=dd.querySelector('.dashboard-exchange-balance');assert.equal(!!card,code==='PREMIUM');assert.equal(walletRpcCalls.filter(([name])=>name==='my_exchange_wallet').length-before,code==='PREMIUM'?1:0);if(card){assert.match(card.textContent,/123\.4567/);assert.equal(card.dataset.page,'exchange');}
 }
 dashboardData.package_code='ADVANCED_2';await ww.MioDashboard.refresh();assert.equal(dd.querySelector('.dashboard-exchange-balance'),null);
 console.log('PASS Exchange balance is requested and shown only for Platinum, and removed on downgrade');

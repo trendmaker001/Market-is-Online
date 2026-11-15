@@ -33,4 +33,9 @@ assert.equal(await one("select has_function_privilege('anon','public.my_exchange
 assert.equal(await one("select has_function_privilege('authenticated','private.exchange_move(text,uuid,numeric,text,text)','execute') v"),false);
 assert.equal(await one("select has_table_privilege('authenticated','private.exchange_wallet_accounts','update') v"),false);
 console.log('PASS exchange routes for all tiers, free inactive sender, Platinum Cash block, self funding, Platinum-to-Platinum, totals, year/direction pagination, conservation, PIN, replay/mismatch, insufficient funds, role isolation');
+// Reproduce a whole-point send and the reported four-decimal transfer separately.
+await as(1);await q('update private.exchange_wallet_accounts set balance=1100 where member_id=$1',[id(1)]);await q('update mio_wallet_accounts set balance=0 where member_id=$1',[id(8)]);
+const whole=await send(8,'550.0000','exact-whole-550');assert.equal(await balance(8),550);assert.equal(await balance(1,'private.exchange_wallet_accounts'),550);assert.equal(Number(await one('select amount v from private.exchange_transfers where id=$1',[whole])),550);
+const fractional=await send(8,'549.9994','exact-fraction-550');assert.equal(await balance(8),1099.9994);assert.equal(await balance(1,'private.exchange_wallet_accounts'),0.0006);assert.equal(Number(await one('select amount v from mio_ledger where transfer_id=$1',[fractional])),549.9994);
+console.log('PASS 550 sends and receives exactly 550; 549.9994 retains all four decimals without a receiver deduction');
 await db.close();

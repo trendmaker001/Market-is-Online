@@ -17,7 +17,7 @@
     "test:referrals": "node tests/referral-codes.mjs && node tests/registration-links.mjs",
     "test:audit": "node tests/site-structure.mjs && node tests/review-recovery.mjs && MIO_SIGNUP_URL=https://mio.example.test/#product/deep-link-product MIO_PRODUCT_ROUTE_TEST=1 node tests/interface.mjs",
     "test:registration": "node tests/registration-fields.mjs && node tests/registration-database.mjs && node tests/registration-links.mjs",
-    "test:subscriptions": "node tests/subscription-display-database.mjs && node tests/subscription-experience.mjs && MIO_SUBSCRIPTION_TEST=1 node tests/interface.mjs && node tests/exchange-ui.mjs && node tests/wallet-pin-ui.mjs"
+    "test:subscriptions": "node tests/subscription-display-database.mjs && node tests/activation-balance-details.mjs && node tests/subscription-experience.mjs && MIO_SUBSCRIPTION_TEST=1 node tests/interface.mjs && node tests/exchange-ui.mjs && node tests/wallet-pin-ui.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.8",
