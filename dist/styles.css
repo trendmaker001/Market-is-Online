@@ -3508,3 +3508,14 @@ body.admin-workspace-active #marketplaceFooter,body.admin-workspace-active #acco
  body:has(#page-earnings.active) #accountFooter .wrap{justify-content:center}
  body:has(#page-earnings.active) #accountFooter{padding:9px 0}
 }
+
+/* Consistent country-first registration and compact international phone fields. */
+.registration-country-first{width:100%;grid-column:1/-1;box-sizing:border-box}
+.registration-uppercase{text-transform:uppercase}
+.registration-phone{display:flex;align-items:stretch;min-width:0;width:100%;border:1px solid #c8ddd2;border-radius:8px;overflow:hidden;background:#fff}
+.registration-phone .registration-dial-code{display:flex;align-items:center;justify-content:center;padding:0 13px;background:#e7f4ed;color:#106e4c;font-weight:700;flex-shrink:0}
+.registration-phone input[type=tel]{flex:1;min-width:0;width:100%;border:0!important;border-radius:0!important;box-shadow:none!important;margin:0}
+.registration-phone:focus-within{outline:2px solid #95cdb3;outline-offset:1px}
+.registration-confirm{min-width:0}
+.registration-confirm[hidden]{display:none!important}
+.earning-back-dates{margin:8px 0}

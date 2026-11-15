@@ -1,0 +1,17 @@
+import {JSDOM} from 'jsdom';
+import {readFile} from 'node:fs/promises';
+import assert from 'node:assert/strict';
+const dom=new JSDOM(`<form id="signupForm"><div class="row"><div class="field"><label for="fullName">Full name</label><input id="fullName" required></div><div class="field"><label for="phone">Phone</label><input id="phone" type="tel" required></div></div><div class="field"><input type="email" id="signupEmail"></div><div class="field"><input id="signupPassword" type="password" required></div><div class="field"><select id="signupCountry"><option value="">Country</option><option>PK</option><option>AE</option><option>US</option><option>IT</option><option>AQ</option></select></div><button type="submit">Join</button></form>`,{runScripts:'outside-only'});
+const w=dom.window,d=w.document;
+w.eval(await readFile('dist/phone-number.js','utf8'));w.eval(await readFile('dist/registration-fields.js','utf8'));
+const r=w.MioRegistration,f=d.querySelector('form'),country=d.getElementById('signupCountry'),name=d.getElementById('fullName'),phone=d.getElementById('phone');r.enhanceCountry(country);
+assert.equal(f.firstElementChild.contains(country),true);
+name.value='sHuJaAt aLi khan';name.dispatchEvent(new w.Event('input'));assert.equal(name.value,'SHUJAAT ALI KHAN');
+const national=d.getElementById('phoneNational');country.value='PK';country.dispatchEvent(new w.Event('change'));assert.equal(d.querySelector('.registration-dial-code').textContent,'+92');national.value='03161234567';national.dispatchEvent(new w.Event('input'));assert.equal(phone.value,'+923161234567');
+assert.equal(r.canonicalPhone('+92 316 1234567','PK'),'+923161234567');assert.equal(r.canonicalPhone('0092 3161234567','PK'),'+923161234567');assert.equal(r.canonicalPhone('06 6982','IT'),'+39066982');assert.throws(()=>r.canonicalPhone('+971501234567','PK'),/match/);
+country.value='AE';country.dispatchEvent(new w.Event('change'));national.value='0501234567';national.dispatchEvent(new w.Event('input'));assert.equal(phone.value,'+971501234567');assert.equal(d.querySelector('.registration-dial-code').textContent,'+971');
+country.value='US';country.dispatchEvent(new w.Event('change'));national.value='2025550123';national.dispatchEvent(new w.Event('input'));assert.equal(phone.value,'+12025550123');
+const password=d.getElementById('signupPassword'),confirm=d.getElementById('signupPasswordConfirm');assert.equal(password.value,'');assert.equal(confirm.value,'');password.value='chosen-password';confirm.value='different-password';let submits=0;f.addEventListener('submit',()=>submits++);f.dispatchEvent(new w.Event('submit',{cancelable:true}));assert.equal(submits,0);assert.match(confirm.validationMessage,/match/);confirm.value=password.value;confirm.dispatchEvent(new w.Event('input'));f.dispatchEvent(new w.Event('submit',{cancelable:true}));assert.equal(submits,1);
+r.mode(f,false);assert.equal(confirm.disabled,true);assert.equal(confirm.required,false);r.prepare(f);r.mode(f,true);assert.equal(confirm.required,true);assert.throws(()=>r.prepare(f),/match/);r.clear(f);assert.equal(confirm.value,'');
+assert.equal(d.querySelector('label[for="phoneNational"]').textContent,'Phone');r.enhanceCountry(country);assert.equal(d.querySelectorAll('.registration-phone').length,1);
+console.log('PASS country-first order, uppercase typing, Pakistan/UAE/US/Italy numbers, pasted international codes, mismatch blocking, signin mode, reset and no auto-generated password');w.close();
