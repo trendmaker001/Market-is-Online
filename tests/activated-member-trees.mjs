@@ -126,4 +126,38 @@ const empty=await freeTree();assert.equal(empty.nodes.length,0);assert.equal(emp
 // Cycle-safe pruning even if an imported snapshot contains a loop.
 const cycle=await one('select private.free_generation_tree_view($1::jsonb)',[JSON.stringify({nodes:[{id:'a',parent_id:'b',package:null},{id:'b',parent_id:'a',package:'PREMIUM'}]})]);assert.equal(cycle.nodes.length,2);
 console.log('PASS activation removes free entries, prunes unused connectors, retains paid and binary placement, and handles empty/cyclic snapshots');
+// Root labels expose the stored side without changing any existing network result.
+const views=['binary','single_line','generation','free_generation','vendor'];
+const snapshots=new Map();
+for(const memberId of [1,3,8]){
+ await q("select set_config('request.jwt.claim.sub',$1,false)",[id(memberId)]);
+ for(const kind of views)snapshots.set(memberId+kind,await one('select public.my_network($1,null,3)',[kind]));
+}
+const placementsBefore=await one("select jsonb_agg(to_jsonb(b) order by member_id) from public.binary_placements b");
+const rootMigration=(await readdir('supabase/migrations')).find(x=>x.endsWith('_tree_root_placement_label.sql'));
+await db.exec(await readFile('supabase/migrations/'+rootMigration,'utf8'));
+for(const memberId of [1,3,8]){
+ await q("select set_config('request.jwt.claim.sub',$1,false)",[id(memberId)]);
+ for(const kind of views){
+  const actual=await one('select public.my_network($1,null,3)',[kind]);
+  if(['binary','single_line'].includes(kind)){
+   const root=actual.nodes.find(n=>n.depth===0);
+   assert.equal(root.actual_placement_side,memberId===1?null:memberId===3?'LEFT':'RIGHT');
+   assert.equal(root.parent_id,null);assert.equal(root.side,null);assert.equal(root.placement_path,'');
+   delete root.actual_placement_side;
+  }
+  assert.deepEqual(actual,snapshots.get(memberId+kind));
+ }
+}
+await q("select set_config('request.jwt.claim.sub',$1,false)",[id(1)]);
+for(const kind of ['binary','single_line']){
+ const subtree=await one('select public.my_network($1,$2,3)',[kind,'MIO-8']);
+ assert.equal(subtree.nodes.find(n=>n.depth===0).actual_placement_side,'RIGHT');
+}
+await q("select set_config('request.jwt.claim.sub',$1,false)",[id(8)]);
+await assert.rejects(()=>one("select public.my_network('binary','MIO-1',3)"),/outside your visible network/);
+await q("select set_config('request.jwt.claim.sub','',false)");
+await assert.rejects(()=>one("select public.my_network('binary',null,3)"),/Active account required/);
+assert.deepEqual(await one("select jsonb_agg(to_jsonb(b) order by member_id) from public.binary_placements b"),placementsBefore);
+console.log('PASS actual root LEFT/RIGHT, no invented founder side, subtree context, unchanged results/placements and access checks');
 await db.close();

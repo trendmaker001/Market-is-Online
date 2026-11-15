@@ -42,4 +42,27 @@ console.log('PASS original four tree layouts, three level-one vendors, Pakistan 
 q.drawNetwork([],'free_generation');assert.match(q.el('networkVisual').textContent,/No free accounts in these levels/);
 assert.ok(w.document.querySelector('[data-network-kind="free_generation"]'));
 console.log('PASS free tree tab, sponsor-only labels, free counts and appropriate detail/empty states');
+for(const kind of ['binary','single_line'])for(const side of ['LEFT','RIGHT',null,'UNKNOWN']){
+ const input=[{...root,actual_placement_side:side},...nodes.slice(1)];
+ const before=JSON.stringify(input);
+ q.drawNetwork(input,kind);
+ const svg=q.el('networkVisual').querySelector('svg');
+ const label=svg.querySelector('.tree-root-placement-label');
+ assert.equal(svg.querySelectorAll('path').length,3,'only existing descendant connectors');
+ if(['LEFT','RIGHT'].includes(side)){
+  assert.equal(label.textContent,side==='LEFT'?'L':'R');
+  const box=svg.querySelector('[data-tree-info="root"]').parentElement.parentElement;
+  assert.equal(+label.getAttribute('x'),+box.getAttribute('x')+68+5);
+  assert.equal(+label.getAttribute('y'),+box.getAttribute('y')-5);
+  assert.equal(label.getAttribute('font-size'),'10');
+ }else assert.equal(label,null,'never guess missing side');
+ assert.equal(JSON.stringify(input),before);
+ q.drawNetwork([{...root,actual_placement_side:side}],kind);
+ assert.equal(q.el('networkVisual').querySelectorAll('path').length,0,'own leaf tree has no incoming line');
+}
+for(const kind of ['generation','free_generation','vendor','pool']){
+ q.drawNetwork([{...root,actual_placement_side:'RIGHT'}],kind);
+ assert.equal(q.el('networkVisual').querySelector('.tree-root-placement-label'),null);
+}
+console.log('PASS root L/R matches original coordinates, no incoming line, descendants unchanged, missing side not guessed');
 w.close();
