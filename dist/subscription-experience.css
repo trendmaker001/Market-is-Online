@@ -3,7 +3,6 @@
 #page-packages .subscription-plan-grid[hidden]{display:none}
 #page-packages .subscription-plan-grid .package{min-width:0}
 #page-packages .subscription-plan-grid .package:last-child:not([data-subscription-plan="PREMIUM"]){background:#fff;border-color:#dce6df}
-#page-packages .subscription-plan-grid .package:last-child:not([data-subscription-plan="PREMIUM"]):before{background:#477e61}
 .subscription-toolbar{margin:0 0 20px}.subscription-toolbar label{display:flex;gap:12px;align-items:center;font-size:13px}.subscription-toolbar select{max-width:230px}
 .member-dashboard-active #page-packages .subscription-toolbar{display:none}
 .subscription-nav-options[hidden]{display:none}.subscription-nav>button>span:last-child{margin-left:auto}
@@ -36,3 +35,110 @@ dialog.action-confirmation::backdrop{background:#0a251bc9;backdrop-filter:blur(3
 .action-confirmation-datetime strong{font-size:13px;color:#234e3c}
 .action-confirmation-card h2{overflow-wrap:anywhere}
 @media(max-width:380px){.action-confirmation-datetime{gap:8px}.action-confirmation-datetime strong{font-size:12px}}
+
+/* Compact original package cards: all purchase actions stay within laptop view. */
+#page-packages>.heading{margin:0 0 10px!important;min-height:0}
+#page-packages>.heading :is(.eyebrow,p){display:none}
+#page-packages.page>.heading h1{font-size:23px;line-height:1.25;margin:0}
+#page-packages .subscription-plan-grid{max-width:1040px;gap:12px;align-items:stretch}
+#page-packages .subscription-plan-grid[data-count="1"]{grid-template-columns:minmax(0,330px)}
+#page-packages .subscription-plan-grid .package{padding:14px 16px 16px;border-radius:13px;box-shadow:0 3px 12px #173f2a06;display:flex;flex-direction:column;transform:none}
+#page-packages .subscription-plan-grid .package:before{height:3px;background:#15815b}
+#page-packages .package h3{font-size:18px;line-height:23px;margin:9px 0 0}
+#page-packages .package .pay{font-size:29px;line-height:34px;margin:7px 0 0;letter-spacing:-.03em}
+#page-packages .package .pay small{font-size:11px;letter-spacing:0}
+#page-packages .package-cost{font-size:11px;line-height:16px;margin:2px 0 9px}
+#page-packages .package dl{font-size:12px;gap:7px 8px;margin:0;padding:10px 0}
+#page-packages .package dt{line-height:16px}
+#page-packages .package dd{line-height:16px}
+#page-packages .package .plain-details{margin:8px 0 0;font-size:11px;padding:0}
+#page-packages .package .plain-details summary{padding:6px 0;min-height:28px;cursor:pointer}
+#page-packages .package .activate-package{min-height:40px;margin-top:10px;padding:9px 10px;font-size:12px;display:flex;align-items:center;justify-content:center;gap:8px}
+#page-packages .package .activate-package svg{width:17px;height:17px;flex-shrink:0}
+.package-badges{display:flex;align-items:center;justify-content:space-between;gap:6px;min-height:22px;flex-wrap:wrap}
+#page-packages .package .pill,.plan-status{font-size:9px;line-height:14px;padding:3px 7px;border-radius:6px;white-space:nowrap}
+.plan-status.current{background:#0a8054;color:white;font-weight:700}
+.plan-status.lower{background:#ffebea;color:#ac2828;font-weight:700}
+#page-packages .package .plan-locked{background:#fff6f5;border:1px solid #d95050;color:#b32828;box-shadow:none}
+#page-packages .subscription-plan-grid .package[data-plan-state="lower"]:before{background:#cb5555}
+.subscription-current{margin:0 0 10px;font-size:12px;color:#35634b;line-height:20px}
+.subscription-toolbar{margin-bottom:10px}
+.subscription-mobile-tabs,.subscription-mobile-pager{display:none}
+.subscription-mobile-tabs[hidden],.subscription-mobile-pager[hidden]{display:none!important}
+body:has(#page-packages.active) .member-page-content{padding-top:14px;padding-bottom:14px}
+body:has(#page-packages.active) .member-account-shell{margin-bottom:12px}
+@media(min-width:901px){body:has(#page-packages.active) .member-sidebar{height:calc(100dvh - 170px);min-height:440px;max-height:calc(100dvh - 120px)}}
+@media(max-width:760px){
+ #page-packages.page>.heading h1{font-size:21px}
+ #page-packages .subscription-plan-grid,#page-packages .subscription-plan-grid[data-count="1"]{grid-template-columns:minmax(0,1fr);max-width:440px;margin:auto}
+ #page-packages .subscription-plan-grid .package:not(.mobile-selected){display:none}
+ .subscription-mobile-tabs{display:flex;gap:6px;max-width:440px;margin:0 auto 10px}
+ .subscription-mobile-tabs button{flex:1;min-width:0;border:1px solid #cfe1d7;background:#fff;color:#214f3b;border-radius:8px;min-height:36px;padding:6px 8px;font-size:12px;font-weight:650}
+ .subscription-mobile-tabs button[aria-pressed="true"]{background:#0a8054;color:white;border-color:#0a8054}
+ .subscription-mobile-pager{display:flex;align-items:center;justify-content:space-between;max-width:440px;margin:8px auto 0;font-size:12px}
+ .subscription-mobile-pager button{width:36px;height:32px;border:1px solid #cfe1d7;background:white;color:#096442;border-radius:8px;font-size:24px;line-height:1;cursor:pointer}
+ .subscription-mobile-pager button:disabled{opacity:.35;cursor:default}
+ #page-packages .package dl{gap:6px 8px}
+ #page-packages .subscription-plan-grid .package{padding:12px 14px}
+ #page-packages .package .activate-package{min-height:42px}
+}
+/* Selected emerald/gold confirmation: one compact metadata row, including on mobile. */
+.subscription-confirmation .action-confirmation-card{padding:22px 24px 16px;border:1px solid #cce6d6;border-radius:22px;background:radial-gradient(ellipse at 20% 0%,#effaf2 0,transparent 34%),#fff}
+.confirmation-brand{display:block;width:220px;height:36px;object-fit:contain;margin:0 auto 12px;max-width:calc(100% - 65px)}
+.subscription-confirmation .action-confirmation-mark{width:48px;height:48px;font-size:29px;margin:0 auto 13px;box-shadow:0 0 0 5px #eaf8ef,0 0 0 6px #e7bd60}
+.confirmation-kicker{display:flex;align-items:center;justify-content:center;gap:10px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:750;margin-bottom:10px}
+.confirmation-kicker:before,.confirmation-kicker:after{content:'';width:25px;height:1px;background:#d7ad4e}
+.subscription-confirmation h2{font-size:28px;line-height:1.15;margin:0 8px 9px}
+.subscription-confirmation .action-confirmation-message{font-size:14px;line-height:1.4;margin:0 0 8px}
+.subscription-confirmation .action-confirmation-welcome{font-size:12px;line-height:1.5;margin:0 0 14px}
+.subscription-confirmation .action-confirmation-value{padding:14px 12px;gap:6px;position:relative;overflow:hidden;background:radial-gradient(ellipse at 15% 0,#0c8860,transparent 65%),linear-gradient(130deg,#076c49,#024333)}
+.subscription-confirmation .action-confirmation-value:after{content:'';position:absolute;width:130%;height:180px;border:1px solid #b7a55260;border-radius:50%;left:-15%;bottom:25px;pointer-events:none}
+.subscription-confirmation .action-confirmation-value>*{position:relative;z-index:1}
+.subscription-confirmation .action-confirmation-value strong{font-size:32px;line-height:1.15}
+.subscription-confirmation .action-confirmation-value em{background:#e1f8e7;color:#12563b}
+.action-confirmation-datetime.with-country{grid-template-columns:1fr 1.12fr 1fr;gap:0;margin-top:14px;padding-top:12px}
+.action-confirmation-datetime.with-country>div{min-width:0;padding:0 9px;border-right:1px solid #d8e6df}
+.action-confirmation-datetime.with-country>div:first-child{padding-left:0}
+.action-confirmation-datetime.with-country>div:last-child{border:0;padding-right:0}
+.action-confirmation-datetime.with-country>div>span{font-size:9px;letter-spacing:.06em}
+.action-confirmation-datetime.with-country strong{font-size:12px;line-height:18px;white-space:nowrap}
+.confirmation-country{display:flex;align-items:center;gap:5px;min-width:0}
+.confirmation-country img,.confirmation-country>span[aria-hidden]{flex-shrink:0}
+.action-confirmation-datetime .confirmation-country>span:last-child{font:inherit;color:inherit;letter-spacing:0;text-transform:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.subscription-confirmation .action-confirmation-hint{margin-top:12px;padding-top:11px;border-top:1px solid #e0ebe5;font-size:11px}
+.action-confirmation-mark svg{width:32px;height:32px}
+.confirmation-upgrades{font-size:13px;color:#365f49;line-height:1.5}
+.confirmation-upgrade{width:100%;margin-top:4px}
+@media(max-width:600px){
+ .subscription-confirmation .action-confirmation-card{padding:19px 16px 14px}
+ .subscription-confirmation h2{font-size:25px}
+ .subscription-confirmation .action-confirmation-welcome{font-size:12px}
+ .subscription-confirmation .action-confirmation-value{padding:13px 10px}
+ .subscription-confirmation .action-confirmation-datetime strong{font-size:10px}
+ .subscription-confirmation .action-confirmation-datetime.with-country>div{padding:0 6px}
+ .subscription-confirmation .action-confirmation-datetime.with-country>div:first-child{padding-left:0}
+ .subscription-confirmation .action-confirmation-datetime.with-country>div:last-child{padding-right:0}
+ .subscription-confirmation .confirmation-country{gap:3px}
+ .subscription-confirmation .confirmation-country img{width:15px;height:11px}
+}
+
+@media(max-width:380px){
+ .subscription-confirmation .action-confirmation-card{padding:16px 12px 12px}
+ .subscription-confirmation .confirmation-brand{height:30px;margin-bottom:9px}
+ .subscription-confirmation .action-confirmation-mark{width:40px;height:40px;font-size:25px;margin-bottom:10px}
+ .subscription-confirmation .confirmation-kicker{font-size:9px;letter-spacing:.08em;gap:6px;white-space:nowrap;margin-bottom:8px}
+ .subscription-confirmation h2{font-size:22px;margin-bottom:8px}
+ .subscription-confirmation .action-confirmation-message{font-size:12px}
+ .subscription-confirmation .action-confirmation-welcome{font-size:11px;margin-bottom:10px}
+ .subscription-confirmation .action-confirmation-value{padding:10px;gap:5px}
+ .subscription-confirmation .action-confirmation-value strong{font-size:28px}
+ .subscription-confirmation .action-confirmation-datetime{margin-top:10px;padding-top:10px}
+ .subscription-confirmation .action-confirmation-hint{font-size:10px;margin-top:9px;padding-top:9px}
+}
+@media(max-width:760px) and (max-height:700px){
+ body:has(#page-packages.active) .member-page-content{padding-top:8px;padding-bottom:8px}
+ #page-packages .subscription-current{margin-bottom:6px}
+ #page-packages .subscription-mobile-tabs{margin-bottom:7px}
+ #page-packages .package dl{gap:4px 8px;padding:8px 0}
+ #page-packages .package .plain-details{margin-top:4px}
+}

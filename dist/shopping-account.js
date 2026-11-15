@@ -4,7 +4,7 @@
  const money=n=>'PKR '+new Intl.NumberFormat('en-PK',{maximumFractionDigits:2}).format(Number(n||0));
  const label=s=>String(s||'').replaceAll('_',' ');
  const orderLabel=s=>({placed:'Order placed',confirmed:'Confirmed',processing:'Preparing',shipped:'On the way',delivered:'Delivered',cancelled:'Cancelled',returned:'Returned'})[s]||label(s);
- const orderDate=value=>new Intl.DateTimeFormat('en-PK',{day:'numeric',month:'short',year:'numeric',timeZone:'Asia/Karachi'}).format(new Date(value));
+ const orderDate=value=>new Intl.DateTimeFormat('en-PK',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'}).format(new Date(value));
  function create({db,getSession,go,toast,submit,refreshIdentity,authenticate,countrySearch,countries=[]}){
   let identity=null,owner=null,orders=[],accounts=[],adminData=null,section="orders",paymentOrder=null,focusedOrder=null,authContext={},accountRequest=0,adminFilter="submitted",adminSearch="",orderSearch="",orderFilter="all",orderPage=1;
   const rpc=async(name,args)=>{const {data,error}=await db.rpc(name,args);if(error)throw error;return data};

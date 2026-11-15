@@ -125,4 +125,12 @@ report=await one("select my_vendor_report('2026-11-11','2026-11-11',$1,1)",[sell
 assert.equal((await one("select my_vendor_report('2026-11-10','2026-11-10',$1,1)",[sellerVendor])).summary.orders,0);
 await q("update order_items set fulfillment_status='returned' where order_id=$1",[oid]);assert.equal((await one('select my_vendor_report()')).summary.sales,0);
 console.log('PASS report totals, PK date boundaries, returned-item exclusion and customer privacy');
+await (await import('./utc-reporting-helper.mjs')).applyUtcReporting(db);
+await q("update order_items set fulfillment_status='delivered' where order_id=$1",[oid]);
+assert.equal((await one("select my_vendor_report('2026-11-10','2026-11-10',$1,1)",[sellerVendor])).summary.orders,1);
+assert.equal((await one("select my_vendor_report('2026-11-11','2026-11-11',$1,1)",[sellerVendor])).summary.orders,0);
+await q("update orders set created_at='2026-11-11T00:00:00Z' where id=$1",[oid]);
+assert.equal((await one("select my_vendor_report('2026-11-11','2026-11-11',$1,1)",[sellerVendor])).summary.orders,1);
+assert.equal((await one("select my_vendor_report('2026-11-10','2026-11-10',$1,1)",[sellerVendor])).summary.orders,0);
+console.log('PASS UTC vendor order day boundaries and unchanged reporting security');
 await db.close();

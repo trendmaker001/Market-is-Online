@@ -4,7 +4,7 @@ window.MioAdminMember={create(api){
  let member=null,record=null,owner=null,sequence=0,tab='dashboard',data={},errors={},busy=false,networkKind='generation',networkRootCode=null,networkSequence=0;
  let presentation=null,walletHistory=null,selectedWallet='cash';
  const tabs=[['dashboard','Dashboard'],['profile','Profile'],['wallets','Wallets'],['network','Tree / Network'],['earnings','Earnings'],['packages','Packages'],['orders','Orders'],['transactions','Transactions']];
- const n=v=>Number(v||0).toLocaleString('en-PK',{maximumFractionDigits:4}),date=v=>v?new Date(v).toLocaleDateString('en-GB',{timeZone:'Asia/Karachi'}):'—';
+ const n=v=>Number(v||0).toLocaleString('en-PK',{maximumFractionDigits:4}),date=v=>v?new Date(v).toLocaleDateString('en-GB',{timeZone:'UTC'}):'—';
  const $=s=>root.querySelector(s),valid=t=>authorized()&&identity()===owner&&t===sequence;
  async function result(q){const r=await q;if(r.error)throw r.error;return r.data;}
  async function all(table,fields,key,id){let rows=[];for(let start=0;;start+=1000){const page=await result(db.from(table).select(fields).eq(key,id).order('created_at').order('id').range(start,start+999));rows.push(...(page||[]));if(!page||page.length<1000)return rows;}}

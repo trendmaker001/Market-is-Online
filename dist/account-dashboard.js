@@ -3,7 +3,7 @@ window.createMioDashboardPresentation=(scope=document)=>{
  const $=id=>scope===document?document.getElementById(id):scope.querySelector(`[data-dashboard-id="${id}"], [id="${id}"]`);
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const number=(n,d=2)=>new Intl.NumberFormat('en-US',{minimumFractionDigits:d>2?2:0,maximumFractionDigits:Math.min(d,4)}).format(Number(n)||0);
- const date=v=>v?new Date(v).toLocaleDateString('en-GB',{timeZone:'Asia/Karachi',day:'2-digit',month:'long',year:'numeric'}):'—';
+ const date=v=>v?new Date(v).toLocaleDateString('en-GB',{timeZone:'UTC',day:'2-digit',month:'long',year:'numeric'}):'—';
  const regionNames=typeof Intl.DisplayNames==='function'?new Intl.DisplayNames(['en'],{type:'region'}):null;
  const countryFlag=code=>{const clean=String(code||'').toUpperCase();if(clean==='PK')return '<img src="/assets/flag-pk.svg" alt="" width="24" height="16">';return /^[A-Z]{2}$/.test(clean)?String.fromCodePoint(...[...clean].map(c=>127397+c.charCodeAt(0))):'🌐'};
  const countryName=code=>{const clean=String(code||'').toUpperCase();return /^[A-Z]{2}$/.test(clean)?(regionNames?.of(clean)||clean):'Country not set'};

@@ -13,7 +13,7 @@
   async function refresh(){
    if(!authorized()){clear();return;}const uid=identity();if(owner!==uid){clear();owner=uid;}
    const data=await call('admin_network_control_summary');if(!authorized()||identity()!==uid)return;
-   summary=data;cards();$('networkSummaryStatus').textContent='Updated '+new Date(data.as_of).toLocaleTimeString()+' · Member counts exclude company';
+   summary=data;cards();$('networkSummaryStatus').textContent='Updated '+new Date(data.as_of).toLocaleTimeString('en-GB',{timeZone:'UTC',hour12:false})+' UTC'+' · Member counts exclude company';
    if(active)await render();
   }
   function pager(total){return `<div class="network-ledger-pager"><span>${total?offset+1:0}–${Math.min(offset+25,total)} of ${total}</span><button class="btn small" type="button" data-ledger-page="-1" ${offset===0?'disabled':''}>Previous</button><button class="btn small" type="button" data-ledger-page="1" ${offset+25>=total?'disabled':''}>Next</button></div>`;}
@@ -31,7 +31,7 @@
    try{
     const data=key==='exchange'?await call('admin_network_control_exchange',{p_offset:offset,p_limit:25,p_search:search}):fees?await call('admin_network_control_fees',{p_kind:fee,p_offset:offset,p_limit:25}):await call(key==='members'?'admin_network_control_registered_members':'admin_network_control_members',{p_offset:offset,p_limit:25,p_package:filter||null,p_search:search});if(!valid())return;
     const cols=key==='members'?['proceed','cash','shopping','promotion']:fees?[]:[key];
-    $('networkLedger').innerHTML=`<div class="network-ledger-scroll"><table class="admin-preview-table"><thead><tr><th>Member</th><th>${fees?'Date':'Package'}</th>${fees?'<th>Reference</th><th>Fee (MIO)</th>':cols.map(k=>`<th>${({proceed:'Proceed (MIO)',cash:'Cash (MIO)',exchange:'Exchange (MIO)',shopping:'Shopping points',promotion:'Promotion points'})[k]}</th>`).join('')}</tr></thead><tbody>${data.rows.map(r=>`<tr><td><strong>${esc(r.full_name||'Member')}</strong><small>${esc(r.member_code||'—')}</small></td><td>${fees?esc(new Date(r.created_at).toLocaleString()):esc(title(r.package_code))}</td>${fees?`<td>${esc(title(r.reference))}</td><td>${amount(r.amount)}</td>`:cols.map(k=>`<td>${amount(r[k])}</td>`).join('')}</tr>`).join('')||`<tr><td colspan="6">No matching records.</td></tr>`}</tbody></table></div>${pager(data.total)}`;
+    $('networkLedger').innerHTML=`<div class="network-ledger-scroll"><table class="admin-preview-table"><thead><tr><th>Member</th><th>${fees?'Date':'Package'}</th>${fees?'<th>Reference</th><th>Fee (MIO)</th>':cols.map(k=>`<th>${({proceed:'Proceed (MIO)',cash:'Cash (MIO)',exchange:'Exchange (MIO)',shopping:'Shopping points',promotion:'Promotion points'})[k]}</th>`).join('')}</tr></thead><tbody>${data.rows.map(r=>`<tr><td><strong>${esc(r.full_name||'Member')}</strong><small>${esc(r.member_code||'—')}</small></td><td>${fees?esc(new Date(r.created_at).toLocaleString('en-GB',{timeZone:'UTC',hour12:false})+' UTC'):esc(title(r.package_code))}</td>${fees?`<td>${esc(title(r.reference))}</td><td>${amount(r.amount)}</td>`:cols.map(k=>`<td>${amount(r[k])}</td>`).join('')}</tr>`).join('')||`<tr><td colspan="6">No matching records.</td></tr>`}</tbody></table></div>${pager(data.total)}`;
    }catch(e){if(valid())$('networkLedger').textContent='Could not load records: '+e.message;}
   }
   async function open(key){if(owner!==identity()){clear();owner=identity();}active=key;offset=0;filter='';search='';fee='subscription';if(!summary||owner!==identity()){await refresh();}else await render();}

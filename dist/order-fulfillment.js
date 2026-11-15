@@ -3,7 +3,7 @@
  'use strict';
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const money=n=>'PKR '+Number(n||0).toLocaleString('en-PK',{minimumFractionDigits:2,maximumFractionDigits:2});
- const date=s=>new Date(s).toLocaleDateString('en-GB',{timeZone:'Asia/Karachi',day:'2-digit',month:'short',year:'numeric'});
+ const date=s=>new Date(s).toLocaleDateString('en-GB',{timeZone:'UTC',day:'2-digit',month:'short',year:'numeric'});
  const stages=['placed','confirmed','processing','shipped','delivered'];
  const stageName=s=>({placed:'Pending',confirmed:'Accepted',processing:'Processing',shipped:'Dispatched',delivered:'Delivered',cancelled:'Cancelled',returned:'Returned'})[s]||s;
  const imageUrl=s=>/^(https:\/\/[^\s]+|\/[a-z0-9][^\s]*)$/i.test(s||'')?s:'';

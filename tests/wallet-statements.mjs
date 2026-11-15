@@ -65,4 +65,15 @@ await as(id(2));await assert.rejects(one("select admin_set_proceed_minimum(20) v
 const full=await one("select convert_all_proceed_wallet('1234','all-balance-request') v");assert.equal(Number(full.proceed_debited),50);assert.equal(Number((await history('proceed')).balance),0);const cashAfter=Number((await history()).balance);await one("select convert_all_proceed_wallet('1234','all-balance-request') v");assert.equal(Number((await history()).balance),cashAfter);await assert.rejects(one("select convert_all_proceed_wallet('1234','below-minimum') v"),/Minimum/);
 await as(id(1));await q("select set_config('test.totp','no',false)");await assert.rejects(one('select admin_set_proceed_minimum(20) v'),/Authenticator/);await q("select set_config('test.totp','yes',false)");const cfg=await one('select admin_set_proceed_minimum(20) v');assert.equal(cfg.minimum_mio,20);assert.equal(cfg.cash_rate,.75);assert.equal(await one("select config_key v from system_config limit 1"),'PROCEED_WALLET_CONFIG');await assert.rejects(one('select admin_set_proceed_minimum(null) v'),/minimum/);await assert.rejects(one("select admin_set_proceed_minimum('NaN') v"),/minimum/);assert.equal(await one("select has_function_privilege('anon','public.convert_all_proceed_wallet(text,text)','execute') v"),false);
 console.log('PASS full-balance conversion replay, proceeded-only filter, admin minimum authentication and preservation of allocation rates');
+await (await import('./utc-reporting-helper.mjs')).applyUtcReporting(db);
+await as(id(1));
+const balanceBeforeUtc=(await history()).balance;
+assert.equal((await history('cash','2026-11-10','2026-11-10')).total,0,'19:00 UTC stays on November 9');
+await q(`insert into mio_ledger(id,member_id,amount,action,created_at) values($1,$3,1,'admin_mint','2026-11-09T23:59:59Z'),($2,$3,1,'admin_mint','2026-11-10T00:00:00Z')`,[id(201),id(202),id(1)]);
+const utcDay=await history('cash','2026-11-10','2026-11-10');assert.deepEqual(utcDay.rows.map(r=>r.id),[id(202)]);assert.equal(utcDay.balance,balanceBeforeUtc);
+const previousDay=await history('cash','2026-11-09','2026-11-09');assert.ok(previousDay.rows.some(r=>r.id===id(201)));assert.ok(!previousDay.rows.some(r=>r.id===id(202)));
+await q(`update proceed_wallet_conversions set created_at='2026-11-09T23:59:59Z' where id=$1`,[id(10)]);
+assert.ok((await one("select admin_proceed_fee_history('2026-11-09','2026-11-09') v")).rows.some(r=>r.id===id(10)));
+assert.ok(!(await one("select admin_proceed_fee_history('2026-11-10','2026-11-10') v")).rows.some(r=>r.id===id(10)));
+console.log('PASS UTC midnight wallet/fee filters, unchanged balances and preserved database security');
 console.log('PASS wallet separation, balances, fee reclassification/replay, conversion/retries, receipt split, historical routing, ecommerce, local-date bounds and admin/own access');await db.close();

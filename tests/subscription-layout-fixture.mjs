@@ -1,0 +1,21 @@
+// Render the real application shell with synthetic data for desktop/mobile browser QA.
+import {mkdir,writeFile,cp} from 'node:fs/promises';
+export async function render({q,w,dom}){
+ const out=process.env.MIO_LAYOUT_SNAPSHOTS;
+ q.setSession({user:{id:'layout-fixture',email:'fixture@example.invalid'}});q.setProfile({user_id:'layout-fixture',full_name:'TEST8',country_code:'PK'});q.setAdmin(false);q.setRouteReady(false);q.setEarningData([],[],'ADVANCED_1');q.updateAuthNavigation();q.go('packages');q.renderPackages();
+ w.document.documentElement.classList.remove('route-restoring');
+ const copy=new w.DOMParser().parseFromString(dom.serialize(),'text/html');copy.querySelectorAll('script').forEach(s=>s.remove());
+ const boot=`<script src="/subscription-plans.js"></script><script src="/action-confirmation.js"></script><script>
+const plans=${JSON.stringify(q.packages)};
+MioActionConfirmation.setIdentity('layout-fixture');
+MioSubscriptions.mount({current:()=> 'ADVANCED_1',owner:()=> 'layout-fixture',go:()=>{},rpc:async()=>({data:[]})});MioSubscriptions.render(plans);
+document.addEventListener('click',e=>{const b=e.target.closest('.activate-package');if(b){if(MioSubscriptions.blockPurchase(b.dataset.code))return;const p=plans.find(x=>x.code===b.dataset.code);MioActionConfirmation.show({kind:'subscription',owner:'layout-fixture',name:'TEST8',country:'PK',plan:p.name,amount:p.payable,date:'2026-11-15T14:26:16Z'})}});
+window.fixtureSuccess=()=>MioActionConfirmation.show({kind:'subscription',owner:'layout-fixture',name:'TEST8',country:'PK',plan:'Basic',amount:22,date:'2026-11-15T14:26:16Z'});
+window.layoutReport=()=>{const visible=n=>getComputedStyle(n).display!=='none'&&n.getBoundingClientRect().width>0,rect=n=>{const r=n.getBoundingClientRect();return{x:r.x,y:r.y,w:r.width,h:r.height,bottom:r.bottom}},cards=[...document.querySelectorAll('.subscription-plan-grid>.package')].filter(visible),dialog=document.querySelector('dialog.action-confirmation');return {width:innerWidth,height:innerHeight,scrollWidth:document.documentElement.scrollWidth,cards:cards.map(n=>({plan:n.dataset.subscriptionPlan,...rect(n),button:rect(n.querySelector('.activate-package'))})),dialog:dialog?rect(dialog):null,metadata:dialog?[...dialog.querySelectorAll('.action-confirmation-datetime strong')].map(n=>({text:n.textContent,...rect(n),clipped:n.scrollWidth>n.clientWidth})):[]}};
+</script>`;
+ await mkdir(out+'/dist',{recursive:true});await mkdir(out+'/.openai',{recursive:true});await cp('dist',out+'/dist',{recursive:true});
+ await writeFile(out+'/.openai/hosting.json',JSON.stringify({static:{directory:'dist'}}));
+ await writeFile(out+'/dist/snapshot.html','<!doctype html>'+copy.documentElement.outerHTML.replace('</body>',boot+'</body>'));
+ await writeFile(out+'/dist/index.html',`<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>Market Is Online layout checks</title><style>body{margin:0;background:#e6ede9;font:14px system-ui}header{display:flex;gap:12px;padding:10px;align-items:center;background:white;flex-wrap:wrap}button,select{padding:8px}iframe{display:block;border:1px solid #9fb5a8;margin:12px auto;background:white}pre{white-space:pre-wrap;font:12px monospace;margin:12px}</style><header><b>Layout QA · synthetic account</b><label>Viewport <select id="size"><option>1366x650</option><option>1366x768</option><option>390x844</option><option>360x740</option><option>320x640</option></select></label><button id="success">Show confirmation</button><button id="close">Close card</button><button id="check">Check layout</button></header><iframe title="Website preview" id="preview" src="/snapshot.html"></iframe><pre id="report"></pre><script>const frame=document.getElementById('preview'),size=document.getElementById('size');function resize(){const [w,h]=size.value.split('x');frame.width=w;frame.height=h}resize();size.onchange=resize;document.getElementById('success').onclick=()=>frame.contentWindow.fixtureSuccess();document.getElementById('close').onclick=()=>frame.contentWindow.MioActionConfirmation.clear();document.getElementById('check').onclick=()=>document.getElementById('report').textContent=JSON.stringify(frame.contentWindow.layoutReport(),null,2);</script>`);
+ console.log('Layout fixtures ready:',out);
+}

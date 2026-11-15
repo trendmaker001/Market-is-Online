@@ -2,7 +2,7 @@
 (function(){
  'use strict';
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- const dates=s=>s?new Date(s).toLocaleString('en-GB',{timeZone:'Asia/Karachi',day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'';
+ const dates=s=>s?new Date(s).toLocaleString('en-GB',{timeZone:'UTC',day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'';
  const labels={pending_admin:'Awaiting admin review',pending_sponsor:'Awaiting sponsor review',awaiting_founder:'Awaiting Founder placement',completed:'Membership complete',declined:'Request declined'};
  const glyph=(shape)=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${shape}</svg>`;
  const icons={sales:glyph('<path d="M4 7h16l1 14H3zM8 7V5a4 4 0 0 1 8 0v2"/>'),team:glyph('<circle cx="12" cy="5" r="3"/><circle cx="5" cy="19" r="3"/><circle cx="19" cy="19" r="3"/><path d="M12 8v5M5 16v-3h14v3"/>'),community:glyph('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c5 6 5 12 0 18-5-6-5-12 0-18Z"/>'),rank:glyph('<path d="m12 3 3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1Z"/>'),message:glyph('<rect x="3" y="4" width="18" height="14" rx="3"/><path d="m7 18-3 4v-6M7 9h10M7 13h6"/>')};

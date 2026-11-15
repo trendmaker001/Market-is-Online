@@ -38,4 +38,11 @@ await as(1);await q('update private.exchange_wallet_accounts set balance=1100 wh
 const whole=await send(8,'550.0000','exact-whole-550');assert.equal(await balance(8),550);assert.equal(await balance(1,'private.exchange_wallet_accounts'),550);assert.equal(Number(await one('select amount v from private.exchange_transfers where id=$1',[whole])),550);
 const fractional=await send(8,'549.9994','exact-fraction-550');assert.equal(await balance(8),1099.9994);assert.equal(await balance(1,'private.exchange_wallet_accounts'),0.0006);assert.equal(Number(await one('select amount v from mio_ledger where transfer_id=$1',[fractional])),549.9994);
 console.log('PASS 550 sends and receives exactly 550; 549.9994 retains all four decimals without a receiver deduction');
+await (await import('./utc-reporting-helper.mjs')).applyUtcReporting(db);
+await q("update private.exchange_transfers set created_at='2026-12-31T23:59:59Z' where id=$1",[whole]);
+await q("update private.exchange_transfers set created_at='2027-01-01T00:00:00Z' where id=$1",[fractional]);
+const year2026=await one('select my_exchange_wallet(2026) v'),year2027=await one('select my_exchange_wallet(2027) v');
+assert.ok(year2026.rows.some(r=>r.id===whole));assert.ok(!year2026.rows.some(r=>r.id===fractional));
+assert.equal(year2027.total,1);assert.equal(year2027.rows[0].id,fractional);assert.equal(await balance(1,'private.exchange_wallet_accounts'),0.0006);
+console.log('PASS UTC year boundary exchange filters without changing balances');
 await db.close();
