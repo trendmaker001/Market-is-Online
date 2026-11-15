@@ -19,7 +19,8 @@
     "test:registration": "node tests/registration-fields.mjs && node tests/registration-database.mjs && node tests/registration-links.mjs",
     "test:subscriptions": "node tests/subscription-display-database.mjs && node tests/activation-balance-details.mjs && node tests/subscription-experience.mjs && MIO_SUBSCRIPTION_TEST=1 node tests/interface.mjs && node tests/exchange-ui.mjs && node tests/wallet-pin-ui.mjs",
     "test:transaction-security": "node tests/transaction-authorization.mjs && node tests/transaction-security-database.mjs && node tests/wallet-pin-ui.mjs",
-    "test:qualification": "node tests/qualification-earnings-package.mjs && node tests/account-dashboard.mjs"
+    "test:qualification": "node tests/qualification-earnings-package.mjs && node tests/account-dashboard.mjs",
+    "test:tree": "node tests/tree-presentation.mjs && node tests/interface.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.8",

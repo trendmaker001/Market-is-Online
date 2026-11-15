@@ -344,4 +344,11 @@ for(const [state,label] of [['active','Active'],['suspended','Suspended'],['clos
 }
 console.log('PASS dynamic active/inactive/suspended/terminated badge, expiry priority, restricted view, admin snapshots, Pakistan image and visible share/next-rank labels');
 
+for(const [value,display] of [[988.444,'988.44'],[6.9,'6.90'],[0,'0.00']]){
+ const root=dd.createElement('div');root.innerHTML='<div id="page-dashboard"></div><div id="dashboardProfile"></div><div id="dashboardReceiveCode"></div><button id="dashboardCopyCode"></button>';dd.body.append(root);const presentation=ww.createMioDashboardPresentation(root);
+ const summary={...dashboardData,account_status:'active',package_active:true,manager_program:{...managerData,total_earnings:value}};
+ presentation.renderSnapshot({summary,financial:{earned:value},incomeWallets:{},maintenanceStatus:maintenanceData,rewardPreference:{}},{safeImage:v=>v,planName:()=> 'Gold',tierImage:()=>'/assets/tree-plan-advanced-2.svg'});
+ assert.equal(root.querySelector('.dashboard-total-earned strong').textContent.trim(),display+' MIO');assert.equal(summary.manager_program.total_earnings,value);presentation.dispose();root.remove();
+}
+console.log('PASS Total Earnings displays exactly two decimals without changing source amounts');
 await new Promise(r=>setTimeout(r,100));w.close();ww.close();
