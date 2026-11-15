@@ -1,0 +1,47 @@
+import {readFile} from 'node:fs/promises';
+import assert from 'node:assert/strict';
+import {JSDOM} from 'jsdom';
+
+const source=await readFile('dist/app.js','utf8');
+const render=source.slice(source.indexOf('function renderFinancePanels('),source.indexOf('// Shared calendar and compact ledger presentation.'));
+const dom=new JSDOM(['masterAccounting','systemAccounting','companyEarningsReport','companyHeldReport','companyLeftoverReport'].map(id=>`<section id="${id}"></section>`).join(''),{runScripts:'outside-only'});
+const w=dom.window;
+w.eval(`const el=id=>document.getElementById(id),esc=s=>String(s??''),mioFmt=n=>Number(n||0).toFixed(2)+' MIO',money=n=>'PKR '+Number(n||0).toFixed(2),dateLabel=()=>'',bonusLabel=s=>s,enhanceResponsiveTables=()=>{},session=null,db={};window.createMioWalletHistory=()=>({mount(){},setIdentity(){},refresh(){},dispose(){}});${render}`);
+w.HTMLElement.prototype.scrollIntoView=()=>{};
+const finalCategories=['monthly_maintenance_leftover','network_formula_leftover','binary_pool_leftover','vendor_award_leftover','product_award_leftover','ecommerce_conversion_leftover','shopping_conversion_leftover','ecommerce_leftover'];
+const pendingCategories=['generation_levels_pending','generation_manager_pending','generation_global_pending','binary_placement_pending','binary_pool_pending','binary_manager_pending','binary_global_pending','direct_generation_leftover','single_line_leftover','ecommerce_missing_recipient'];
+const sources=[...finalCategories.map(category=>({category,currency:category.startsWith('monthly')||category.startsWith('network')||category.startsWith('binary')?'MIO':'PKR',amount:2})),...pendingCategories.map(category=>({category,currency:'MIO',amount:10})),{category:'package_company_fee',currency:'MIO',amount:5}];
+const s={company_sources:sources,binary_reserved_mio:10};
+const d={pending_bonuses:[{method:'direct',status:'pending',currency:'MIO',payable_amount:3},{method:'generation',status:'posted',currency:'MIO',payable_amount:99},{method:'single_line',status:'pending',currency:'PKR',payable_amount:7}]};
+const before=JSON.stringify({s,d});
+const metric=(label,value)=>`<div data-metric="${label}"><b>${value}</b></div>`;
+const value=(id,label)=>w.document.getElementById(id).querySelector(`[data-metric="${label}"] b`).textContent;
+w.renderFinancePanels(s,d,metric,String,{});
+assert.equal(value('masterAccounting','Company MIO · actual'),'11.00 MIO');
+assert.equal(value('masterAccounting','Company PKR · actual'),'PKR 10.00');
+assert.equal(value('masterAccounting','Held for members / level fills'),'103.00 MIO · PKR 7.00');
+assert.equal(value('companyLeftoverReport','Leftover MIO'),'6.00 MIO');
+assert.equal(value('companyLeftoverReport','Leftover PKR'),'PKR 10.00');
+assert.equal(value('companyLeftoverReport','Recorded sources'),'8');
+for(const category of pendingCategories)assert.equal(w.document.querySelector(`[data-company-source="${category}|MIO"]`),null);
+for(const category of finalCategories)assert.doesNotMatch(w.document.getElementById('companyHeldReport').textContent,new RegExp(category.replaceAll('_',' ')));
+w.document.querySelector('[data-company-wallet="binary"]').click();
+assert.match(w.document.getElementById('companyWalletDetails').textContent,/10.00 MIO/);
+assert.doesNotMatch(w.document.getElementById('companyWalletDetails').textContent,/12.00 MIO/);
+assert.match(w.document.getElementById('companyLeftoverReport').textContent,/already included in Company Earnings/);
+assert.equal(JSON.stringify({s,d}),before,'Rendering must never mutate balances or input records');
+// A settled cycle moves from held to leftover without increasing combined source totals.
+const base={company_sources:[{category:'binary_pool_pending',currency:'MIO',amount:20},{category:'binary_pool_leftover',currency:'MIO',amount:0}],binary_reserved_mio:20};
+w.renderFinancePanels(base,{},metric,String,{});
+assert.equal(value('masterAccounting','Held for members / level fills'),'20.00 MIO');
+base.company_sources[0].amount=12;base.company_sources[1].amount=8;base.binary_reserved_mio=12;
+w.renderFinancePanels(base,{},metric,String,{});
+assert.equal(value('masterAccounting','Held for members / level fills'),'12.00 MIO');
+assert.equal(value('companyLeftoverReport','Leftover MIO'),'8.00 MIO');
+assert.equal(value('masterAccounting','Company MIO · actual'),'8.00 MIO');
+// Old responses with no source row still retain the reserve exactly once.
+w.renderFinancePanels({company_sources:[],binary_reserved_mio:4},{},metric,String,{});
+assert.equal(value('masterAccounting','Held for members / level fills'),'4.00 MIO');
+assert.equal(value('companyLeftoverReport','Leftover MIO'),'0.00 MIO');
+console.log('PASS disjoint held/leftover categories, pending exclusions, currency separation, cycle conservation, fallback and immutable inputs');
+w.close();
