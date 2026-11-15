@@ -29,3 +29,10 @@ dialog.action-confirmation::backdrop{background:#0a251bc9;backdrop-filter:blur(3
 @media(max-width:760px){#page-packages .subscription-plan-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){#page-packages .subscription-plan-grid{grid-template-columns:1fr}.subscription-toolbar label{align-items:flex-start;flex-direction:column}.subscription-toolbar select{width:100%;max-width:none}}
 @media(max-width:700px){.subscription-admin-table th,.subscription-admin-table td{padding:12px 8px}.action-confirmation-card{padding:27px 20px 20px}.action-confirmation h2{font-size:25px;margin:0 12px 12px}.action-confirmation-message{font-size:15px}.action-confirmation-welcome{font-size:13px}.action-confirmation-value{padding:18px 12px}.action-confirmation-value strong{font-size:32px}.action-confirmation-mark{width:57px;height:57px;font-size:30px;margin-bottom:17px}.action-confirmation-close{width:40px;height:40px;top:9px;right:9px}.action-person strong{font-size:13px}}
+
+.action-confirmation-datetime{display:grid;grid-template-columns:1fr 1fr;gap:12px;border-top:1px solid #e0ebe5;padding-top:16px;margin-top:18px;text-align:left}
+.action-confirmation-datetime>div{display:flex;flex-direction:column;gap:5px}
+.action-confirmation-datetime span{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#6a8075}
+.action-confirmation-datetime strong{font-size:13px;color:#234e3c}
+.action-confirmation-card h2{overflow-wrap:anywhere}
+@media(max-width:380px){.action-confirmation-datetime{gap:8px}.action-confirmation-datetime strong{font-size:12px}}

@@ -156,7 +156,7 @@ assert.equal(ww.MioDashboard.hasTransactionPin(),false);
 ww.MioDashboard.setTransactionPinConfigured(true);
 assert.equal(ww.MioDashboard.hasTransactionPin(),true);
 assert.ok(dd.querySelector('#transactionPinDialog'));
-assert.equal(dd.querySelector('#transferPin').required,false);
+assert.equal(dd.querySelector('#transferPin'),null);assert.equal(dd.querySelector('#transactionPinDialogPassword').required,true);
 assert.equal(dd.querySelector('#transactionPinChangeVerification').hidden,false);
 assert.equal(dd.querySelector('#transactionPinPrevious').required,true);
 assert.match(dd.querySelector('#transactionPinSave').textContent,/change transaction PIN/);

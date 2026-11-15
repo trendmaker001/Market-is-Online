@@ -1,0 +1,15 @@
+import {JSDOM} from 'jsdom';import {readFile} from 'node:fs/promises';import assert from 'node:assert/strict';
+const dom=new JSDOM('',{runScripts:'outside-only'}),w=dom.window;
+w.eval(await readFile('dist/transaction-authorization.js','utf8'));
+const token='txauth_'+'a'.repeat(64),main={user:{id:'user',email:'example@example.test'},access_token:'x.'+Buffer.from(JSON.stringify({session_id:'original-mfa-session'})).toString('base64url')+'.x'};
+let session=main,authCalls=0,rpcCalls=[],signedOut=0,authError=null,pinError=null,switchUser=false;
+const client={auth:{signInWithPassword:async args=>{authCalls++;assert.equal(args.email,main.user.email);if(switchUser)session={user:{id:'other'}};return {data:{user:{id:'user'}},error:authError}},signOut:async opts=>{assert.equal(opts.scope,'local');signedOut++;return {error:null}}},rpc:async(name,args)=>{rpcCalls.push({name,args});return {data:token,error:pinError}}};
+const api=w.MioTransactionAuthorization.create({url:'https://example.test',key:'public-key',session:()=>session,createClient:(url,key,opts)=>{assert.equal(opts.auth.persistSession,false);assert.equal(opts.auth.autoRefreshToken,false);assert.match(opts.auth.storageKey,/mio-transaction-/);return client},rpc:async(name,args)=>{rpcCalls.push({name,args});return {error:null}}});
+await assert.rejects(api.authorize('0000',''),/password/);assert.equal(authCalls,0);await assert.rejects(api.authorize('00000','password'),/exactly 4/);assert.equal(authCalls,0);
+authError={code:'invalid_credentials',message:'Invalid login credentials'};await assert.rejects(api.authorize('0000','wrong'),/Incorrect password/);assert.equal(rpcCalls.length,0);assert.equal(signedOut,1);
+authError=null;pinError={message:'Incorrect PIN'};await assert.rejects(api.authorize('0001','correct'),e=>e.message==='Incorrect PIN');assert.equal(signedOut,2);
+pinError=null;assert.equal(await api.authorize('0000','correct'),token);assert.equal(rpcCalls.at(-1).args.p_session_id,'original-mfa-session');assert.equal(rpcCalls.at(-1).args.p_pin,'0000');assert.equal(session,main);
+await api.change('1111','0000','correct');assert.equal(rpcCalls.at(-1).name,'change_transaction_pin');assert.equal(rpcCalls.at(-1).args.p_current_pin,token);
+await api.setup('0000','correct');assert.equal(rpcCalls.at(-1).name,'set_transaction_pin');
+switchUser=true;const before=rpcCalls.length;await assert.rejects(api.authorize('0000','correct'),/Account changed/);assert.equal(rpcCalls.length,before);assert.equal(signedOut,6);
+console.log('PASS password mandatory, password/PIN-specific failures, isolated temporary auth, main MFA session preserved, server proof required, PIN change and account-switch cancellation');dom.window.close();

@@ -313,3 +313,20 @@ html[data-member-theme="dark"] body.member-dashboard-active{background:#07120e;c
 .qualification-summary{text-align:left;font:inherit;color:inherit;width:100%;appearance:none}.qualification-panel-body[hidden]{display:none!important}
 
 @media(max-width:760px){.rank-select-label{display:grid;grid-template-columns:1fr;gap:6px}.rank-select-label select{width:100%;max-width:none}.qualification-panel>.qualification-summary .manager-summary-kicker{overflow-wrap:anywhere}}
+
+/* Four visual PIN boxes share one accessible numeric password input. */
+.pin-entry{position:relative;width:min(100%,288px);height:58px;margin:8px 0}
+.pin-entry>input{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;opacity:0!important;z-index:2;cursor:text;caret-color:transparent;font-size:16px}
+.pin-entry-boxes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;height:100%;pointer-events:none}
+.pin-entry-boxes span{display:flex;align-items:center;justify-content:center;border:1px solid #bbd5ca;border-radius:11px;background:#f7fbf9;font-size:30px;font-weight:700;color:#086846;transition:border-color .15s,box-shadow .15s}
+.pin-entry-boxes span.is-current{border:2px solid #0b875c;box-shadow:0 0 0 3px #0b875c16;background:white}
+.pin-entry:focus-within .pin-entry-boxes{outline:1px solid transparent}
+.transaction-pin-dialog-card{position:relative;padding-top:28px}
+.transaction-pin-close{position:absolute;right:12px;top:12px;width:36px;height:36px;border:1px solid #d6e8df;border-radius:10px;background:white;color:#174e39;font-size:25px;cursor:pointer}
+.transaction-pin-kicker{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:#0b8059;font-weight:700}
+.transaction-pin-dialog-card h2{padding-right:20px}
+.transaction-pin-dialog-card input[type=password],.transaction-pin-dialog-card input[type=text]{font-size:16px}
+.transaction-pin-dialog-card .pin-entry{width:min(100%,288px)}
+@media(max-width:480px){.transaction-pin-dialog{width:calc(100% - 24px);max-height:calc(100dvh - 32px);overflow:auto}.transaction-pin-dialog-card{padding:24px 20px}.pin-entry{height:54px}}
+
+.transaction-pin-dialog [hidden],.transaction-pin-card [hidden]{display:none!important}
