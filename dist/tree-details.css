@@ -67,3 +67,10 @@
  :is(#page-network.graphical-only,#page-admin) #treeCard .network-tree-tabs{gap:3px!important}
 }
 :is(#page-network.graphical-only,#page-admin) #treeCard .network-tree-tab.hidden{display:none!important}
+
+/* Stable side colours across binary team, carry-forward, TNBP and BRP. */
+:is(#page-network.graphical-only,#page-admin) #treeCard .tree-detail-stats>.tree-side-metric{flex-wrap:wrap;column-gap:5px;row-gap:2px;border:1px solid var(--side-border);border-left:4px solid var(--side-accent);background:var(--side-background)}
+:is(#page-network.graphical-only,#page-admin) #treeCard .tree-side-left{--side-accent:#2563eb;--side-ink:#1d4ed8;--side-border:#93b4f5;--side-background:#eff6ff}
+:is(#page-network.graphical-only,#page-admin) #treeCard .tree-side-right{--side-accent:#7c3aed;--side-ink:#6d28d9;--side-border:#c4a5f6;--side-background:#f5f3ff}
+:is(#page-network.graphical-only,#page-admin) #treeCard .tree-side-metric small{color:var(--side-ink);font-weight:700}
+:is(#page-network.graphical-only,#page-admin) #treeCard .tree-side-metric strong{color:var(--side-ink);font-size:16px;font-weight:800;margin-left:auto;max-width:100%;font-variant-numeric:tabular-nums}
