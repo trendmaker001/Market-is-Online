@@ -142,3 +142,34 @@ body:has(#page-packages.active) .member-account-shell{margin-bottom:12px}
  #page-packages .package dl{gap:4px 8px;padding:8px 0}
  #page-packages .package .plain-details{margin-top:4px}
 }
+
+/* Keep the dismiss control outside the internally scrolling receipt. */
+dialog.action-confirmation{overflow:hidden}
+.action-confirmation .action-confirmation-card{box-sizing:border-box;max-height:calc(100dvh - 28px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#abc7b9 transparent}
+.action-confirmation .action-confirmation-close{z-index:5;top:10px;right:10px;width:36px;height:36px;border:1px solid #efc6c6;background:#fff2f2;color:#bc2929;font-size:25px}
+.action-confirmation .action-confirmation-close:hover{background:#ffe2e2;border-color:#d75555}
+.action-confirmation .action-confirmation-close:focus-visible{outline:3px solid #bc292940;outline-offset:2px}
+dialog.transfer-confirmation{width:min(460px,calc(100vw - 24px));border-radius:18px}
+.transfer-confirmation .action-confirmation-card{padding:18px 22px 16px;max-height:min(620px,calc(100dvh - 28px))}
+.transfer-confirmation .action-confirmation-mark{width:40px;height:40px;margin:2px auto 12px;font-size:25px;box-shadow:0 0 0 5px #edf9f1}
+.transfer-confirmation h2{font-size:23px;line-height:1.15;margin:0 18px 7px}
+.transfer-confirmation .action-confirmation-message{font-size:12px;line-height:1.4;margin:0 0 12px}
+.transfer-confirmation .action-confirmation-value{padding:11px 12px;gap:5px;border-radius:12px}
+.transfer-confirmation .action-confirmation-value>span{font-size:10px;letter-spacing:.12em}
+.transfer-confirmation .action-confirmation-value strong{font-size:30px;line-height:1.15}
+.transfer-confirmation .action-confirmation-value strong small{font-size:15px}
+.transfer-confirmation .action-confirmation-value em{font-size:10px;padding:4px 15px}
+.transfer-confirmation .action-confirmation-people{margin:12px 0 10px}
+.transfer-confirmation .action-person{gap:10px}
+.transfer-confirmation .action-person>span{min-width:40px;padding:5px;font-size:9px}
+.transfer-confirmation .action-person strong{font-size:12px;line-height:1.35}
+.transfer-confirmation .action-person small{font-size:10px;margin-top:2px}
+.transfer-confirmation .action-person-arrow{font-size:13px;line-height:14px;margin:3px 0}
+.transfer-confirmation .action-confirmation-verified{font-size:11px;padding:6px;border-radius:7px}
+.transfer-confirmation .action-confirmation-datetime{margin-top:10px;padding-top:9px;gap:12px}
+.transfer-confirmation .action-confirmation-datetime>div{gap:3px}
+.transfer-confirmation .action-confirmation-datetime span{font-size:9px}
+.transfer-confirmation .action-confirmation-datetime strong{font-size:11px;line-height:16px;white-space:nowrap}
+.transfer-confirmation .action-confirmation-hint{margin-top:9px;font-size:10px;line-height:15px}
+.transfer-confirmation .action-confirmation-download{margin-top:10px;min-height:38px;padding:8px 12px;font-size:12px;border-radius:9px}
+@media(max-width:480px){.transfer-confirmation .action-confirmation-card{padding:18px 16px 14px}.transfer-confirmation h2{font-size:21px}.transfer-confirmation .action-confirmation-value strong{font-size:28px}}

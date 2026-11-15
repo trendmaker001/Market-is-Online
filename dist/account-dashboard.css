@@ -330,3 +330,29 @@ html[data-member-theme="dark"] body.member-dashboard-active{background:#07120e;c
 @media(max-width:480px){.transaction-pin-dialog{width:calc(100% - 24px);max-height:calc(100dvh - 32px);overflow:auto}.transaction-pin-dialog-card{padding:24px 20px}.pin-entry{height:54px}}
 
 .transaction-pin-dialog [hidden],.transaction-pin-card [hidden]{display:none!important}
+
+/* Compact credential dialog; the red close control stays above its scroll area. */
+dialog.transaction-pin-dialog{width:min(410px,calc(100vw - 24px));max-height:calc(100dvh - 28px);overflow:hidden;border-radius:16px}
+.transaction-pin-dialog .transaction-pin-close{z-index:5;top:10px;right:10px;width:34px;height:34px;border:1px solid #efc6c6;background:#fff2f2;color:#bc2929;font-size:25px}
+.transaction-pin-dialog .transaction-pin-close:hover{background:#ffe2e2;border-color:#d75555}
+.transaction-pin-dialog .transaction-pin-close:focus-visible{outline:3px solid #bc292940;outline-offset:2px}
+.transaction-pin-dialog .transaction-pin-dialog-card{box-sizing:border-box;max-height:calc(100dvh - 28px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#abc7b9 transparent;padding:20px;gap:11px}
+.transaction-pin-heading{display:flex;gap:10px;align-items:flex-start;padding-right:28px;margin-bottom:2px}
+.transaction-pin-heading>div:last-child{min-width:0}
+.transaction-pin-dialog .transaction-pin-dialog-icon{width:32px;height:32px;border-radius:9px;flex-shrink:0;margin-top:3px}
+.transaction-pin-dialog .transaction-pin-dialog-icon svg{width:20px;height:20px}
+.transaction-pin-dialog .transaction-pin-kicker{font-size:9px;letter-spacing:.09em}
+.transaction-pin-dialog .transaction-pin-dialog-card h2{padding:0;font-size:19px;line-height:1.2;margin:3px 0 5px}
+.transaction-pin-dialog .transaction-pin-dialog-card p{font-size:11px;line-height:1.4}
+.transaction-pin-dialog .transaction-pin-dialog-card label{gap:5px;font-size:12px}
+.transaction-pin-dialog .transaction-pin-dialog-card input:not([data-pin-entry]){min-height:42px;padding:8px 10px;letter-spacing:normal;font-size:16px}
+.transaction-pin-dialog .pin-entry{height:44px;width:min(100%,240px);margin:2px 0}
+.transaction-pin-dialog .pin-entry-boxes{gap:8px}
+.transaction-pin-dialog .pin-entry-boxes span{border-radius:9px;font-size:25px}
+.transaction-pin-dialog .pin-required-note{font-size:10px;line-height:1.4;color:#5c7a69}
+.transaction-pin-dialog #transactionPinDialogStatus:empty{display:none}
+.transaction-pin-dialog .transaction-pin-actions{margin-top:1px;gap:8px}
+.transaction-pin-dialog .transaction-pin-actions .btn{min-height:38px;padding:8px 14px;font-size:12px;border-radius:9px}
+@media(max-width:380px){.transaction-pin-dialog .transaction-pin-dialog-card{padding:17px 16px;gap:10px}.transaction-pin-dialog .transaction-pin-dialog-card h2{font-size:17px}.transaction-pin-heading{gap:8px}}
+
+body.transaction-pin-open{overflow:hidden}
