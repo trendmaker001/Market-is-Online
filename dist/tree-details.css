@@ -41,18 +41,29 @@
 :is(#page-network.graphical-only,#page-admin) #treeCard .tree-total-label{display:flex;align-items:baseline;gap:4px;white-space:nowrap;font-size:11px;letter-spacing:0}
 :is(#page-network.graphical-only,#page-admin) #treeCard .tree-total-label small{display:inline;margin:0;font-size:10px;color:#526c60}
 :is(#page-network.graphical-only,#page-admin) #treeCard .tree-member-open{min-height:36px;margin:0;padding:7px 10px;font-size:12px}
+/* Balanced tree navigation: one tab row on every viewport. */
+:is(#page-network.graphical-only,#page-admin) #treeCard .tree-compact-bar{padding:8px 10px;gap:8px}
+:is(#page-network.graphical-only,#page-admin) #treeCard .network-tree-tabs{height:52px!important;min-height:52px!important;gap:7px!important;overflow-x:auto!important;overflow-y:hidden!important}
+:is(#page-network.graphical-only,#page-admin) #treeCard .network-tree-tab{height:52px!important;min-height:52px!important;padding:8px 12px!important;font-size:13px!important;font-weight:700;border:2px solid #9cc3ae;border-radius:10px;flex:0 0 auto!important}
+:is(#page-network.graphical-only,#page-admin) #treeCard .network-tree-tab.active{border-color:#137a52}
+:is(#page-network.graphical-only,#page-admin) #treeCard #treeBackToNetwork{height:52px;min-height:52px!important;font-size:12px!important;padding:0 8px!important}
+:is(#page-network.graphical-only,#page-admin) #treeCard .tree-control-group :is(select,.btn){height:40px!important;min-height:40px!important;border-radius:8px;font-size:13px!important}
+:is(#page-network.graphical-only,#page-admin) #treeCard .tree-control-group>label{font-size:12px!important}
+:is(#page-network.graphical-only,#page-admin) #treeCard .tree-control-group .btn[data-tree-zoom]:not([data-tree-zoom="0"]){width:36px;min-width:36px;padding:0!important;background:#eef9f2;border:1px solid #8fbea5;color:#087e53;font-size:22px!important;font-weight:700;line-height:1;display:inline-flex;align-items:center;justify-content:center}
 @media(max-width:980px){
- :is(#page-network.graphical-only,#page-admin) #treeCard .network-tree-tab{height:38px!important;min-height:38px!important;font-size:12px!important;padding:6px 8px!important}
- :is(#page-network.graphical-only,#page-admin) #treeCard .network-tree-tabs{height:auto!important;min-height:38px!important}
+ :is(#page-network.graphical-only,#page-admin) #treeCard .network-tree-tabs{display:flex!important;flex-wrap:nowrap!important;height:36px!important;min-height:36px!important;gap:4px!important;white-space:nowrap!important}
+ :is(#page-network.graphical-only,#page-admin) #treeCard .network-tree-tab{flex:1 0 auto!important;width:auto!important;min-height:36px!important;height:36px!important;font-size:12px!important;padding:4px 6px!important;border-radius:8px}
+ :is(#page-network.graphical-only,#page-admin) #treeCard .network-tree-tabs:has(#managerTreeTab:not(.hidden)) .network-tree-tab{font-size:11px!important}
+ :is(#page-network.graphical-only,#page-admin) #treeCard #treeBackToNetwork{height:36px;min-height:36px!important;padding:0!important;font-size:11px!important}
+ :is(#page-network.graphical-only,#page-admin) #treeCard .tree-compact-bar{padding:6px 7px;gap:6px}
+ :is(#page-network.graphical-only,#page-admin) #treeCard .tree-control-group :is(select,.btn){height:36px!important;min-height:36px!important}
+ :is(#page-network.graphical-only,#page-admin) #treeCard .tree-controls{gap:4px!important}
 }
 @media(max-width:600px){
- :is(#page-network.graphical-only,#page-admin) #treeCard .tree-compact-bar{padding:6px 8px;gap:6px}
- :is(#page-network.graphical-only,#page-admin) #treeCard .network-tree-tabs{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr));height:auto!important;gap:6px!important;overflow:visible!important;white-space:normal!important}
- :is(#page-network.graphical-only,#page-admin) #treeCard .network-tree-tab{grid-column:span 2;width:100%!important;min-height:44px!important;height:44px!important;font-size:12px!important;padding:6px!important;border-radius:8px}
- :is(#page-network.graphical-only,#page-admin) #treeCard .network-tree-tabs:not(:has(#managerTreeTab:not(.hidden))) .network-tree-tab:nth-child(n+4):not(.hidden){grid-column:span 3}
- :is(#page-network.graphical-only,#page-admin) #treeCard .tree-controls{gap:4px!important}
- :is(#page-network.graphical-only,#page-admin) #treeCard .tree-control-group :is(select,.btn){height:32px!important;min-height:32px!important}
  :is(#page-network.graphical-only,#page-admin) #treeCard .tree-member-details{inset:6px 6px auto auto!important;max-height:calc(100% - 12px)!important;width:calc(100% - 12px)!important;padding:10px!important}
 }
-
+@media(max-width:360px){
+ :is(#page-network.graphical-only,#page-admin) #treeCard .network-tree-tab{font-size:11px!important;padding:4px!important}
+ :is(#page-network.graphical-only,#page-admin) #treeCard .network-tree-tabs{gap:3px!important}
+}
 :is(#page-network.graphical-only,#page-admin) #treeCard .network-tree-tab.hidden{display:none!important}
