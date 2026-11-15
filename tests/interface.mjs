@@ -44,10 +44,24 @@ if(process.env.MIO_PRODUCT_ROUTE_TEST){
  w.location.hash='#support';await tick();await q.loadRequestedPage('product/deep-link-product');assert.equal(q.el('page-support').classList.contains('active'),true);assert.equal(q.el('page-product').classList.contains('active'),false);
  console.log('PASS direct product cold load, missing product, catalog error/retry and navigation protection');dom.window.close();process.exit(0);
 }
+for(const selector of ['#signupCountry','#joinCountry','#sellerCountry','#vendorSignupForm select[name="country"]','#shoppingAuthForm select[name="country"]']){
+ const select=w.document.querySelector(selector);assert.ok(select,selector);const saved=select.value,total=select.options.length,wrap=select.previousElementSibling,input=wrap.querySelector('input[type="search"]'),trigger=wrap.querySelector('.country-search-trigger'),results=wrap.querySelector('.country-search-results');assert.ok(input,selector+' search');
+ assert.ok(select.classList.contains('country-search-native'));assert.equal(trigger.getAttribute('aria-expanded'),'false');trigger.click();assert.equal(trigger.getAttribute('aria-expanded'),'true');assert.equal(results.children.length,total-Array.from(select.options).filter(o=>!o.value||o.disabled).length);
+ input.value='pAkIsTaN';input.dispatchEvent(new w.Event('input'));assert.equal(results.querySelectorAll('button').length,1);assert.equal(select.value,saved,'typing must not change selected country');assert.equal(results.querySelector('img').getAttribute('src'),'/assets/flag-pk.svg');results.querySelector('button').click();assert.equal(select.value,'PK');assert.equal(select.options.length,total);assert.equal(results.hidden,true);assert.equal(trigger.querySelector('img').getAttribute('src'),'/assets/flag-pk.svg');assert.match(trigger.textContent,/Pakistan/);
+ trigger.click();input.value='zzzz-no-country';input.dispatchEvent(new w.Event('input'));assert.equal(results.querySelectorAll('button').length,0);assert.match(wrap.textContent,/No matching countries/);assert.equal(select.value,'PK');
+ input.value='AE';input.dispatchEvent(new w.Event('input'));assert.equal(results.querySelector('[data-country="AE"] img').getAttribute('src'),'https://flagcdn.com/w40/ae.png');results.querySelector('[data-country="AE"]').click();assert.equal(select.value,'AE');assert.match(trigger.textContent,/United Arab Emirates/);
+ trigger.click();input.value='Pakistan';input.dispatchEvent(new w.Event('input'));input.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true}));assert.equal(select.value,'PK');assert.equal(trigger.getAttribute('aria-expanded'),'false');
+ trigger.click();input.dispatchEvent(new w.KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));assert.equal(trigger.getAttribute('aria-expanded'),'false');
+ select.disabled=true;await tick();assert.equal(trigger.disabled,true);select.disabled=false;await tick();assert.equal(trigger.disabled,false);
+ select.value=saved;select.dispatchEvent(new w.Event('change'));assert.equal(trigger.getAttribute('aria-expanded'),'false');
+}
+// Required-country validation focuses the visible picker instead of the replaced native dropdown.
+{const select=q.el('signupCountry'),wrap=select.previousElementSibling;select.value='';assert.equal(select.checkValidity(),false);assert.match(wrap.querySelector('.country-search-status').textContent,/Please select/);assert.equal(w.document.activeElement,wrap.querySelector('input'));select.dispatchEvent(new w.Event('change'));}
+pass('Member, User and vendor country pickers render real flags, filter names/codes, keep payloads, support keyboard and required/disabled state');
 if(process.env.MIO_SIGNUP_EXPECT){
  const expected=JSON.parse(process.env.MIO_SIGNUP_EXPECT),member=expected.type==='member';
  assert.equal(q.el('page-join').querySelector('h1').textContent,member?'Create your Member account':'Create your User account');
- assert.equal(q.el('signupCountry').required,member);assert.equal(q.el('signupCountry').closest('.field').hidden,!member);
+ assert.equal(q.el('signupCountry').required,true);assert.equal(q.el('signupCountry').closest('.field').hidden,false);
  assert.equal(q.el('signupGender').required,member);
  if(member){assert.equal(w.location.hash,'#join');assert.equal(q.currentSellingCode(),'');assert.equal(w.sessionStorage.getItem('mio-selling-link'),null);}
  q.el('fullName').value='Invitation Test';q.el('phone').value='03000000000';q.el('signupEmail').value='invitation@example.invalid';q.el('signupPassword').value='test-password-123';q.el('termsConsent').checked=true;
@@ -56,7 +70,7 @@ if(process.env.MIO_SIGNUP_EXPECT){
  const signup=calls.slice(before).find(c=>c.auth==='signup');assert.ok(signup,'Signup must reach auth');
  const metadata=signup.args.options.data;assert.equal(metadata.registration_type,expected.type);
  if(member){assert.equal(metadata.referral_code,expected.code);assert.equal(metadata.country_code,'AE');assert.equal(metadata.gender,'female');assert.equal(metadata.affiliate_code,undefined);assert.match(signup.args.options.emailRedirectTo,/#dashboard$/);}
- else{assert.equal(metadata.affiliate_code,expected.code);assert.equal(metadata.referral_code,undefined);assert.match(signup.args.options.emailRedirectTo,/#account\/orders$/);}
+ else{assert.equal(metadata.country_code,'AE');assert.equal(metadata.affiliate_code,expected.code);assert.equal(metadata.referral_code,undefined);assert.match(signup.args.options.emailRedirectTo,/#account\/orders$/);}
  assert.match(q.el('signupVerificationNotice').textContent,/Check your email/);
  console.log('PASS invitation UI and real signup payload: '+process.env.MIO_SIGNUP_URL);dom.window.close();process.exit(0);
 }
