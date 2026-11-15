@@ -17,9 +17,9 @@ window.MioTransferReceipt=(()=>{
   document.body.append(dialog);dialog.querySelector('[data-close-receipt]').onclick=clear;dialog.addEventListener('close',()=>{if(current===model)clear()});dialog.querySelector('[data-download-receipt]').onclick=async e=>{const button=e.currentTarget;button.disabled=true;try{await download(model)}catch{if(current===model)dialog.querySelector('.transfer-receipt-error').textContent='Receipt download failed. Please try again.'}finally{button.disabled=false}};
   if(typeof dialog.showModal==='function')dialog.showModal();else dialog.setAttribute('open','');
  }
- async function download(model){
+ async function download(model,isCurrent=()=>current===model){
   const brand=await new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=reject;img.src=logo});
-  if(current!==model)return;
+  if(!isCurrent())return;
   // Record drawing operations first so long names/notes never exceed a fixed canvas.
   const canvas=document.createElement('canvas');const c=canvas.getContext('2d');if(!c)throw Error('Image export unavailable');
   const draw=[];
@@ -59,8 +59,8 @@ window.MioTransferReceipt=(()=>{
   if(model.note){y+=18;text('Note',36,y,23,true);y+=wrapped(model.note,140,y,724,23,false,'#596c61')}
   y+=32;canvas.width=900;canvas.height=Math.ceil(y);c.fillStyle='#ffffff';c.fillRect(0,0,900,canvas.height);c.textBaseline='top';draw.forEach(fn=>fn());
   const output=canvas;
-  const blob=await new Promise((resolve,reject)=>output.toBlob(b=>b?resolve(b):reject(Error('Export failed')),'image/png'));if(current!==model)return;
+  const blob=await new Promise((resolve,reject)=>output.toBlob(b=>b?resolve(b):reject(Error('Export failed')),'image/png'));if(!isCurrent())return;
   const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='transfer-receipt-'+String(model.id).replace(/[^a-zA-Z0-9_-]/g,'')+'.png';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);
  }
- return {show,clear,shortReference,referenceMarkup,copyReference};
+ return {show,clear,download,shortReference,referenceMarkup,copyReference};
 })();
