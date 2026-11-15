@@ -306,6 +306,7 @@
 #page-network .tree-member-details{border-color:#e0e9e2;background:#fff;box-shadow:0 4px 20px #173b2406}
 #page-network .tree-member-card h3{font-size:17px;letter-spacing:-.025em;font-weight:650}
 #page-network .tree-member-tags>span{background:#f0f6f2;color:#55765f;border-color:#e0e9e2;border-radius:6px;font-weight:500}
+#page-network .tree-member-tags>span.tree-placement-tag{display:inline-flex;align-items:center;flex:0 0 auto;white-space:nowrap;background:#edf8f1;border:1px solid #d5e9dc;color:#146c46;font-weight:600}
 #page-network .generation-info-title{background:#214b35;border-radius:10px;box-shadow:none;padding:13px 14px}
 #page-network .generation-info-title h4{font-size:14px;font-weight:600}
 #page-network .generation-info-title>span{background:#ffffff0c;border:1px solid #ffffff1c;border-radius:6px;font-size:10px;font-weight:500}

@@ -45,7 +45,17 @@ console.log('PASS free tree tab, sponsor-only labels, free counts and appropriat
 for(const kind of ['binary','single_line'])for(const side of ['LEFT','RIGHT',null,'UNKNOWN']){
  const input=[{...root,actual_placement_side:side},...nodes.slice(1)];
  const before=JSON.stringify(input);
+ q.el('networkKind').value=kind;
  q.drawNetwork(input,kind);
+ q.el('networkVisual').querySelector('[data-tree-info="root"]').click();
+ const tag=q.el('treeMemberDetails').querySelector('.tree-placement-tag');
+ if(['LEFT','RIGHT'].includes(side)){
+  assert.equal(tag.textContent,'Placement: '+(side==='LEFT'?'Left':'Right'));
+  assert.equal(tag.previousElementSibling.textContent,'active');
+  assert.equal(tag.parentElement.className,'tree-member-tags');
+ }else assert.equal(tag,null);
+ q.el('networkVisual').querySelector('[data-tree-info="member-1"]').click();
+ assert.equal(q.el('treeMemberDetails').querySelector('.tree-placement-tag').textContent,'Placement: Left');
  const svg=q.el('networkVisual').querySelector('svg');
  const label=svg.querySelector('.tree-root-placement-label');
  assert.equal(svg.querySelectorAll('path').length,3,'only existing descendant connectors');
