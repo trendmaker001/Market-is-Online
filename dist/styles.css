@@ -3519,3 +3519,8 @@ body.admin-workspace-active #marketplaceFooter,body.admin-workspace-active #acco
 .registration-confirm{min-width:0}
 .registration-confirm[hidden]{display:none!important}
 .earning-back-dates{margin:8px 0}
+
+/* Keep editable qualification criteria legible without widening admin pages. */
+.rank-definition-row{grid-template-columns:minmax(150px,1.4fr) repeat(4,minmax(90px,1fr))}.rank-definition-row>span{overflow-wrap:anywhere}.rank-definition-row .rank-edit-button{grid-column:-2/-1}
+@media(max-width:900px){.rank-definition-row{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.rank-definition-row{grid-template-columns:1fr}.rank-definition-row .rank-edit-button{grid-column:auto}}

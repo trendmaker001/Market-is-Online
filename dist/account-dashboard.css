@@ -356,3 +356,6 @@ dialog.transaction-pin-dialog{width:min(410px,calc(100vw - 24px));max-height:cal
 @media(max-width:380px){.transaction-pin-dialog .transaction-pin-dialog-card{padding:17px 16px;gap:10px}.transaction-pin-dialog .transaction-pin-dialog-card h2{font-size:17px}.transaction-pin-heading{gap:8px}}
 
 body.transaction-pin-open{overflow:hidden}
+
+/* Keep the requested earnings target visible on the collapsed manager card. */
+@media(max-width:760px){.manager-progress-card.qualification-panel>.qualification-summary p{display:block!important;font-size:10px;margin-top:4px;line-height:1.4}}

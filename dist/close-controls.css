@@ -9,10 +9,10 @@ button.mio-close-icon {
   max-height: 36px !important;
   flex: 0 0 36px !important;
   padding: 0 !important;
-  border: 0 !important;
-  border-radius: 50% !important;
-  background: #f00000 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.6' stroke-linecap='round'%3E%3Cpath d='m6 6 12 12M18 6 6 18'/%3E%3C/svg%3E") center / 22px 22px no-repeat !important;
-  color: #fff !important;
+  border: 1px solid #800000 !important;
+  border-radius: 10px !important;
+  background: #fce8e8 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23800000' stroke-width='2.6' stroke-linecap='round'%3E%3Cpath d='m6 6 12 12M18 6 6 18'/%3E%3C/svg%3E") center / 22px 22px no-repeat !important;
+  color: #800000 !important;
   font-size: 0 !important;
   line-height: 1 !important;
   cursor: pointer;
@@ -20,8 +20,8 @@ button.mio-close-icon {
   transition: background-color .15s ease;
   -webkit-tap-highlight-color: transparent;
 }
-button.mio-close-icon:hover { background-color: #cf0000 !important; }
-button.mio-close-icon:active { background-color: #b60000 !important; }
+button.mio-close-icon:hover { background-color: #f8d4d4 !important; }
+button.mio-close-icon:active { background-color: #f2bcbc !important; }
 button.mio-close-icon:focus-visible {
   outline: 3px solid #991b1b !important;
   outline-offset: 3px !important;
