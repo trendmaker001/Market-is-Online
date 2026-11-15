@@ -1811,7 +1811,7 @@ async function saveNetworkMioPrice(price){
  mioReferencePricePkr=Number(data.price_pkr);updateMioReferencePrice();await loadCatalog();
 }
 
-document.addEventListener('click',e=>{if(!e.target.closest('[data-edit-own-profile]')||!profile||!session)return;window.MioMemberManagement?.editSelf({root:document.body,db,esc,countryOptions:countrySelectOptions,authorized:()=>!!session,identity:()=>session?.user.id},profile,async()=>{await loadMember();toast('Profile updated');});});
+document.addEventListener('click',e=>{if(!e.target.closest('[data-edit-own-profile]')||!profile||!session)return;window.MioMemberManagement?.editSelf({root:document.body,db,esc,countryOptions:countrySelectOptions,countrySearch:enableCountrySearch,authorized:()=>!!session,identity:()=>session?.user.id},profile,async()=>{await loadMember();toast('Profile updated');});});
 
 window.MioCashHistory?.mount({rpc:(name,args)=>db.rpc(name,args),error:e=>toast(e.message||'Wallet history unavailable')});
 

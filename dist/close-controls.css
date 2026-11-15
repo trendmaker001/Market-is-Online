@@ -23,9 +23,11 @@ button.mio-close-icon {
 button.mio-close-icon:hover { background-color: #f8d4d4 !important; }
 button.mio-close-icon:active { background-color: #f2bcbc !important; }
 button.mio-close-icon:focus-visible {
-  outline: 3px solid #991b1b !important;
-  outline-offset: 3px !important;
-  box-shadow: 0 0 0 2px #fff !important;
+  /* One stronger border marks keyboard focus without a second outline/ring. */
+  outline: none !important;
+  border-width: 2px !important;
+  background-color: #f8d4d4 !important;
+  box-shadow: none !important;
 }
 @media (max-width: 760px), (pointer: coarse) {
   button.mio-close-icon {

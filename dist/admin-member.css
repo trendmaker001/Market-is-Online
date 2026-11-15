@@ -39,3 +39,5 @@ body.admin-member-support-active .top .search,body.admin-member-support-active .
 .admin-support-content #treeCard .tree-tools{margin:0;gap:4px}
 .admin-support-content #treeCard .tree-legend{margin:10px 0;gap:12px}
 .admin-support-content #treeCard .tree-legend span{font-size:11px}
+.management-fields>.field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;min-width:0}
+.management-fields>.field>label{margin:0}
