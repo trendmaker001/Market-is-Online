@@ -43,18 +43,18 @@
 :is(#page-network.graphical-only,#page-admin) #treeCard .tree-member-open{min-height:36px;margin:0;padding:7px 10px;font-size:12px}
 /* Balanced tree navigation: one tab row on every viewport. */
 :is(#page-network.graphical-only,#page-admin) #treeCard .tree-compact-bar{padding:8px 10px;gap:8px}
-:is(#page-network.graphical-only,#page-admin) #treeCard .network-tree-tabs{height:52px!important;min-height:52px!important;gap:7px!important;overflow-x:auto!important;overflow-y:hidden!important}
-:is(#page-network.graphical-only,#page-admin) #treeCard .network-tree-tab{height:52px!important;min-height:52px!important;padding:8px 12px!important;font-size:13px!important;font-weight:700;border:2px solid #9cc3ae;border-radius:10px;flex:0 0 auto!important}
+:is(#page-network.graphical-only,#page-admin) #treeCard .network-tree-tabs{height:44px!important;min-height:44px!important;gap:7px!important;overflow-x:auto!important;overflow-y:hidden!important}
+:is(#page-network.graphical-only,#page-admin) #treeCard .network-tree-tab{height:44px!important;min-height:44px!important;padding:8px 12px!important;font-size:13px!important;font-weight:700;border:2px solid #9cc3ae;border-radius:10px;flex:0 0 auto!important}
 :is(#page-network.graphical-only,#page-admin) #treeCard .network-tree-tab.active{border-color:#137a52}
-:is(#page-network.graphical-only,#page-admin) #treeCard #treeBackToNetwork{height:52px;min-height:52px!important;font-size:12px!important;padding:0 8px!important}
-:is(#page-network.graphical-only,#page-admin) #treeCard .tree-control-group :is(select,.btn){height:40px!important;min-height:40px!important;border-radius:8px;font-size:13px!important}
-:is(#page-network.graphical-only,#page-admin) #treeCard .tree-control-group>label{font-size:12px!important}
-:is(#page-network.graphical-only,#page-admin) #treeCard .tree-control-group .btn[data-tree-zoom]:not([data-tree-zoom="0"]){width:36px;min-width:36px;padding:0!important;background:#eef9f2;border:1px solid #8fbea5;color:#087e53;font-size:22px!important;font-weight:700;line-height:1;display:inline-flex;align-items:center;justify-content:center}
+:is(#page-network.graphical-only,#page-admin) #treeCard #treeBackToNetwork{height:44px;min-height:44px!important;font-size:14px!important;padding:0 8px!important}
+:is(#page-network.graphical-only,#page-admin) #treeCard .tree-control-group :is(select,.btn){height:36px!important;min-height:36px!important;border-radius:8px;font-size:14px!important}
+:is(#page-network.graphical-only,#page-admin) #treeCard .tree-control-group>label{font-size:14px!important}
+:is(#page-network.graphical-only,#page-admin) #treeCard .tree-control-group .btn[data-tree-zoom]:not([data-tree-zoom="0"]){width:36px;min-width:36px;padding:0!important;background:#eef9f2;border:1px solid #8fbea5;color:#087e53;font-size:24px!important;font-weight:700;line-height:1;display:inline-flex;align-items:center;justify-content:center}
 @media(max-width:980px){
- :is(#page-network.graphical-only,#page-admin) #treeCard .network-tree-tabs{display:flex!important;flex-wrap:nowrap!important;height:36px!important;min-height:36px!important;gap:4px!important;white-space:nowrap!important}
- :is(#page-network.graphical-only,#page-admin) #treeCard .network-tree-tab{flex:1 0 auto!important;width:auto!important;min-height:36px!important;height:36px!important;font-size:12px!important;padding:4px 6px!important;border-radius:8px}
+ :is(#page-network.graphical-only,#page-admin) #treeCard .network-tree-tabs{display:flex!important;flex-wrap:nowrap!important;height:34px!important;min-height:34px!important;gap:4px!important;white-space:nowrap!important}
+ :is(#page-network.graphical-only,#page-admin) #treeCard .network-tree-tab{flex:1 0 auto!important;width:auto!important;min-height:34px!important;height:34px!important;font-size:12px!important;padding:4px 6px!important;border-radius:8px}
  :is(#page-network.graphical-only,#page-admin) #treeCard .network-tree-tabs:has(#managerTreeTab:not(.hidden)) .network-tree-tab{font-size:11px!important}
- :is(#page-network.graphical-only,#page-admin) #treeCard #treeBackToNetwork{height:36px;min-height:36px!important;padding:0!important;font-size:11px!important}
+ :is(#page-network.graphical-only,#page-admin) #treeCard #treeBackToNetwork{height:36px;min-height:36px!important;padding:0!important;font-size:12px!important}
  :is(#page-network.graphical-only,#page-admin) #treeCard .tree-compact-bar{padding:6px 7px;gap:6px}
  :is(#page-network.graphical-only,#page-admin) #treeCard .tree-control-group :is(select,.btn){height:36px!important;min-height:36px!important}
  :is(#page-network.graphical-only,#page-admin) #treeCard .tree-controls{gap:4px!important}
