@@ -206,6 +206,9 @@ q.el('treeCard').querySelector('[data-network-kind="free_generation"]').click();
 assert.equal(calls.filter(c=>c.rpc==='my_network_identity').at(-1).args.p_kind,'free_generation');
 assert.equal(q.el('treeCard').querySelector('[data-network-kind="free_generation"]').getAttribute('aria-selected'),'true');
 assert.match(q.el('networkVisual').textContent,/1 free account/);
+const freeNode=q.el('networkVisual').querySelector('[data-tree-info="free-view"]').closest('.visual-node'),sponsorNode=q.el('networkVisual').querySelector('[data-tree-info="root-free-view"]').closest('.visual-node');assert.ok(freeNode.classList.contains('tree-free-account'));assert.equal(freeNode.style.getPropertyValue('--package-colour'),'#dc2626');assert.match(freeNode.querySelector('.tree-avatar-picture img').src,/avatar-free-neutral\.svg$/);assert.ok(!sponsorNode.classList.contains('tree-free-account'));assert.doesNotMatch(sponsorNode.querySelector('.tree-avatar-picture img').src,/avatar-free-/);
+for(const gender of ['male','female','neutral']){assert.equal(q.memberAvatar(gender,true),'/assets/avatar-free-'+gender+'.svg');assert.match(readFileSync('dist/assets/avatar-free-'+gender+'.svg','utf8'),/#dc2626/);assert.equal(q.memberAvatar(gender),'/assets/avatar-'+gender+'.svg');}
+
 q.el('networkVisual').querySelector('[data-tree-info="free-view"]').click();assert.match(q.el('treeMemberDetails').textContent,/Package activation is pending/);
 q.el('treeMemberDetails').querySelector('.tree-member-open').click();await tick();assert.equal(calls.filter(c=>c.rpc==='my_network_identity').at(-1).args.p_root_code,'MIO-FREE');
 assert.equal(calls.filter(c=>c.rpc==='my_network_identity').at(-1).args.p_kind,'free_generation');

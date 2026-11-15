@@ -118,3 +118,8 @@ body.graphical-network-active>.top,body.graphical-network-active>.account-footer
 #page-network:not(.graphical-only)>.layout>.card>.card-body{padding:16px}
 #page-network>.heading>#openNetworkGraphical>span:first-child{width:auto;height:auto;background:none;border-radius:0;font-size:15px;line-height:20px}
 #page-network>.heading>#openNetworkGraphical>span:last-child{display:inline;line-height:20px}
+
+/* Free registrations stand out; paid sponsor connections retain package colours. */
+.visual-node.tree-free-account .tree-avatar-picture>img:first-child{border-color:#dc2626;background:#fff1f2;box-shadow:0 0 0 2px #fee2e2}
+.visual-node.tree-free-account .tree-plan-label{color:#dc2626;font-weight:700}
+.tree-free-summary strong{color:#b91c1c}.tree-free-summary strong::before{content:"";display:inline-block;width:7px;height:7px;margin-right:5px;border-radius:50%;background:#dc2626}
