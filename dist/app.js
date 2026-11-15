@@ -1618,6 +1618,19 @@ document.addEventListener('click',event=>{
 document.addEventListener('change',event=>{if(!event.target.matches('[data-range-month],[data-range-year]'))return;const form=event.target.closest('form'),field=event.target.hasAttribute('data-range-year')?'data-range-year':'data-range-month';drawEarningRange(form,form.querySelector('[data-range-year]').value+'-'+String(Number(form.querySelector('[data-range-month]').value)+1).padStart(2,'0'));form.querySelector(`[${field}]`).focus()});
 document.addEventListener('keydown',event=>{if(event.key!=='Escape')return;const control=event.target.closest?.('.earning-range[open]');if(control){event.preventDefault();control.open=false;control.querySelector('summary').focus()}});
 
+function groupedEarningEvents(items){
+ const groups=new Map();
+ for(const item of items){
+  const {row,day}=item;
+  const event=row.source_activation_id?['activation',row.source_activation_id]:row.source_order_id?['order',row.source_order_id]:row.source_order_code||row.order_code?['order-code',row.source_order_code||row.order_code]:null;
+  // Keep unknown sources and different posting states separate; raw records remain intact.
+  const key=event?JSON.stringify([day||historyDay(row.created_at),...event,row.source_member_id||row.source_code||'',row.status,row.currency||'MIO']):Symbol();
+  if(!groups.has(key))groups.set(key,[]);
+  groups.get(key).push(item);
+ }
+ return [...groups.values()];
+}
+
 function renderDesktopEarnings(){
  const target=el('desktopEarningHistory');
  if(!target)return;
@@ -1635,13 +1648,14 @@ function renderDesktopEarnings(){
  const header=(first,last)=>`<thead><tr><th scope="col">${first}</th>${columns.map(([,label])=>`<th scope="col">${label}${filtered?' (MIO)':''}</th>`).join('')}${filtered?'':'<th scope="col">Grand total</th>'}<th scope="col">${last}</th></tr></thead>`;
  const credited=items=>items.filter(({row})=>row.status==='posted').map(({row})=>row);
  const details=(items,day,id)=>{
-  const counts=new Map();
+  const counts=new Map(),events=groupedEarningEvents(items);
   for(const {category} of items)counts.set(category,(counts.get(category)||0)+1);
   const countLabels=desktopBonusColumns.filter(([key])=>counts.has(key)).map(([key,label])=>`<span>${counts.get(key)} ${label}</span>`).join('');
-  return `<tr class="earning-expanded-row"><td colspan="${columnCount}"><section id="${id}" aria-label="Earning details for ${displayHistoryDay(day)}"><header><h2>${displayHistoryDay(day)} · Earning details</h2><div><strong>${items.length} ${items.length===1?'entry':'entries'}</strong>${countLabels}</div></header><table class="desktop-earning-table" aria-label="Individual earning entries">${cols}${header('Entry','Status')}<tbody>${items.map(({row,category},index)=>{
+  return `<tr class="earning-expanded-row"><td colspan="${columnCount}"><section id="${id}" aria-label="Earning details for ${displayHistoryDay(day)}"><header><h2>${displayHistoryDay(day)} · Earning details</h2><div><strong>${events.length} ${events.length===1?'activity':'activities'} · ${items.length} bonus records</strong>${countLabels}</div></header><table class="desktop-earning-table" aria-label="Earnings grouped by member and event">${cols}${header('Entry','Status')}<tbody>${events.map((event,index)=>{
+   const row=event[0].row;
    const source=row.source_name||row.source_kind||row.source_code||row.order_code||row.source_order_code;
    const status=row.status==='posted'?'Credited':isHeldEarning(row)?'On hold':row.reward_kind?ecommerceState(row.status):'Reversed';
-   return `<tr><th scope="row"><span>${index+1}. ${esc(pkDateTime(row.created_at).replace(/^.*?, /,''))}</span>${source?`<small>${esc(source)}</small>`:''}</th>${columns.map(([key])=>`<td>${key===category?moneyText(earningAmount(row)):'—'}</td>`).join('')}${filtered?'':`<td>${moneyText(earningAmount(row))}</td>`}<td>${esc(status)}</td></tr>`;
+   return `<tr><th scope="row"><span>${index+1}. ${esc(pkDateTime(row.created_at).replace(/^.*?, /,''))}</span>${source?`<small>${esc(source)}</small>`:''}</th>${columns.map(([key])=>{const bonuses=event.filter(item=>item.category===key);return `<td>${bonuses.length?moneyText(sumEarnings(bonuses.map(item=>item.row))):'—'}</td>`}).join('')}${filtered?'':`<td class="earning-day-total">${moneyText(sumEarnings(event.map(item=>item.row)))}</td>`}<td>${esc(status)}</td></tr>`;
   }).join('')}</tbody></table></section></td></tr>`;
  };
  const dailyRows=days.slice(start,end).map((day,index)=>{
@@ -1688,7 +1702,28 @@ if(options){
 if(event.target.closest('[data-desktop-earning-receipt]'))showTotalEarningsReceipt(desktopEarningRows().map(({row})=>row),'Earning History',historyFilters.desktopEarnings);
 });
 
-async function fetchHistoryRpc(name){const rows=[];for(let offset=0;;offset+=1000){const request=db.rpc(name);const response=typeof request?.range==='function'?await request.range(offset,offset+999):await request;const {data,error}=response||{};if(error)return {data:null,error};rows.push(...(data||[]));if(!data||data.length<1000||typeof request?.range!=='function')return {data:rows,error:null}}}
+async function fetchHistoryRpc(name){
+ const rows=[],owner=session?.user?.id;
+ for(let offset=0;;offset+=1000){
+  const request=db.rpc(name),response=typeof request?.range==='function'?await request.range(offset,offset+999):await request;
+  const {data,error}=response||{};if(error)return {data:null,error};rows.push(...(data||[]));
+  if(!data||data.length<1000||typeof request?.range!=='function')break;
+ }
+ // Read only the source references for this member's already-visible bonus records.
+ // The history RPC predates activation IDs; never guess an event from a name or timestamp.
+ if(name==='my_earning_history'&&owner){
+  const ids=[...new Set(rows.map(row=>row.bonus_id).filter(Boolean))],references=new Map();
+  try{
+   for(let offset=0;offset<ids.length;offset+=200){
+    const {data,error}=await db.from('bonus_transactions').select('id,source_activation_id,source_order_id,cycle_id').eq('beneficiary_id',owner).in('id',ids.slice(offset,offset+200));
+    if(error)throw error;
+    for(const row of data||[])references.set(row.id,row);
+   }
+   return {data:rows.map(row=>{const ref=references.get(row.bonus_id);return ref?{...row,source_activation_id:ref.source_activation_id,source_order_id:ref.source_order_id,cycle_id:ref.cycle_id}:row}),error:null};
+  }catch(error){console.warn('Earning source references unavailable; keeping individual records',error)}
+ }
+ return {data:rows,error:null};
+}
 function renderCompactPointActivity(){const render=rows=>rows.length?rows.map(x=>`<div class="point-activity-row"><div><strong>${esc(x.point_type)} · ${esc(String(x.entry_kind||'Activity').replaceAll('_',' '))}</strong><small>${joiningDateLabel(x.created_at)}${x.side?' · '+esc(x.side):''} · ${x.source_order_id?'Shopping order':x.source_activation_id?'Package activation':'Point ledger'}</small></div><b>${Number(x.amount)>0?'+':''}${Number(x.amount).toFixed(2)}</b></div>`).join(''):'<p class="helper">No point activity yet.</p>';el('ppvHistory').innerHTML=render([...(window.memberPpvRows||[]),...(window.memberOtherPointRows||[])].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)));el('otherPoints').replaceChildren();}
 async function setupWalletPin(pin,password){
  const owner=session?.user?.id,email=session?.user?.email;if(!owner||!email)throw Error('Sign in first');if(!password)throw Error('Enter your account password.');
