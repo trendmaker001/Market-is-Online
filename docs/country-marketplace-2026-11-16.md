@@ -29,4 +29,8 @@ Supabase advisor comparison introduced no new security warning categories. The n
 - Syntax, static assets/site structure, PWA build and worker tests passed.
 - Browser preview verified Pakistan versus UAE selection on desktop and 390/360 px iframe viewports. No horizontal document overflow at either mobile width; Pakistan banner images rendered. Authenticated production admin writes were not exercised with a real administrator session; they are covered by UI/database tests.
 
-Production deploy and live HTTP/browser results are recorded in the final delivery message. No 5,000–10,000-user load test was run for this release.
+Production commit `09e4d64250a23344472fffe227b556bddaa3db14` deployed successfully through Vercel. Live `/api/market-country` returned HTTP 200, Pakistan, and private/no-store headers. Deployed app, country module, premium module, index and service worker matched local tested bytes. Live browser verified automatic Pakistan detection, 29 products, UAE switching with zero products and no inherited main carousel, then Pakistan restoration.
+
+![Deployed Pakistan storefront](verification/country-marketplace-live.jpg)
+
+No 5,000–10,000-user load test was run for this release.
