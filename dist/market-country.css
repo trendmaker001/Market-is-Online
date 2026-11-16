@@ -1,1 +1,27 @@
 .market-country-bar{display:flex;align-items:center;gap:20px;padding:14px 18px;margin:0 0 14px;background:#f0f8f4;border:1px solid #c6dfd2;border-radius:12px}.market-country-choice{flex:0 0 270px;min-width:0}.market-country-choice>label{display:block;font-size:11px;font-weight:750;text-transform:uppercase;letter-spacing:.08em;color:#426252;margin-bottom:5px}.market-country-bar .country-search-trigger{min-height:42px;background:#fff}.market-country-bar p{margin:0;font-size:13px;color:#426252}.country-editor-top{padding:16px;border:1px solid #bcdccb;border-radius:10px;background:#edf7f1;margin-bottom:20px;display:grid;grid-template-columns:minmax(200px,320px) 1fr;gap:16px;align-items:center}.country-editor-top h3{margin:0 0 4px}.country-editor-top p{margin:4px 0;font-size:13px;color:#426252}.country-editor-top label{font-weight:700}.country-editor-top select{display:block;width:100%;min-height:42px;margin-top:6px}.market-country-bar .country-search-panel{z-index:120}.market-country-empty{padding:24px;background:#f1f8f4;border-radius:12px;text-align:center}.vendor-market-country{padding:14px;border:1px solid #d0e4d8;border-radius:10px;margin:12px 0}@media(max-width:620px){.market-country-bar{gap:8px;padding:10px 12px;display:block}.market-country-choice{width:100%}.market-country-bar p{font-size:11px;margin-top:7px}.market-country-choice>label{font-size:10px}.country-editor-top{grid-template-columns:1fr;gap:8px}.country-editor-top select{font-size:16px}.market-country-bar .country-search-trigger{min-height:40px}}
+/* Shopping country stays beside the section links, without a separate banner. */
+#page-shop .shop-market-nav{overflow:visible;z-index:25;flex-wrap:nowrap}
+.shop-market-links{display:flex;align-items:center;gap:5px;min-width:0}
+#page-shop .market-country-bar{display:block;flex:0 0 210px;min-width:0;margin:0 0 0 auto;padding:0;border:0;border-radius:0;background:transparent}
+.market-country-choice{width:100%;min-width:0}
+.market-country-choice>label,#marketCountryStatus{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;margin:0;padding:0}
+#page-shop .market-country-bar .country-search-trigger{min-width:0;width:100%;min-height:34px!important;padding:6px 10px!important;gap:7px;background:#fff!important;border:1px solid #b6d6c5!important;color:#07573c!important;font:600 13px/1.2 inherit;box-shadow:none}
+#page-shop .market-country-bar .country-search-trigger:hover{background:#eff8f3!important}
+#page-shop .market-country-bar button .country-picker-name{color:inherit;font-size:13px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#page-shop .market-country-bar button .country-picker-chevron{color:inherit}
+#page-shop .market-country-bar .country-search-panel{position:absolute;right:0;top:100%;width:300px;max-width:calc(100vw - 24px);z-index:120;color:#174c36}
+#page-shop .market-country-bar .country-search-results button{min-width:0;min-height:40px!important;padding:8px!important;color:#174c36!important;background:#fff!important;justify-content:flex-start;gap:8px}
+#page-shop .market-country-bar .country-search-results button:hover,#page-shop .market-country-bar .country-search-results button[aria-pressed=true]{background:#e7f4ec!important}
+#page-shop .market-country-bar .country-search-status{display:block;font-size:11px;padding:5px;color:#527362}
+@media(max-width:680px){
+ #page-shop .shop-market-nav{position:relative;top:auto;padding-left:8px!important;padding-right:8px!important;gap:6px}
+ .shop-market-links{gap:1px;flex:1;overflow-x:auto;scrollbar-width:none}
+ #page-shop .shop-market-links button{flex:0 0 auto;min-width:0;min-height:34px!important;padding:7px 6px!important;font-size:11px;gap:3px}
+ #page-shop .shop-market-links button span{display:none}
+ #page-shop .market-country-bar{flex:0 0 112px}
+ #page-shop .market-country-bar .country-search-trigger{padding:6px!important;gap:4px}
+ #page-shop .market-country-bar .country-search-trigger .country-picker-name{font-size:11px}
+ #page-shop .market-country-bar .country-search-trigger .country-picker-code{display:none}
+ .market-country-bar .country-picker-flag{width:17px;height:12px}
+}
+@media(max-width:380px){#page-shop .shop-market-links button{padding-left:4px!important;padding-right:4px!important}#page-shop .market-country-bar{flex-basis:108px}}

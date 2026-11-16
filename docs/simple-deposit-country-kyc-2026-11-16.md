@@ -39,3 +39,9 @@ Trees display the achieved leadership rank badge on the avatar rim without a sep
 No real company receiving account is configured yet. An authorized admin must enter the actual bank/wallet/USDT details before users can deposit. Real-money settlement and signed-in production admin form submissions have not been simulated with customer funds. The automated database/UI tests and synthetic browser checks cover those flows without live financial mutations.
 
 The pre-existing Supabase advisory categories remain: legacy callable security-definer functions and [leaked-password protection disabled](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection). New endpoints do not add anonymously callable functions. Private tables intentionally deny direct client access. This release does not certify 10,000 concurrent users or eliminate all security risks; see the prior payment verification report for load-test scope and remaining platform review.
+
+## Production release evidence
+
+Application commit: `bf76ca3659b504a3855afa6a3a22e70f85ccbfb8`. Vercel reported successful production deployment. Live `index.html`, `app.js`, `member-payments.js`, `member-payments.css`, `tree-details.css` and `sw.js` all returned HTTP 200 and exactly matched the tested local release. CSP and `X-Frame-Options: DENY` were present. The refreshed production marketplace rendered successfully. The captured browser error entries were extension metadata errors, not application errors; this is not a server-log audit.
+
+Migration history version: `20261116190143_simple_deposit_country_kyc`. Production readback confirmed Pakistan KYC remains ON, deposit rate 300, withdrawal rate 290, and zero invented receiving accounts. No real-money transaction or real KYC submission was used in browser tests.

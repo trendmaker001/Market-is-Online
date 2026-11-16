@@ -1,0 +1,50 @@
+[
+  {
+    "file": "index.html",
+    "http": 200,
+    "matches_local": true,
+    "sha256": "cffaab71d014764d5233813131a1c6f943e42e97e11ea8677a64ecf090cabb51",
+    "csp": true,
+    "frame_options": "DENY"
+  },
+  {
+    "file": "app.js",
+    "http": 200,
+    "matches_local": true,
+    "sha256": "dde811035027b7fd3a9db16989d7497db9254f5087d4627d8b143ad34042a3d6",
+    "csp": true,
+    "frame_options": "DENY"
+  },
+  {
+    "file": "member-payments.js",
+    "http": 200,
+    "matches_local": true,
+    "sha256": "0958d4760b1ce821232f474e2bd2b799bc847895d89cb62d7ff3560b34f23233",
+    "csp": true,
+    "frame_options": "DENY"
+  },
+  {
+    "file": "member-payments.css",
+    "http": 200,
+    "matches_local": true,
+    "sha256": "06e07982a37df199d75384a6ac99868b1687262a4d2355b75ef4c6055d415b2a",
+    "csp": true,
+    "frame_options": "DENY"
+  },
+  {
+    "file": "tree-details.css",
+    "http": 200,
+    "matches_local": true,
+    "sha256": "17fab8dbe17a31e02060d4113a6a2daab0a5d50b1e7f9ef948f5cc16a3e4b760",
+    "csp": true,
+    "frame_options": "DENY"
+  },
+  {
+    "file": "sw.js",
+    "http": 200,
+    "matches_local": true,
+    "sha256": "5694e79a6a6ae07ed3b716ff26bd9f660418ab7d528eb99fcba6150b3238075f",
+    "csp": true,
+    "frame_options": "DENY"
+  }
+]

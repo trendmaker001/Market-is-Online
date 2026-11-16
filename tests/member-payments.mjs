@@ -66,7 +66,7 @@ await as(1);await one('select public.admin_save_payment_config($1,$2) v',['count
 await as(2);assert.equal(Number((await workspace()).history.find(x=>x.id===dr.id).rate),300);await assert.rejects(submit({...data,account_revision:2},'stale-rate'),/Rate changed/);
 await assert.rejects(submit({...data,account_revision:2,amount:'501',quoted_rate:'295'},'insufficient'),/Insufficient/);assert.equal(Number((await workspace()).cash_balance),500);
 const cancel=await submit({...data,account_revision:2,quoted_rate:'295'},'cancel-request');await q("select public.review_member_payment($1,'cancelled','','','')",[cancel.id]);assert.equal(Number((await workspace()).cash_balance),500);
-await as(1);await q("update private.member_kyc set expires_on=current_date-1 where member_id=$1",[id(2)]);
+await as(1);await q("update private.member_kyc set expires_on=(now() at time zone 'UTC')::date-1 where member_id=$1",[id(2)]);
 await as(2);await assert.rejects(submit({...data,account_revision:2,quoted_rate:'295'},'expired-kyc'),/Complete KYC/);
 await as(null);await assert.rejects(workspace(),/member account/);
 for(const sig of ['public.my_payment_workspace(integer)','public.submit_member_payment(jsonb,text,text)','private.payment_cash_entry(uuid,uuid,numeric,text)'])assert.equal(await one("select has_function_privilege('anon',$1,'execute') v",[sig]),false);
