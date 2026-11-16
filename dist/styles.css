@@ -3524,3 +3524,13 @@ body.admin-workspace-active #marketplaceFooter,body.admin-workspace-active #acco
 .rank-definition-row{grid-template-columns:minmax(150px,1.4fr) repeat(4,minmax(90px,1fr))}.rank-definition-row>span{overflow-wrap:anywhere}.rank-definition-row .rank-edit-button{grid-column:-2/-1}
 @media(max-width:900px){.rank-definition-row{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.rank-definition-row{grid-template-columns:1fr}.rank-definition-row .rank-edit-button{grid-column:auto}}
+
+/* Source identity and independent levels in each grouped earning activity. */
+#memberAccountShell #page-earnings .desktop-earning-table .earning-date-col{width:16%}
+#memberAccountShell #page-earnings .earning-event-name{font-weight:700;font-size:12px}
+#memberAccountShell #page-earnings .earning-event-code{font-size:10px;white-space:nowrap;color:#536a60}
+#memberAccountShell #page-earnings .earning-cell-level{display:block!important;font-size:10px;font-weight:650;color:#537263;margin-top:4px;white-space:nowrap}
+
+#memberAccountShell #page-earnings .desktop-earning-table thead th{word-break:normal;overflow-wrap:normal;font-size:11px}
+#memberAccountShell #page-earnings .earning-cell-level>span,#memberAccountShell #page-earnings .earning-inline-level{color:#08764f;background:#e6f5ec;border-radius:3px;padding:0 3px;font-weight:650}
+#memberAccountShell #page-earnings .earning-cell-level.single_line>span,#memberAccountShell #page-earnings .earning-inline-level.single_line{color:#6b3995;background:#f3eafa}
