@@ -18,3 +18,5 @@ Verification:
 Screenshots in `docs/verification/country-nav-mobile.jpg` and `country-featured-admin.jpg` use synthetic fixture data rendered by the real application. Production delivery is separately checked after GitHub/Vercel deployment.
 
 Also includes an SVG foreignObject overflow correction so the achieved-rank badge is fully visible above the avatar. No tree relationships changed.
+
+Production check found the anonymous policy initially called an admin-only role helper. Follow-up migration `20261116193637_country_featured_public_read` separates public eligible-product reads from authenticated admin reads, without granting anonymous access to the helper. The regression fixture now revokes that helper from anonymous clients to match production. Production anonymous SQL returns all 10 Pakistan picks. Vercel deployment `fa5b7fb59ff5ce6b4a0ea36c0fae80e95775029a` succeeded; all five changed frontend assets matched the local build byte-for-byte over HTTPS.

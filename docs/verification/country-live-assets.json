@@ -1,0 +1,27 @@
+[
+  {
+    "file": "index.html",
+    "http": 200,
+    "matches": true
+  },
+  {
+    "file": "app.js",
+    "http": 200,
+    "matches": true
+  },
+  {
+    "file": "market-country.css",
+    "http": 200,
+    "matches": true
+  },
+  {
+    "file": "tree-details.css",
+    "http": 200,
+    "matches": true
+  },
+  {
+    "file": "sw.js",
+    "http": 200,
+    "matches": true
+  }
+]

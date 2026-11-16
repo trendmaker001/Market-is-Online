@@ -17,6 +17,8 @@ insert into vendors values('${id(10)}','PK','active'),('${id(11)}','AE','active'
 insert into products values('${id(20)}','${id(10)}','PK','approved',10),('${id(21)}','${id(11)}','AE','approved',10);
 insert into featured_products(position,product_id) values(1,'${id(20)}'),(2,'${id(21)}');`);
 await db.exec(await readFile('schema/country_featured_products.sql','utf8'));
+await db.exec(await readFile('schema/country_featured_public_read.sql','utf8'));
+await db.exec("revoke all on function private.has_role(text) from public,anon;grant execute on function private.has_role(text) to authenticated;");
 assert.equal(await one('select count(*)::integer v from country_featured_products'),2);
 await db.exec('set role anon');assert.equal(await one("select count(*)::integer v from country_featured_products where country_code='PK'"),1);
 await assert.rejects(db.query("select set_country_featured_products('PK','{}','{}')"),/permission denied/);
