@@ -1,0 +1,37 @@
+import {JSDOM} from 'jsdom';
+import {readFile,mkdir,writeFile,cp} from 'node:fs/promises';
+import assert from 'node:assert/strict';
+const html=await readFile('dist/index.html','utf8'),source=await readFile('dist/app.js','utf8');
+const dom=new JSDOM(html,{runScripts:'outside-only',url:'https://mio.example.test'}),w=dom.window;
+const render=source.split('\n').find(line=>line.startsWith('function renderBinaryPoolCycleAdmin('));
+let user='admin',admin=true,pending,fail=false,calls=[];
+const cycle={id:'cycle',cycle_code:'PREVIEW-20261116',distributed_at:'2026-11-16T20:34:47Z',status:'posted',share_price:10,total_paid:176,pool_amount:176,total_shares:17.6,recipient_count:2,members:[{name:'Member A',mio_id:'MIO-PREVIEW-A',shares:10.4,share_price:10,paid:104},{name:'Member B',mio_id:'MIO-PREVIEW-B',shares:7.2,share_price:10,paid:72}]};
+const response={total_cycles:11,cycles:[cycle]};
+const rpc=async(name,args)=>{calls.push({name,args});if(pending)return new Promise(resolve=>{pending=resolve});return {data:response,error:fail?Error('offline'):null};};
+w.eval(await readFile('dist/binary-distribution-history.js','utf8'));
+w.eval(`const el=id=>document.getElementById(id),esc=s=>String(s??''),mioFmt=n=>Number(n||0).toFixed(2)+' MIO',planName=s=>s,db={rpc:()=>{}},session={user:{id:'admin'}},isAdmin=true;${render}`);
+w.renderBinaryPoolCycleAdmin({share_points_each_side:100,total_shares:0,total_pool_wallet:1088.64,total_pool_generated:1264.64,total_distributed:176,last_distributed:176});
+const root=w.document.getElementById('binaryPoolAdminPanel'),mount=()=>w.MioBinaryDistributions.mount(root,{rpc,owner:()=>user,allowed:()=>admin}),q=s=>root.querySelector(s),flush=()=>new Promise(resolve=>setTimeout(resolve,0));
+mount();assert.equal(calls.length,0,'history loads only on demand');assert.match(q('#binaryDistributionToggle').textContent,/Total Share Pool Distributed/);
+q('#binaryDistributionToggle').click();await flush();assert.equal(calls.length,1);assert.equal(q('#binaryDistributionHistory').hidden,false);
+assert.match(q('summary').textContent,/17 Nov 2026, 01:34 PKT/);assert.match(q('summary').textContent,/16 Nov 2026, 20:34 UTC/);
+assert.equal(q('details').open,true);assert.equal(root.querySelectorAll('.binary-distribution-table tbody tr').length,2);
+assert.deepEqual([...root.querySelectorAll('.binary-distribution-table tbody .binary-share-tag')].map(n=>n.textContent),['10.40','10.00','7.20','10.00']);
+assert.match(q('tfoot').textContent,/2 recipients.*17.60.*176.00/);
+q('#binaryDistributionToggle').click();q('#binaryDistributionToggle').click();await flush();assert.equal(calls.length,1,'reopening reuses loaded statement');
+q('[data-distribution-next]').click();await flush();assert.equal(calls.at(-1).args.p_offset,10);
+fail=true;q('[data-distribution-refresh]').click();await flush();assert.match(q('[role=alert]').textContent,/could not be loaded/);
+fail=false;q('[data-distribution-refresh]').click();await flush();assert.ok(q('table'));
+cycle.members[0].name='<img src=x onerror=alert(1)>';q('[data-distribution-refresh]').click();await flush();assert.equal(q('table img'),null);
+cycle.members[0].name='Member A';pending=true;q('[data-distribution-refresh]').click();await flush();user='member';admin=false;pending({data:response});await flush();assert.equal(q('#binaryDistributionHistory').textContent,'');assert.equal(q('#binaryDistributionHistory').hidden,true);
+pending=null;user='admin';admin=true;mount();q('#binaryDistributionToggle').click();await flush();w.MioBinaryDistributions.clear();assert.equal(q('#binaryDistributionHistory').textContent,'');
+console.log('PASS lazy load, historical dates, recipient totals, compact rows, pagination, retry, XSS escaping and stale account-response isolation');
+if(process.env.MIO_BINARY_ADMIN_LAYOUT){
+  response.total_cycles=1;mount();q('#binaryDistributionToggle').click();await flush();q('#binaryPoolDetails').classList.remove('hidden');
+  const out=process.env.MIO_BINARY_ADMIN_LAYOUT;await mkdir(out+'/dist',{recursive:true});await mkdir(out+'/.openai',{recursive:true});await cp('dist',out+'/dist',{recursive:true});
+  await writeFile(out+'/.openai/hosting.json',JSON.stringify({static:{directory:'dist'}}));
+  await writeFile(out+'/dist/snapshot.html',`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1">${[...html.matchAll(/<link rel="stylesheet"[^>]*>/g)].map(m=>m[0]).join('')}<style>body{background:#f3f8f4}header{padding:20px 24px;background:white;border-bottom:1px solid #d6e5dc}header img{width:245px;max-width:65%}.qa-shell{display:flex}.qa-nav{background:#076446;color:white;padding:26px;width:225px;flex-shrink:0;min-height:100vh}.qa-nav p{padding:15px 0}.qa-nav b{background:white;color:#076446;display:block;padding:14px;border-radius:8px}.qa-main{padding:22px;min-width:0;flex:1}.qa-main>h2{margin-top:0}@media(max-width:680px){.qa-nav{display:none}.qa-main{padding:12px}.qa-main .card-body{padding:12px}.qa-main>h2{font-size:20px}header{padding:15px}}</style></head><body><header><img src="/market-is-online-logo.png" alt="Market is Online"></header><div class="qa-shell"><aside class="qa-nav"><p>Network Controls</p><p>Bonus Wallet Settings</p><p>Monthly Maintenance</p><b>Binary Share Pool</b><p>Manager &amp; Leadership</p><p>Company Earnings</p></aside><main class="qa-main" id="page-admin"><h2>Binary Share Pool</h2><section class="control-panel" id="control-binary-pool"><section class="card"><div class="card-body">${root.outerHTML}</div></section></section></main></div></body></html>`);
+  await writeFile(out+'/dist/index.html',`<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;font:14px system-ui;background:#e9f0ed}header{padding:10px;background:white}iframe{display:block;border:1px solid #aaa;margin:10px auto;background:white}</style><header><label>Viewport <select id="viewport"><option value="1366,1000">Laptop 1366</option><option value="1024,1000">Laptop 1024</option><option value="390,1100">Mobile 390</option><option value="320,1100">Mobile 320</option></select></label></header><iframe id="preview" title="Admin distribution statement" src="/snapshot.html" width="1366" height="1000"></iframe><script>document.getElementById('viewport').onchange=function(){const [width,height]=this.value.split(',');const f=document.getElementById('preview');f.width=width;f.height=height;}</script>`);
+  console.log('Admin layout fixture ready:',out);
+}
+w.close();
