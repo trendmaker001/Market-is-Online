@@ -9,7 +9,8 @@ const cycle={id:'cycle',cycle_code:'PREVIEW-20261116',distributed_at:'2026-11-16
 const response={total_cycles:11,cycles:[cycle]};
 const rpc=async(name,args)=>{calls.push({name,args});if(pending)return new Promise(resolve=>{pending=resolve});return {data:response,error:fail?Error('offline'):null};};
 w.eval(await readFile('dist/binary-distribution-history.js','utf8'));
-w.eval(`const el=id=>document.getElementById(id),esc=s=>String(s??''),mioFmt=n=>Number(n||0).toFixed(2)+' MIO',planName=s=>s,db={rpc:()=>{}},session={user:{id:'admin'}},isAdmin=true;${render}`);
+if(process.env.MIO_BINDING_LAYOUT)w.eval(await readFile('dist/binary-qualification-admin.js','utf8'));
+w.eval(`const el=id=>document.getElementById(id),esc=s=>String(s??''),mioFmt=n=>Number(n||0).toFixed(2)+' MIO',planName=s=>s,confirmSensitive=async()=>{},db={rpc:async()=>({data:{active_members:2,rules:{version:0,required_left_directs:1,required_right_directs:1,required_left_dp:20,required_right_dp:20}}})},session={user:{id:'admin'}},isAdmin=true;${render}`);
 w.renderBinaryPoolCycleAdmin({share_points_each_side:100,total_shares:0,total_pool_wallet:1088.64,total_pool_generated:1264.64,total_distributed:176,last_distributed:176});
 const root=w.document.getElementById('binaryPoolAdminPanel'),mount=()=>w.MioBinaryDistributions.mount(root,{rpc,owner:()=>user,allowed:()=>admin}),q=s=>root.querySelector(s),flush=()=>new Promise(resolve=>setTimeout(resolve,0));
 mount();assert.equal(calls.length,0,'history loads only on demand');assert.match(q('#binaryDistributionToggle').textContent,/Total Share Pool Distributed/);
