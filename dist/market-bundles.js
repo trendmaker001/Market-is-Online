@@ -6,6 +6,7 @@
  function create(api){
   let publicProducts=[],busy=false,categories=[],categoryIndex=0,categoryQuery='',motion={enabled:true,speed:'slow',direction:'left'},animation=0,pauseUntil=0,hover=false,manualPause=false;
   const bundleArtwork = name => /^Bundle ([1-6])$/.exec(name)?.[1];
+  let loadVersion=0;
   let types=null, activeVendors=[], selectedType='', selectedVendor='', quantities=new Map(), quote=null, quoteError='', quoteVersion=0;
   let typeLoadError='', adminTypes=[], adminRate=null;
   const selectedItems=()=>[...quantities].map(([product_id,quantity])=>({product_id,quantity}));
@@ -118,7 +119,7 @@
    }
   }
   async function load(items){
-   publicProducts=items;
+   const version=++loadVersion;publicProducts=items;
    let host=$('marketBundleSection');
    if(!host){
     host=document.createElement('section');host.id='marketBundleSection';host.className='shop-home-section bundle-section';
@@ -127,9 +128,10 @@
    if(host){host.classList.toggle('hidden',api.shopView()!=='home');renderMarketplace(host);}
    const [bundleTypes,vendorList,settings]=await Promise.all([
     api.db.rpc('marketplace_bundle_types'),
-    api.db.from('vendors').select('id,business_name').eq('status','active').order('business_name'),
+    api.db.from('vendors').select('id,business_name').eq('status','active').eq('country_code',api.country?.()||'PK').order('business_name'),
     api.db.from('system_config').select('config_value').eq('config_key','MARKETPLACE_CATEGORY_MOTION').is('effective_to',null).order('version',{ascending:false}).limit(1)
    ]);
+   if(version!==loadVersion)return;
    if(!bundleTypes.error&&Array.isArray(bundleTypes.data))types=bundleTypes.data;
    else typeLoadError='Bundle types could not load. Refresh to try again.';
    const visibleVendors=new Map(regularProducts().map(p=>[p.vendor_id,{id:p.vendor_id,business_name:p.vendors?.business_name||'Vendor'}]));
@@ -252,7 +254,7 @@
     animation=requestAnimationFrame(tick)
    }animation=requestAnimationFrame(tick);
   }
-  return {load,renderMarketplace,renderDetail,preselectVendor,mountAdmin,mountCategories,startMotion};
+  return {reset(){loadVersion++;publicProducts=[];activeVendors=[];selectedVendor='';selectedType='';quantities.clear();quote=null;quoteVersion++;},load,renderMarketplace,renderDetail,preselectVendor,mountAdmin,mountCategories,startMotion};
  }
  window.MioBundles={create};
 })();

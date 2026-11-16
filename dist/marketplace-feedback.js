@@ -2,7 +2,7 @@
  'use strict';
  const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  function create(api){
-  let summaries=new Map(),loaded=false,ticker=null,reviewRequest=0;
+  let summaries=new Map(),loaded=false,ticker=null,reviewRequest=0,tickerRequest=0;
   function ratingContent(id){
    if(!loaded)return '<span class="rating-score"><span class="rating-stars" aria-hidden="true">☆☆☆☆☆</span><small>Loading…</small></span>';
    const r=summaries.get(id),count=Number(r?.rating_count)||0,score=count?Number(r.average_rating):0;
@@ -54,7 +54,7 @@
    if(focused)host.querySelector('button').focus({preventScroll:true});
    host.querySelector('button').onclick=e=>{const paused=host.classList.toggle('is-paused');e.currentTarget.textContent=paused?'▶':'Ⅱ';e.currentTarget.setAttribute('aria-label',paused?'Resume announcements':'Pause announcements');e.currentTarget.setAttribute('aria-pressed',String(paused));};
   }
-  async function loadTicker(){const {data,error}=await api.db.rpc('marketplace_ticker_settings');if(!error&&data){ticker=data;renderTicker();}}
+  async function loadTicker(country='PK'){const request=++tickerRequest;if(country!=='PK'){ticker=null;renderTicker();return;}const {data,error}=await api.db.rpc('marketplace_ticker_settings');if(request!==tickerRequest)return;ticker=error?null:data;renderTicker();}
   async function mountAdmin(){
    const hero=document.getElementById('heroBannerForm');if(!hero||document.getElementById('tickerAdminForm'))return;
    hero.closest('.card')?.insertAdjacentHTML('afterend',`<section class="card ticker-editor"><div class="card-head"><div><h3>Scrolling announcement strip</h3><p>Three messages below the marketplace carousel.</p></div></div><form class="card-body form" id="tickerAdminForm">${[1,2,3].map(n=>`<label>Message ${n}<input name="message${n}" maxlength="200" required></label>`).join('')}<label class="ticker-enable"><input type="checkbox" name="enabled"> Show announcement strip</label><button class="btn primary">Save messages</button><p role="status" class="ticker-save-status"></p></form></section>`);

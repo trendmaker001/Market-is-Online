@@ -1,0 +1,24 @@
+import {JSDOM} from 'jsdom';import {readFile} from 'node:fs/promises';import assert from 'node:assert/strict';
+const code=await readFile('dist/market-country.js','utf8'),premium=await readFile('dist/marketplace-premium.js','utf8');
+const options=c=>'<option value="">Select country</option>'+['PK','AE','US'].map(x=>`<option value="${x}" ${x===c?'selected':''}>${x}</option>`).join('');
+const dom=new JSDOM('<div id="marketCountryBar"><select id="marketCountry"></select><p id="marketCountryStatus"></p></div><div id="page-shop" class="active"><section class="section"><div id="featured"></div></section><div id="marketHero"></div></div><div class="card"><form id="heroBannerForm"></form></div>',{url:'https://mio.example.test',runScripts:'outside-only'}),w=dom.window,d=w.document;
+w.matchMedia=()=>({matches:true});w.AbortController=AbortController;let changed=[],geoResolve;
+w.fetch=()=>new Promise(resolve=>geoResolve=resolve);w.eval(code);
+const picker=w.MioMarketCountry.create({codes:['PK','AE','US'],options,name:c=>({PK:'Pakistan',AE:'United Arab Emirates',US:'United States'}[c]),search:()=>{},profile:()=> 'PK',changed:async c=>changed.push(c)});
+const ready=picker.init();await picker.change('AE');geoResolve({ok:true,json:async()=>({country:'US'})});await ready;assert.equal(picker.current(),'AE','late geolocation cannot overwrite explicit selection');assert.equal(w.localStorage.getItem('mio-market-country-v1'),'AE');assert.deepEqual(changed,['AE']);await picker.change('XX');assert.equal(picker.current(),'AE');
+const empty=()=>({enabled:false,interval:5,main_interval:3,main:[],slides:[],promos:[],video:[],categories:[],_revision:null});
+const configs={PK:{...empty(),main:[{title:'Pakistan',image_url:'/pk.webp',link:'#shop',enabled:true}]},AE:empty(),US:empty()};let saves=[],shown,delay;
+const db={rpc:async(name,args)=>{if(name==='marketplace_country_presentation'){if(delay)return await delay;return {data:structuredClone(configs[args.p_country])};}if(name==='admin_save_country_presentation'){saves.push(structuredClone(args));configs[args.p_country]=structuredClone(args.p_settings);return{data:args.p_settings};}throw Error(name);}};
+w.eval(premium);const ui=w.MioPremium.create({db,country:picker.current,countryOptions:options,countryName:c=>c,countrySearch:()=>{},confirm:async()=>{},categories:()=>[],vendors:()=>[],main:items=>shown=items});
+await ui.load([], 'AE');assert.equal(shown.length,0);await ui.mountAdmin();assert.match(d.getElementById('premiumAdmin').textContent,/AE storefront/);
+const tick=()=>new Promise(r=>setTimeout(r,10));const selectCountry=async c=>{d.getElementById('promotionCountry').value=c;d.getElementById('promotionCountry').dispatchEvent(new w.Event('change'));await tick();};
+await selectCountry('PK');assert.match(d.getElementById('premiumAdmin').textContent,/Pakistan/);
+d.querySelector('[data-promo-edit="main:0"]').click();let title=d.querySelector('[data-kind="main"][data-index="0"] [data-field="title"]');title.value='Pakistan draft';title.dispatchEvent(new w.Event('input'));
+await selectCountry('AE');assert.equal(d.querySelector('[data-promo-edit="main:0"]'),null);await selectCountry('PK');assert.equal(d.querySelector('[data-kind="main"][data-index="0"] [data-field="title"]').value,'Pakistan draft');
+d.getElementById('savePremiumPresentation').click();await tick();assert.equal(saves[0].p_country,'PK');assert.equal(saves[0].p_settings.main[0].title,'Pakistan draft');assert.equal(shown.length,0,'saving PK cannot replace AE storefront');
+let finish;delay=new Promise(r=>finish=r);const pending=ui.load([],'AE');ui.clear();finish({data:configs.PK});await pending;assert.equal(shown.length,0,'cleared storefront rejects stale banner responses');
+w.close();
+// Unknown location stays empty; there is no silent fallback to another market.
+const unknown=new JSDOM('<select id="marketCountry"></select>',{url:'https://mio.test',runScripts:'outside-only'});unknown.window.eval(code);unknown.window.fetch=async()=>{throw Error('offline')};unknown.window.AbortController=AbortController;
+const p=unknown.window.MioMarketCountry.create({codes:['PK'],options,name:c=>c,search:()=>{},profile:()=>null,changed:async()=>{}});await p.init();assert.equal(p.current(),'');unknown.window.close();
+console.log('PASS geolocation/manual priority, saved choice, invalid country, country-isolated admin drafts/save, empty countries, stale response suppression and unknown-location selection');
