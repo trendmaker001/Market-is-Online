@@ -23,6 +23,7 @@ insert into mio_wallet_accounts values('${id(1)}',0,now()),('${id(2)}',500,now()
 // Match the production ledger's ANY/ARRAY constraints for the migration's additive extension.
 await db.exec(`alter table mio_ledger drop constraint mio_ledger_amount_check;alter table mio_ledger add constraint mio_ledger_amount_check check((action=any(array['admin_mint'::text]) and amount>0)or(action=any(array['admin_burn'::text])and amount<0));`);
 await db.exec(await readFile('schema/member_kyc_country_payments.sql','utf8'));
+await db.exec(await readFile('schema/simple_deposit_country_kyc.sql','utf8'));
 const as=async n=>{await q("select set_config('test.uid',$1,false)",[n?id(n):'']);await q("select set_config('test.totp','yes',false)");};
 const workspace=()=>one('select public.my_payment_workspace() v');
 const file=async(n,name,bucket='member-kyc-documents')=>{const p=id(n)+'/'+name;await q('insert into storage.objects values($1,$2)',[bucket,p]);return p;};
@@ -92,4 +93,52 @@ if(process.env.MIO_PAYMENT_SCALE==='1'){
  const plan=(await q('explain (format json) select * from private.member_payment_requests where country_code=$1 order by created_at desc limit 25',['PK'])).rows[0]['QUERY PLAN'];assert.match(JSON.stringify(plan),/member_payment_country_date/);
  timings.sort((a,b)=>a-b);console.log(JSON.stringify({benchmark:'local PGlite only; not concurrent-user certification',members:10000,requests:100000,responseRows:25,adminQueryMedianMs:Math.round(timings[15]),adminQueryP95Ms:Math.round(timings[28]),plan},null,2));
 }
+
+// Country policy is enforced in the database, independently of frontend flags.
+const countryVersion=async cc=>one('select updated_at::text v from private.payment_countries where country_code=$1',[cc]);
+const setKyc=async(cc,required,version)=>q('select public.admin_set_country_kyc($1,$2,$3)',[cc,required,version??await countryVersion(cc)]);
+await as(2);assert.equal((await workspace()).country.kyc_required,true);
+await assert.rejects(setKyc('PK',false),/Admin access/);
+await as(1);const versionBefore=await countryVersion('PK');await setKyc('PK',false);
+await assert.rejects(setKyc('PK',true,versionBefore),/changed/);
+await as(2);assert.equal((await workspace()).country.kyc_required,false);assert.equal((await workspace()).kyc_valid,false);
+await q('insert into proceed_wallet_conversions values($1)',[id(2)]);
+await assert.rejects(submit({...data,account_revision:2,quoted_rate:'295'},'off-bad-pin','0000'),/PIN/);
+const offRequest=await submit({...data,account_revision:2,quoted_rate:'295'},'off-withdraw');
+await as(1);await q("select public.review_member_payment($1,'completed','Sent','OFF-TEST',$2)",[offRequest.id,receipt]);
+await as(3);await assert.rejects(q('insert into proceed_wallet_conversions values($1)',[id(3)]),/Complete KYC/);
+await as(1);await setKyc('PK',true);await as(2);
+await assert.rejects(q('insert into proceed_wallet_conversions values($1)',[id(2)]),/Complete KYC/);
+assert.equal((await workspace()).kyc.status,'approved','policy never changes the underlying identity record');
+await as(1);await q("select set_config('test.totp','no',false)");await assert.rejects(setKyc('PK',false),/Authenticator/);await as(1);
+
+// Simple receiving account save is atomic and does not alter withdrawal methods.
+const saveOption=d=>one('select public.admin_save_deposit_option($1) v',[d]);
+const simpleBank={country_code:'PK',kind:'bank',provider:'Example Bank',title:'COMPANY TEST',account:'1234567890123',enabled:true};
+const originalBank=await one('select to_jsonb(m) v from private.payment_methods m where id=$1',[bank.id]);
+const simpleId=await saveOption(simpleBank);const getOption=()=>one('select to_jsonb(a) v from private.payment_company_accounts a where id=$1',[simpleId]);
+const savedOption=await getOption();const sm=await one('select to_jsonb(m) v from private.payment_methods m where id=$1',[savedOption.method_id]);
+assert.equal(sm.simple_deposit,true);assert.equal(sm.withdrawal_enabled,false);assert.equal(sm.deposit_enabled,true);
+assert.deepEqual(await one('select to_jsonb(m) v from private.payment_methods m where id=$1',[bank.id]),originalBank);
+await assert.rejects(saveOption({...simpleBank,id:simpleId,version:savedOption.updated_at,country_code:'AE'}),/country/);
+await saveOption({...simpleBank,id:simpleId,version:savedOption.updated_at,account:'9876543210'});
+await assert.rejects(saveOption({...simpleBank,id:simpleId,version:savedOption.updated_at}),/changed/);
+await saveOption({...simpleBank,kind:'mobile',provider:'Custom Wallet',account:'+923001234567'});
+const cryptoDraft={country_code:'PK',kind:'crypto',coin:'USDT',network:'ERC20',account:'0x'+'1'.repeat(40),enabled:true};
+await assert.rejects(saveOption({...cryptoDraft,coin:'BTC'}),/USDT/);
+await assert.rejects(saveOption({...cryptoDraft,network:'OTHER'}),/USDT/);
+await assert.rejects(saveOption({...cryptoDraft,network:'TRC20'}),/format/);
+const countBefore=await one('select count(*) v from private.payment_methods');await assert.rejects(saveOption({...simpleBank,account:'<script>'}),/account number/);assert.equal(await one('select count(*) v from private.payment_methods'),countBefore);
+const cryptoId=await saveOption(cryptoDraft);let cryptoSaved=await one('select to_jsonb(a) v from private.payment_company_accounts a where id=$1',[cryptoId]);
+assert.equal(await one('select deposit_enabled v from private.payment_methods where id=$1',[cryptoSaved.method_id]),false);
+await one('select public.admin_save_payment_config($1,$2) v',['country',{country_code:'PK',currency:'PKR',deposit_rate:310,withdrawal_rate:295,usdt_deposit_rate:1.05}]);
+await saveOption({...cryptoDraft,id:cryptoId,version:cryptoSaved.updated_at});
+assert.equal(await one('select deposit_enabled v from private.payment_methods where id=$1',[cryptoSaved.method_id]),true);
+assert.equal(Number(await one('select deposit_rate v from private.payment_methods where id=$1',[cryptoSaved.method_id])),1.05);
+await assert.rejects(one('select public.admin_save_payment_config($1,$2) v',['country',{country_code:'PK',currency:'PKR',deposit_rate:310,withdrawal_rate:295,usdt_deposit_rate:''}]),/USDT deposit rate/);
+await saveOption({...cryptoDraft,network:'BEP20'});await saveOption({...cryptoDraft,network:'TRC20',account:'T'+'1'.repeat(33)});
+await as(3);assert.equal((await workspace()).company_accounts.some(a=>a.id===simpleId),false);await assert.rejects(saveOption(simpleBank),/Admin access/);
+for(const sig of ['public.admin_save_deposit_option(jsonb)','public.admin_set_country_kyc(text,boolean,text)','private.save_deposit_option(jsonb)','private.set_country_kyc(text,boolean,text)'])assert.equal(await one("select has_function_privilege('anon',$1,'execute') v",[sig]),false);
+console.log('PASS country KYC default/isolation/ON/OFF/stale version/TOTP, Proceed and withdrawal guards, bank/mobile/USDT formats, atomic saves, rate gates, withdrawal preservation and RPC privileges.');
+
 await db.close();

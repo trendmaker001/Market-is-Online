@@ -74,3 +74,5 @@
 :is(#page-network.graphical-only,#page-admin) #treeCard .tree-side-right{--side-accent:#7c3aed;--side-ink:#6d28d9;--side-border:#c4a5f6;--side-background:#f5f3ff}
 :is(#page-network.graphical-only,#page-admin) #treeCard .tree-side-metric small{color:var(--side-ink);font-weight:700}
 :is(#page-network.graphical-only,#page-admin) #treeCard .tree-side-metric strong{color:var(--side-ink);font-size:16px;font-weight:800;margin-left:auto;max-width:100%;font-variant-numeric:tabular-nums}
+
+.tree-avatar-picture .tree-rank-picture,.tree-avatar-picture .tree-rank-symbol{top:-6px;right:-8px;bottom:auto;width:24px;height:24px;z-index:2}.tree-rank-symbol{position:absolute;display:grid;place-items:center;border-radius:50%;background:#fff4ce;border:1px solid #b99031;color:#876000;font-size:17px;line-height:1;box-shadow:0 1px 4px #173d2933}
