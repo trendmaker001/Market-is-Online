@@ -3534,3 +3534,11 @@ body.admin-workspace-active #marketplaceFooter,body.admin-workspace-active #acco
 #memberAccountShell #page-earnings .desktop-earning-table thead th{word-break:normal;overflow-wrap:normal;font-size:11px}
 #memberAccountShell #page-earnings .earning-cell-level>span,#memberAccountShell #page-earnings .earning-inline-level{color:#08764f;background:#e6f5ec;border-radius:3px;padding:0 3px;font-weight:650}
 #memberAccountShell #page-earnings .earning-cell-level.single_line>span,#memberAccountShell #page-earnings .earning-inline-level.single_line{color:#6b3995;background:#f3eafa}
+
+/* Binary share snapshots: purple quantity/rate and green matched BP. */
+.binary-share-formula{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-size:inherit}
+.binary-share-tag{display:inline-block;padding:1px 4px;border-radius:3px;background:#f3eafa;color:#6b3995;font-size:inherit;font-weight:650;line-height:1.25;white-space:nowrap;font-variant-numeric:tabular-nums}
+.binary-share-tag.binary-share-bp{background:#e6f5ec;color:#08764f}
+#memberAccountShell #page-earnings .desktop-earning-table :is(.binary-share-calculation,.binary-share-matched){vertical-align:middle;white-space:nowrap}
+[data-member-theme="dark"] .binary-share-tag{background:#352744;color:#e6c9ff}
+[data-member-theme="dark"] .binary-share-tag.binary-share-bp{background:#173e2d;color:#a5e6c0}
