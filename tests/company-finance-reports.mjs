@@ -43,5 +43,14 @@ assert.equal(value('masterAccounting','Company MIO · actual'),'8.00 MIO');
 w.renderFinancePanels({company_sources:[],binary_reserved_mio:4},{},metric,String,{});
 assert.equal(value('masterAccounting','Held for members / level fills'),'4.00 MIO');
 assert.equal(value('companyLeftoverReport','Leftover MIO'),'0.00 MIO');
+// Community funding stays a liability, with one available wallet and separate cycle reserve.
+w.renderFinancePanels({company_sources:[{category:'global_community_hold',currency:'MIO',amount:5.3018},{category:'community_cycle_reserved',currency:'MIO',amount:1440}]},{},metric,String,{});
+assert.equal(value('masterAccounting','Company MIO · actual'),'0.00 MIO');
+assert.equal(value('masterAccounting','Held for members / level fills'),'1445.30 MIO');
+assert.equal(w.document.querySelectorAll('[data-company-wallet="global_community_hold"]').length,1);
+assert.equal(w.document.querySelector('[data-company-wallet="generation_global_pending"]'),null);
+assert.equal(w.document.querySelector('[data-company-wallet="binary_global_pending"]'),null);
+w.document.querySelector('[data-company-wallet="global_community_hold"]').click();
+assert.match(w.document.getElementById('companyWalletDetails').textContent,/5.30 MIO/);
 console.log('PASS disjoint held/leftover categories, pending exclusions, currency separation, cycle conservation, fallback and immutable inputs');
 w.close();
