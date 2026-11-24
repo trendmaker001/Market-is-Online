@@ -184,6 +184,20 @@ begin
    end if;
    if nullif(p_values->>'package_code','') is not null then insert into public.member_maintenance(member_id,started_at,monthly_due_at,annual_due_at) values(p_member,now(),now()+interval '180 days',now()+interval '365 days') on conflict(member_id) do update set started_at=coalesce(public.member_maintenance.started_at,now()),monthly_due_at=coalesce(public.member_maintenance.monthly_due_at,now()+interval '180 days'),annual_due_at=coalesce(public.member_maintenance.annual_due_at,now()+interval '365 days');end if;
    update private.member_admin_baselines set package_assigned=true,package_code=nullif(p_values->>'package_code',''),package_assigned_at=now(),activation_id=activation where member_id=p_member;
+   -- Admin entitlement grants PPV only, under the existing member lock/restore context.
+   -- Shopping/order PPV remains additional; prior package and manual PPV count toward
+   -- the entitlement so upgrades and remove/reassign cycles cannot duplicate it.
+   if nullif(p_values->>'package_code','') is not null then
+    select coalesce(sum(pl.amount),0) into current_amount
+    from public.point_ledger pl
+    where pl.member_id=p_member and pl.point_type='PPV'
+      and pl.source_order_id is null and pl.created_at>private.financial_reset_at();
+    delta:=greatest(plan.ppv-greatest(current_amount,0),0);
+    if delta>0 then
+     insert into public.point_ledger(member_id,point_type,amount,entry_kind,admin_change_id,idempotency_key)
+     values(p_member,'PPV',delta,'credit',change_id,'admin-package-ppv:'||change_id);
+    end if;
+   end if;
   end if;
   if p_values ? 'rank' then
    if nullif(p_values->>'rank','') is not null then
