@@ -16,10 +16,35 @@ function vendorDirectory(stores,products){
 }
 function create(api){
  const $=id=>document.getElementById(id),toggle=$('catalogFilterToggle'),panel=$('catalogFilters'),grid=$('productsGrid');let lastInteraction=0,hovered=false;
- function close(focus=false){panel.hidden=true;toggle.setAttribute('aria-expanded','false');if(focus)toggle.focus()}
- function sync(){const count=Number(api.category()!=='all')+Number($('catalogVendorFilter').value!=='all')+Number($('sortSelect').value!=='fair');$('catalogFilterLabel').textContent='Filter'+(count?' · '+count:'');panel.querySelectorAll('[data-category]').forEach(b=>{const selected=b.dataset.category===api.category();b.classList.toggle('active',selected);b.setAttribute('aria-pressed',String(selected))})}
- toggle.onclick=()=>{const open=panel.hidden;panel.hidden=!open;toggle.setAttribute('aria-expanded',String(open));if(open)panel.querySelector('select')?.focus()};
- $('catalogFilterClose').onclick=()=>close(true);$('catalogFilterApply').onclick=()=>close(true);$('catalogFilterReset').onclick=()=>{api.clear();sync()};
+ const search = $('catalogCategorySearch');
+ function searchCategories() {
+  const query = search.value.trim().toLowerCase();
+  const buttons = [...panel.querySelectorAll('[data-category]')];
+  for (const button of buttons) button.hidden = !button.textContent.toLowerCase().includes(query);
+  $('catalogCategoryEmpty').hidden = buttons.some(button => !button.hidden);
+ }
+ search.oninput = searchCategories;
+ function close(focus=false){if(panel.open && panel.close)panel.close();else panel.removeAttribute('open');panel.hidden=true;toggle.setAttribute('aria-expanded','false');if(focus)toggle.focus()}
+ function sync(){$('catalogCategoryChoice').textContent=api.category()==='all'?'All':api.category();searchCategories();const count=Number(api.category()!=='all')+Number($('catalogVendorFilter').value!=='all')+Number($('catalogPriceMin').value!=='' || $('catalogPriceMax').value!=='');$('catalogFilterLabel').textContent='Filter'+(count?' · '+count:'');panel.querySelectorAll('[data-category]').forEach(b=>{const selected=b.dataset.category===api.category();b.classList.toggle('active',selected);b.setAttribute('aria-pressed',String(selected))})}
+ toggle.onclick = () => {
+  if (!panel.hidden) return close(true);
+  search.value = '';
+  $('catalogCategoryGroup').open = false;
+  searchCategories();
+  panel.hidden = false;
+  if (panel.showModal) panel.showModal();
+  else panel.setAttribute('open','');
+  toggle.setAttribute('aria-expanded','true');
+  $('catalogFilterClose').focus();
+ };
+ panel.addEventListener('cancel', event => { event.preventDefault(); close(true); });
+ panel.addEventListener('click', event => {
+  if(event.target !== panel) return;
+  const rect = panel.getBoundingClientRect();
+  if(event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) close(true);
+ });
+ $('catalogFilterClose').onclick=()=>close(true);$('catalogFilterApply').onclick=()=>close(true);$('catalogFilterReset').onclick=()=>{$('catalogPriceMin').value='';$('catalogPriceMax').value='';api.clear();sync()};
+ for(const id of ['catalogPriceMin','catalogPriceMax']) $(id).onchange=()=>api.reset();
  $('catalogVendorFilter').onchange=()=>api.reset();
  const outside=e=>{if(!panel.hidden&&!panel.contains(e.target)&&!toggle.contains(e.target))close()},escape=e=>{if(e.key==='Escape'&&!panel.hidden){e.preventDefault();close(true)}};
  document.addEventListener('click',outside);document.addEventListener('keydown',escape);
