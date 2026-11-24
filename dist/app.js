@@ -26,6 +26,22 @@ const SUPABASE_URL='https://vdkhqqhonpnsqugoadke.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_HBgMuH0myDEM28pmufR3Fg_91prui_w';
 const AUTH_STORAGE_KEY='sb-'+new URL(SUPABASE_URL).hostname.split('.')[0]+'-auth-token';
 const db=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{storageKey:AUTH_STORAGE_KEY}});
+async function refreshCommunityScore() {
+ const badge = document.getElementById('communityScore');
+ if (!badge || document.hidden || !document.querySelector('#page-shop.active')) return;
+ try {
+  const {data,error} = await db.rpc('marketplace_community_score');
+  if (error || !Number.isSafeInteger(data) || data < 0) return;
+  badge.querySelector('strong').textContent = data.toLocaleString('en-US');
+  badge.hidden = false;
+ } catch { /* Keep the last confirmed score during connection loss. */ }
+}
+window.addEventListener('pageshow',refreshCommunityScore);
+document.addEventListener('visibilitychange',refreshCommunityScore);
+window.addEventListener('hashchange',refreshCommunityScore);
+setTimeout(refreshCommunityScore,1200);
+setInterval(refreshCommunityScore,30000);
+
 const guestDb=createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{storageKey:'mio-guest-session',persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
 // Sample maintenance data is confined to the ChatGPT review URL.
 const maintenanceReview=new URLSearchParams(location.search).get('maintenance-preview')==='1';
