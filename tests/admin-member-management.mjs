@@ -32,13 +32,17 @@ await db.exec(await readFile(source+'/tests/fixtures/production-shopping-mode.sq
 await db.exec(await readFile(source+'/tests/fixtures/production-qualification-triggers.sql','utf8'));
 await db.exec(await readFile(source+'/schema/maintenance_activation_start.sql','utf8'));
 await db.exec(await readFile(source+'/tests/fixtures/production-binary-qualification.sql','utf8'));
-await db.exec(await readFile(source+'/schema/admin_member_management.sql','utf8'));
+// Exercise the upgrade migration against the pre-PPV function as deployed.
+await db.exec((await readFile(source+'/schema/admin_member_management.sql','utf8')).replace(/\n   -- Admin entitlement[\s\S]*?(?=\n  end if;\n  if p_values \? 'rank')/,''));
 await db.exec(await readFile(source+'/schema/admin_member_provisioning.sql','utf8'));
 await db.exec(await readFile(source+'/schema/admin_member_snapshot_imports.sql','utf8'));
 await as(admin);
 await db.exec(`create or replace function private.require_recent_totp() returns void language plpgsql as $$begin if current_setting('test.totp',true) is distinct from 'yes' then raise exception 'Authenticator required';end if;end$$; set test.totp='yes';`);
 const state=async(id=target)=>(await one('select public.admin_member_management($1)',[id])).state;
 const save=async(section,values,expected,key=crypto.randomUUID(),id=target)=>one('select public.admin_save_member_state($1,$2,$3,$4,$5,$6)',[id,section,JSON.stringify(values),JSON.stringify(expected??(await state(id))[section]),key,'Verified migration opening values']);
+await db.exec(await readFile(source+'/supabase/migrations/20261124073801_admin_package_automatic_ppv_only.sql','utf8'));
+await db.exec(await readFile(source+'/supabase/migrations/20261124073801_admin_package_automatic_ppv_only.sql','utf8'));
+await (await import('./admin-package-ppv.cases.mjs')).testAdminPackagePPV({db,q,one,save,state,target,other,as,admin});
 const original=await state();
 await save('earnings',{direct:400,generation:300,binary_pool_share:300});
 assert.equal(Number(await one('select sum(amount) from public.member_opening_earnings where member_id=$1',[target])),1000);
