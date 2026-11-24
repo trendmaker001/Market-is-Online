@@ -1,5 +1,5 @@
 /* Only the public offline page and brand icons are cached. No API, auth or order data. */
-const RELEASE = '6b6a00bcfa9f22ba';
+const RELEASE = '9b783baef30cfd73';
 const PREFIX = 'mio-pwa-public-';
 const CACHE = PREFIX + RELEASE;
 const OFFLINE = '/offline.html';

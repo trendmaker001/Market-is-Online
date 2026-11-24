@@ -4,7 +4,7 @@ Account Holders → Open keeps the administrator session and displays the select
 
 The directory shows **Placement Name**, **Placement MIO ID**, and **Left / Right**, independently of sponsor details. The edit menu supports:
 
-- Package entitlement, leadership rank and account status. Migration entitlements have no purchase amount, volume allocation or activation bonus. Restoring rank history does not release Promotion Points. Subsequent genuine earnings and promotions use normal rules.
+- Package entitlement, leadership rank and account status. Admin package assignments automatically credit only the missing package PPV. Prior package/manual PPV counts toward the entitlement; shopping PPV stays additional. Upgrades top up the difference, while downgrades, removals and reassignments never duplicate or deduct PPV. There is no purchase amount, other point allocation or activation bonus. Restoring rank history does not release Promotion Points. Subsequent genuine earnings and promotions use normal rules.
 - Actual Cash, Proceed, Shopping, Promotion and eligible Platinum Exchange balances. Each save records the adjustment and before/after audit. Opening earnings never create wallet credit.
 - A single opening total per earnings category. The user sees a separate opening statement; newly earned transactions keep their actual history. Opening 1,000 plus newly earned 30 displays 1,030.
 - Monthly/annual remaining days and monthly PPV progress. Stored deadlines continue counting down. Unchanged fields retain their deadline.
