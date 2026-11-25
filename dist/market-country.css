@@ -43,3 +43,19 @@
  #page-shop #communityScore .community-label {display:none}
  #page-shop #communityScore .community-toggle {font-size:11px;padding:4px 6px!important}
 }
+
+#page-shop #marketCountryBar {flex:0 0 152px}
+#page-shop #marketCountryBar .country-search-trigger {
+ box-sizing:border-box;display:flex;align-items:center;justify-content:flex-start;
+ height:36px;min-height:36px!important;gap:7px;padding:0 9px!important;
+ background:#f5fbf7!important;border:1px solid #b9d6c6!important;border-radius:9px!important;
+}
+#marketCountryBar .country-search-trigger .country-picker-name {min-width:0;flex:1}
+#marketCountryBar .country-search-trigger .country-picker-code {display:none}
+#marketCountryBar .country-search-trigger .country-picker-flag {flex:none;width:19px;height:13px;object-fit:contain}
+#marketCountryBar .country-search-trigger .country-picker-chevron {flex:none;margin:0 1px 4px 0}
+#marketCountryBar .country-search-trigger:focus-visible {outline:2px solid #e8bd65;outline-offset:2px}
+@media(max-width:680px){
+ #page-shop #marketCountryBar {flex-basis:108px}
+ #page-shop #marketCountryBar .country-search-trigger {gap:5px;padding:0 7px!important}
+}
