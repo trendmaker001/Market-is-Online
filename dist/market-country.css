@@ -40,10 +40,6 @@
 #communityInfo p {margin:6px 0 0}
 @media(max-width:680px) {
  #page-shop nav.shop-market-nav {flex-wrap:nowrap;gap:3px}
- #page-shop .market-country-bar {flex:0 0 38px}
- #page-shop .market-country-bar .country-search-trigger {justify-content:center;padding:4px!important}
- #page-shop .market-country-bar .country-search-trigger .country-picker-name,
  #page-shop #communityScore .community-label {display:none}
- #page-shop .market-country-bar .country-search-trigger:not(:has(img:not([hidden])))::before {content:"🌐"}
  #page-shop #communityScore .community-toggle {font-size:11px;padding:4px 6px!important}
 }
