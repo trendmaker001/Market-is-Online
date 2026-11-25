@@ -22,6 +22,10 @@
  #page-shop .market-country-bar .country-search-trigger{padding:6px!important;gap:4px}
  #page-shop .market-country-bar .country-search-trigger .country-picker-name{font-size:11px}
  #page-shop .market-country-bar .country-search-trigger .country-picker-code{display:none}
+ #page-shop .market-country-bar .country-search{position:static}
+ #page-shop .market-country-bar .country-search-panel{left:8px;right:8px;width:auto;max-width:none;box-sizing:border-box;white-space:normal}
+ #page-shop .market-country-bar .country-search-results{grid-template-columns:minmax(0,1fr)}
+ #page-shop .market-country-bar .country-search-results .country-picker-name{flex:1;white-space:normal;overflow-wrap:anywhere;color:inherit}
  .market-country-bar .country-picker-flag{width:17px;height:12px}
 }
 @media(max-width:380px){#page-shop .shop-market-links button{padding-left:4px!important;padding-right:4px!important}#page-shop .market-country-bar{flex-basis:108px}}

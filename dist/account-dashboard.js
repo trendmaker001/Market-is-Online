@@ -141,8 +141,9 @@ window.createMioDashboardPresentation=(scope=document)=>{
  }
  function rankDate(value){return value&&Number.isFinite(new Date(value).getTime())?date(value):'Date not recorded'}
  function membershipRank(manager={}){
+  if(!summary?.package_code && !manager.leadership_rank?.name)return '';
   const current=manager.leadership_rank,history=(manager.rank_history||[]).find(r=>r.code===current?.code);
-  return `<div class="membership-rank">${current?badgeSticker(current.name,current.theme,current.badge_url):`<span class="membership-rank-icon">${icon('shield')}</span>`}<div><small>Rank</small><strong>${esc(current?.name||(summary?.package_code?'Member':'Account holder'))}</strong>${current?`<small class="membership-rank-date">Achieved · ${esc(rankDate(history?.achieved_at))}</small>`:''}</div></div>`;
+  return `<div class="membership-rank">${current?badgeSticker(current.name,current.theme,current.badge_url):`<span class="membership-rank-icon">${icon('shield')}</span>`}<div><small>Rank</small><strong>${esc(current?.name||'Member')}</strong>${current?`<small class="membership-rank-date">Achieved · ${esc(rankDate(history?.achieved_at))}</small>`:''}</div></div>`;
  }
  function membershipManager(manager={}){
   if(manager?.qualified!==true)return '';
