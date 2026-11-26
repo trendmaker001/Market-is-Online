@@ -47,8 +47,8 @@
 .member-wallet-submenu[hidden]{display:none!important}
 .member-wallet-submenu{display:grid;gap:3px;margin:4px 0 7px 19px;padding-left:9px;border-left:1px solid #ffffff40}
 #memberAccountNav .member-wallet-submenu button{min-height:34px;padding:7px 10px;gap:9px;font-size:12px}
-#memberAccountNav .member-wallet-submenu button svg{display:none}
-#memberAccountNav .member-wallet-submenu button:before{content:'';width:5px;height:5px;flex-shrink:0;border-radius:50%;background:currentColor;opacity:.7}
+#memberAccountNav .member-wallet-submenu button svg{display:block;width:18px;height:18px;flex:0 0 18px}
+#memberAccountNav .member-wallet-submenu button:before{content:none}
 #memberAccountNav .member-wallet-submenu button:after{display:none}
 #memberAccountNav .member-wallet-toggle{width:100%}
 #memberAccountNav .member-wallet-toggle:after{display:none}

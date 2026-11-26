@@ -14,7 +14,7 @@
   function installationSteps(){
     if(isIOS())return '<ol class="pwa-instructions"><li>Open this website in <b>Safari</b>.</li><li>Tap <b>Share → Add to Home Screen</b>.</li><li>Enable <b>Open as Web App</b> if shown, then tap <b>Add</b>.</li></ol>';
     if(/SamsungBrowser/i.test(navigator.userAgent))return '<ol class="pwa-instructions"><li>In <b>Samsung Internet</b>, tap the install / + icon near the address bar if shown.</li><li>Otherwise open the browser menu and choose <b>Add page to → Home screen</b> (or <b>Add to Home screen</b>).</li><li>Confirm <b>Add</b>. Check your phone’s home screens for the M icon. The menu option may create a website shortcut.</li></ol>';
-    if(/Android/i.test(navigator.userAgent))return '<ol class="pwa-instructions"><li>Open <b>marketisonline.com</b> in <b>Chrome</b>.</li><li>Tap the browser’s <b>⋮ menu → Add to Home screen</b> or <b>Install app</b>.</li><li>Choose <b>Install</b> if offered and confirm. Allow your phone to finish adding the M icon.</li></ol>';
+    if(/Android/i.test(navigator.userAgent))return '<ol class="pwa-instructions"><li>Open <b>this website</b> in <b>Chrome</b>.</li><li>Tap the browser’s <b>⋮ menu → Add to Home screen</b> or <b>Install app</b>.</li><li>Choose <b>Install</b> if offered and confirm. Allow your phone to finish adding the M icon.</li></ol>';
     return '<p class="pwa-instructions">Open your browser menu and choose <b>Install app</b> or <b>Install and create shortcut</b>. On a computer, look for the install icon in the address bar.</p>';
   }
   function renderInstall(){

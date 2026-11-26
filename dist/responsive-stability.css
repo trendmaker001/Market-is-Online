@@ -1,0 +1,57 @@
+/* Cross-screen presentation fixes. No account, wallet or bonus rules live here. */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scroll-padding-top:calc(var(--account-header-offset,90px) + 16px)}
+body>.top{background:#fffffd!important;opacity:1!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;isolation:isolate}
+html[data-member-theme=dark] body.member-dashboard-active>.top{background:#0c271c!important}
+body>.top .logo img{filter:none!important;aspect-ratio:217/34;flex-shrink:1}
+main.wrap,.page,.member-account-shell,.member-account-body,#memberPageContent,.shopping-account-content,.vendor-portal-content{min-width:0;max-width:100%;box-sizing:border-box}
+button,a,input,select,textarea{touch-action:manipulation}
+:where(button,a,input,select,textarea,summary):focus-visible{outline:2px solid #d77412;outline-offset:3px}
+:where(dialog,.modal-card,.member-sidebar){overscroll-behavior:contain}
+dialog{max-width:calc(100vw - 24px);max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);box-sizing:border-box;overflow-y:auto}
+:where(.heading,.bundle-section-head,.dashboard-panel-title){min-width:0;gap:12px;flex-wrap:wrap}
+:where(.heading,.bundle-section-head,.dashboard-panel-title)>*{min-width:0;max-width:100%}
+#page-shop .shop-market-links{flex:1 1 0;min-width:0;max-width:100%;overflow-x:auto;scrollbar-width:none}
+#page-shop .shop-market-links::-webkit-scrollbar{display:none}
+#page-shop .shop-market-links button{flex:0 0 auto}
+#page-shop #marketBundleSection{box-sizing:border-box;width:100%;max-width:100%;min-width:0;padding:14px 16px}
+#page-shop #marketBundleSection .bundle-section-head{display:flex;align-items:center;justify-content:space-between;margin:0;gap:10px}
+#page-shop #marketBundleSection h2{font-size:20px;line-height:1.3;margin:0}
+#page-shop .bundle-rail{min-width:0;max-width:100%}
+.configured-bundles,.configured-bundle-grid,.configured-bundle-builder{min-width:0;max-width:100%;box-sizing:border-box}
+.configured-bundle-card{box-sizing:border-box;min-width:0}
+.configured-bundle-card .bundle-card-title{min-height:2.5em;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:.2em}
+.configured-bundle-card .bundle-savings-strip{min-height:46px;box-sizing:border-box}
+.configured-bundle-card .bundle-savings-badge{display:flex;flex-direction:column;gap:3px;padding:5px 8px;border-radius:9px;max-width:100%;box-sizing:border-box}
+.configured-bundle-card .bundle-select{white-space:normal;line-height:1.3}
+@media(max-width:680px){
+ body:not(.graphical-network-active)>.top .top-main{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:8px!important;padding:12px!important;min-height:0!important}
+ body:not(.graphical-network-active)>.top .top-main>.logo{grid-column:1!important;grid-row:1!important;width:100%!important;max-width:none!important}
+ body:not(.graphical-network-active)>.top .top-main>.logo img{width:180px!important;max-width:100%!important;height:auto!important}
+ body:not(.graphical-network-active)>.top .top-main>.actions{grid-column:2!important;grid-row:1!important;display:flex!important;gap:5px!important;flex-wrap:nowrap!important;margin:0!important}
+ body:not(.graphical-network-active)>.top .top-main>.actions .btn{min-height:36px!important;padding:8px!important;font-size:11px!important;white-space:nowrap}
+ body:not(.graphical-network-active)>.top .top-main>.search{grid-column:1/-1!important;grid-row:2!important;min-width:0;width:100%;box-sizing:border-box}
+ body>.top .search input{min-width:0;width:100%}
+ #page-shop .shop-market-nav{box-sizing:border-box;gap:6px!important;flex-wrap:nowrap!important}
+ #page-shop #marketCountryBar{flex:0 0 56px!important;width:56px!important;min-width:0}
+ #page-shop #marketCountryBar .country-search-trigger{width:56px;justify-content:center;padding:0 7px!important;gap:7px}
+ #page-shop #marketCountryBar .country-search-trigger .country-picker-name{display:none}
+ #page-shop .shop-market-links button{min-height:36px!important;font-size:11px!important;padding-inline:5px!important}
+ #page-shop #marketBundleSection{padding:12px;margin-block:14px}
+ #page-shop #marketBundleSection h2{font-size:18px}
+ #page-shop #marketBundleSection .btn{min-height:36px;padding:8px 10px;font-size:12px;white-space:normal}
+ /* 16px prevents Safari focus zoom, while retaining browser pinch zoom. */
+ :where(input:not([type=checkbox]):not([type=radio]),select,textarea){font-size:16px!important;min-width:0;max-width:100%;box-sizing:border-box}
+ .member-sidebar{max-height:calc(100vh - var(--account-header-offset,0px));max-height:calc(100dvh - var(--account-header-offset,0px));padding-bottom:max(16px,env(safe-area-inset-bottom));overflow-y:auto}
+ :where(.wallet-hub-card,.dashboard-metric,.dashboard-balance,.shopping-account-stats>div){min-width:0}
+ :where(.wallet-hub-balance strong,.dashboard-metric strong,.dashboard-balance strong){overflow-wrap:anywhere}
+}
+@media(max-width:360px){body:not(.graphical-network-active)>.top .top-main>.actions .btn{padding:7px 6px!important;font-size:10px!important}.configured-bundle-card .bundle-select{font-size:12px!important}.configured-bundle-card .bundle-savings-badge{font-size:10px}}
+@media(orientation:landscape) and (max-height:520px){.member-sidebar,dialog{max-height:calc(100dvh - 20px);overflow-y:auto}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+/* Align the bundle entry bar with the category/product content frame. */
+#page-shop #marketBundleSection{width:calc(100% - 48px);max-width:1320px;margin-inline:auto}
+@media(max-width:680px){#page-shop #marketBundleSection{width:calc(100% - 24px)}}
+@media(min-width:681px) and (max-width:900px){body:not(.graphical-network-active)>.top .top-main{padding-inline:20px!important;box-sizing:border-box}}
+@supports(padding:max(0px)){
+ body>.top{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+}

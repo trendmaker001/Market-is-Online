@@ -30,18 +30,14 @@
 }
 @media(max-width:380px){#page-shop .shop-market-links button{padding-left:4px!important;padding-right:4px!important}#page-shop .market-country-bar{flex-basis:108px}}
 
-#page-shop #communityScore {padding:0;margin:0;flex:0 0 auto}
-#page-shop #communityScore .community-toggle {
- display:inline-flex;align-items:center;gap:5px;padding:5px 8px!important;
- min-width:0;min-height:32px!important;border:0;background:transparent;color:#154536!important;
- border-radius:18px;font:600 12px/1.2 system-ui;white-space:nowrap
-}
-#communityInfo {width:min(240px,80vw);padding:16px;border:1px solid #bfd8ca;border-radius:12px;color:#154536;background:white}
-#communityInfo p {margin:6px 0 0}
+
+
+
+
 @media(max-width:680px) {
  #page-shop nav.shop-market-nav {flex-wrap:nowrap;gap:3px}
- #page-shop #communityScore .community-label {display:none}
- #page-shop #communityScore .community-toggle {font-size:11px;padding:4px 6px!important}
+
+
 }
 
 #page-shop #marketCountryBar {flex:0 0 152px}

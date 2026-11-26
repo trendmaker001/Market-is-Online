@@ -89,7 +89,7 @@ body:has(#page-shop.active) .top .search {border:1px solid #adc9ba;border-radius
   #shopDirectory .vendor-directory-grid .vendor-directory-card{flex-direction:column;align-items:flex-start}
 }
 
-#page-shop .community-score:not([hidden]){display:inline-flex;align-items:center;gap:.45em;background:#edf5ed;color:#154536;border-radius:30px;padding:5px 11px;font:600 12px/1.3 system-ui;white-space:nowrap}
+
 /* Reserve the same slot while loading, rotating slides and switching markets. */
 #premiumDiscovery {--campaign-height:clamp(220px,24vw,340px)}
 #premiumDiscovery:empty::before {content:"";display:block;height:var(--campaign-height);grid-column:1/-1}
@@ -113,5 +113,5 @@ body:has(#page-shop.active) .top .search {border:1px solid #adc9ba;border-radius
  #carouselPartTwo .affiliate-campaign {background-position:60% center;background-image:linear-gradient(90deg,#083124ed 0%,#083124b3 37%,transparent 65%),url('/assets/campaigns/marketplace-emerald.webp')}
  #carouselPartTwo .affiliate-campaign h2 {max-width:53%}
  #page-shop .shop-market-nav {flex-wrap:wrap}
- #page-shop .community-score {margin-inline:auto}
+
 }

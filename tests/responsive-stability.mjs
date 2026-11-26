@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {JSDOM} from 'jsdom';
+import sharp from 'sharp';
+const html=await readFile('dist/index.html','utf8'),doc=new JSDOM(html).window.document;
+const logo=doc.querySelector('.top .logo img');
+assert.match(logo.src,/market-is-online-logo-header\.png$/);
+const metadata=await sharp('dist/'+logo.getAttribute('src').slice(1)).metadata();
+assert.equal(metadata.width,Number(logo.width));assert.equal(metadata.height,Number(logo.height));
+assert.equal(doc.querySelector('#communityScore'),null);
+assert.doesNotMatch(await readFile('dist/app.js','utf8'),/refreshCommunityScore|marketplace_community_score/);
+assert.equal(doc.querySelector('meta[name="apple-mobile-web-app-capable"]').content,'yes');
+assert.ok(!/maximum-scale|user-scalable=no/.test(doc.querySelector('meta[name=viewport]').content));
+const manifest=JSON.parse(await readFile('dist/app.webmanifest','utf8'));
+for(const icon of manifest.icons){const m=await sharp('dist'+icon.src).metadata();assert.equal(`${m.width}x${m.height}`,icon.sizes)}
+const apple=doc.querySelector('link[rel=apple-touch-icon]');const m=await sharp('dist'+apple.getAttribute('href')).metadata();assert.equal(m.width,180);assert.equal(m.height,180);
+const w=new JSDOM('',{runScripts:'outside-only'}).window;
+w.eval(await readFile('dist/account-dashboard.js','utf8'));const ui=w.createMioDashboardPresentation();
+const icons=['deposit','withdraw','topup','wallet'].map(name=>ui.icon(name));assert.equal(new Set(icons).size,4);assert.ok(icons.every(icon=>icon.includes('aria-hidden="true"')));w.close();
+console.log('PASS logo dimensions, PNG decoding, iOS icons/metadata, accessible wallet icons, zoom enabled and community counter removed.');

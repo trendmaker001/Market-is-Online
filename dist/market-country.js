@@ -14,7 +14,9 @@ function create(api){
    let detected='';
    const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),3000);
    try{
-    const r=await fetch('/api/market-country',{cache:'no-store',signal:controller.signal});if(r.ok)detected=(await r.json()).country;
+    const onGptSite=window.location.hostname.endsWith('.chatgpt.site');
+ const r=await fetch(onGptSite?'/cdn-cgi/trace':'/api/market-country',{cache:'no-store',signal:controller.signal});
+ if(r.ok)detected=onGptSite?(await r.text()).match(/^loc=([A-Z]{2})\s*$/m)?.[1]:(await r.json()).country;
    }catch{}finally{clearTimeout(timeout);}
    if(ticket!==revision)return country;
    if(valid(detected)){country=detected;source='Detected location';}

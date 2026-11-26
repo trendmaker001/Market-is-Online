@@ -1,0 +1,33 @@
+import {PGlite} from '@electric-sql/pglite';
+import {readFile} from 'node:fs/promises';
+import assert from 'node:assert/strict';
+const db=new PGlite();
+const defs=JSON.parse(await readFile(new URL('./activation-timeout-baseline.json',import.meta.url),'utf8'));
+await db.exec(`create schema private;
+create table public.member_profiles(user_id uuid primary key,sponsor_id uuid,member_code text,full_name text,created_at timestamptz);
+create table public.package_activations(member_id uuid,status text,gp numeric,activated_at timestamptz,requested_at timestamptz);
+create table private.member_admin_baselines(member_id uuid primary key,tngp_offset numeric);
+create function private.network_generation_limit() returns integer language sql stable as $$select 10$$;
+create function private.financial_reset_at() returns timestamptz language sql stable as $$select '2026-01-01'::timestamptz$$;
+create function private.current_package_code(uuid) returns text language sql stable as $$select 'GOLD'::text$$;
+create function private.package_weight(text) returns integer language sql stable as $$select 4$$;
+create function private.member_total_earnings(uuid) returns numeric language sql stable as $$select 123::numeric$$;
+create function private.direct_dp_summary(uuid) returns table(active_directs integer,total_dp numeric) language sql stable as $$select 5,500::numeric$$;
+create function private.current_team_manager_rules() returns jsonb language sql stable as $$select '{"enabled":true,"minimum_package":"GOLD","required_directs":5,"required_direct_dp":500,"required_tngp":100,"per_line_tngp":20,"required_qualified_lines":2,"required_total_earnings":100}'::jsonb$$;
+create function private.member_tngp(uuid) returns numeric language sql stable as $$select coalesce((select sum(gp) from private.network_generation_line_points($1)),0)+coalesce((select tngp_offset from private.member_admin_baselines where member_id=$1),0)$$;`.replace(/create function private.member_tngp[\s\S]*$/,''));
+await db.exec(defs.find(x=>x.proname==='network_generation_line_points').definition);
+await db.exec(`create function private.member_tngp(uuid) returns numeric language sql stable as $$select coalesce((select sum(gp) from private.network_generation_line_points($1)),0)+coalesce((select tngp_offset from private.member_admin_baselines where member_id=$1),0)$$;`);
+await db.exec(defs.find(x=>x.proname==='team_manager_metrics').definition);
+const id=n=>'00000000-0000-0000-0000-'+String(n).padStart(12,'0');
+for(let i=1;i<=35;i++){
+ await db.query('insert into member_profiles values($1,$2,$3,$4,$5)',[id(i),i===1?null:id(i<15?i-1:i%4+1),'M'+i,'Member '+i,'2026-02-01']);
+ await db.query('insert into package_activations values($1,$2,$3,$4,$4)',[id(i),i%7===0?'pending':'approved',i*5,i%6===0?'2025-01-01':'2026-02-02']);
+}
+await db.query('insert into private.member_admin_baselines values($1,77)',[id(1)]);
+await db.query('update member_profiles set sponsor_id=$1 where user_id=$2',[id(14),id(1)]);
+const before=[];
+for(let i=1;i<=36;i++)before.push((await db.query('select private.team_manager_metrics($1) metrics',[id(i)])).rows[0].metrics);
+await db.exec(await readFile(new URL('../docs/activation-timeout-proposed.sql',import.meta.url),'utf8'));
+for(let i=1;i<=36;i++)assert.deepEqual((await db.query('select private.team_manager_metrics($1) metrics',[id(i)])).rows[0].metrics,before[i-1]);
+console.log('PASS: 36 old/new qualification results identical; deep trees, cycles, pending/pre-reset activations, offsets, empty members and line breakdowns.');
+await db.close();
