@@ -457,230 +457,101 @@
 .visual-person>small .network-country-flag{width:12px!important;height:8px!important;min-width:12px}
 @media(max-width:380px){.member-account-shell .dashboard-program-grid>.qualification-panel>.qualification-summary{grid-template-columns:30px minmax(0,1fr) 48px 18px;column-gap:7px;padding:12px}.member-account-shell .qualification-panel>.qualification-summary .qualification-icon{width:30px;height:30px}.member-account-shell .qualification-panel>.qualification-summary .manager-summary-progress>strong{min-width:48px}}
 
-/* Pack the benefits that this member can actually see into the available width. */
-.member-account-shell .member-overview {
-  container: member-overview / inline-size;
-}
-.member-account-shell .member-overview .dashboard-offer-row > :only-child,
-.member-account-shell .member-overview .dashboard-identity .dashboard-membership-group:last-child {
-  grid-column-end: -1;
-}
-.member-account-shell .member-overview .dashboard-offer-row .maintenance-card-heading h3,
-.member-account-shell .member-overview .dashboard-person h1 {
-  white-space: normal;
-  overflow-wrap: anywhere;
-}
-.member-account-shell .member-overview .dashboard-person > div,
-.member-account-shell .member-overview .dashboard-personal-points,
-.member-account-shell .member-overview .membership-plan-line > strong {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-.member-account-shell .member-overview .membership-plan-line {
-  flex-wrap: wrap;
-}
-.member-account-shell .member-overview .dashboard-balance-row {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: stretch;
-}
-.member-account-shell .member-overview .dashboard-balance-row > .dashboard-personal-points {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  grid-column: auto;
-  align-content: center;
-  gap: 4px;
-}
-.member-account-shell .member-overview .dashboard-personal-points > div {
-  margin: 0;
-}
-.member-account-shell .member-overview .dashboard-balance-row.has-exchange-wallet > .dashboard-personal-points {
-  grid-column: 1 / -1;
-}
-@container member-overview (min-width: 38rem) {
-  .member-account-shell .member-overview .dashboard-balance-row.has-exchange-wallet {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-  .member-account-shell .member-overview .dashboard-balance-row.has-exchange-wallet > .dashboard-personal-points {
-    grid-column: auto;
-  }
-}
-@container member-overview (max-width: 26rem) {
-  .member-account-shell .member-overview .dashboard-identity {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .member-account-shell .member-overview .dashboard-identity > * {
-    grid-column: 1;
-    grid-row: auto;
-  }
-  .member-account-shell .member-overview .dashboard-rewards-manager {
-    border-left: 0;
-    padding-left: 0;
-  }
-}
-@container member-overview (max-width: 20rem) {
-  .member-account-shell .member-overview .dashboard-balance-row {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-/* On phones each member figure keeps its label, value and supporting detail together. */
-@media (max-width: 760px) {
-  #page-dashboard.member-overview {
-    --card-gap: .625rem;
-    --card-inset: .875rem;
-    --card-label: .875rem;
-    --card-detail: .75rem;
-    --card-value: 1.25rem;
-  }
-  #page-dashboard :is(.dashboard-stat-row,.dashboard-balance-row,.dashboard-network-row,.dashboard-active-wallets,.dashboard-program-grid) {
-    display: grid;
-    grid-template-columns: minmax(0,1fr);
-    gap: var(--card-gap);
-  }
-  #page-dashboard .dashboard-stat-row > *,
-  #page-dashboard .dashboard-balance-row > * {grid-column: auto;}
-  #page-dashboard :is(.dashboard-metric,.dashboard-balance,.income-wallet-card) {
-    display: grid;
-    grid-template-columns: 1.75rem minmax(0,1fr);
-    align-items: center;
-    gap: .625rem;
-    min-height: 3.75rem;
-    padding: .75rem var(--card-inset) !important;
-    text-align: start;
-  }
-  #page-dashboard :is(.dashboard-metric,.dashboard-balance,.income-wallet-card) > div {
-    display: grid;
-    grid-template-columns: minmax(0,1fr) fit-content(52%);
-    align-items: center;
-    gap: .125rem .5rem;
-    min-width: 0;
-  }
-  #page-dashboard :is(.dashboard-metric,.dashboard-balance,.income-wallet-card) > div > :first-child,
-  #page-dashboard .dashboard-personal-points > span {
-    font-size: var(--card-label);
-    font-weight: 650;
-    line-height: 1.3;
-    white-space: normal;
-  }
-  #page-dashboard :is(.dashboard-metric,.dashboard-balance,.income-wallet-card) > div > strong {
-    grid-column: 2;
-    grid-row: 1 / span 2;
-    justify-self: end;
-    margin: 0;
-    font-size: var(--card-value);
-    line-height: 1.2;
-    text-align: end;
-    font-variant-numeric: tabular-nums;
-    overflow-wrap: anywhere;
-    min-width: 0;
-  }
-  #page-dashboard :is(.dashboard-metric,.dashboard-balance,.income-wallet-card) > div > :is(small,b):last-child {
-    display: block;
-    grid-column: 1;
-    font-size: var(--card-detail);
-    font-weight: 500;
-    line-height: 1.4;
-    white-space: normal;
-  }
-  #page-dashboard .dashboard-balance strong :is(small,em),
-  #page-dashboard .income-wallet-card strong em {font-size: .75rem; line-height: 1.3;}
-  #page-dashboard .dashboard-ppv-excess {display: block;}
+/* The two personal balances share a row. The optional exchange balance spans it. */
+@media (max-width:760px) {
   #page-dashboard .dashboard-balance-row {
-    --card-inset: .875rem;
-    --card-label: .875rem;
-    --card-detail: .75rem;
-    --card-value: 1.25rem;
-    gap: .625rem;
-    grid-template-columns: repeat(2,minmax(0,1fr));
-    align-items: stretch;
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    align-items:stretch;
+    gap:6px;
+    --tile-pad:clamp(9px,2.7vw,14px);
+    --tile-number:clamp(23px,6.3vw,32px);
+    --tile-ink:#084333;
+    --tile-secondary:#526f60;
+    --tile-line:#a8c9b0;
+    --tile-bg:#fff;
+  }
+  [data-theme="dark"] #page-dashboard .dashboard-balance-row {
+    --tile-ink:#e2f5e9;
+    --tile-secondary:#b2cdbd;
+    --tile-line:#3f6753;
+    --tile-bg:#10271d;
+  }
+  #page-dashboard .dashboard-balance-row > * {
+    min-width:0;
+    margin:0;
+    border:1px solid var(--tile-line);
+    border-radius:9px;
+    background:var(--tile-bg);
+    color:var(--tile-ink);
+    box-shadow:none;
+    text-align:start;
+    padding:var(--tile-pad) !important;
   }
   #page-dashboard .dashboard-balance-row > :is(.dashboard-ppv-balance,.dashboard-personal-points) {
-    position: relative;
-    display: grid;
-    grid-template-columns: minmax(0,1fr);
-    grid-template-rows: auto auto 1fr;
-    grid-row: 1;
-    align-items: start;
-    align-content: start;
-    justify-content: stretch;
-    min-width: 0;
-    gap: .375rem;
-    padding: .75rem !important;
-    text-align: start;
+    position:relative;
+    display:grid;
+    grid-template-columns:minmax(0,1fr);
+    grid-template-rows:auto auto 1fr;
+    grid-row:1;
+    align-content:start;
+    align-items:start;
+    justify-content:stretch;
+    row-gap:4px;
+    min-height:0;
   }
-  #page-dashboard .dashboard-ppv-balance {grid-column: 1;}
-  #page-dashboard .dashboard-personal-points {grid-column: 2;}
+  #page-dashboard .dashboard-ppv-balance {grid-column:1;}
+  #page-dashboard .dashboard-personal-points {grid-column:2;}
+  #page-dashboard .dashboard-ppv-balance > div {display:contents;}
   #page-dashboard .dashboard-ppv-balance > svg {
-    position: absolute;
-    inset: .875rem auto auto .75rem;
-    width: 1rem;
-    height: 1rem;
+    position:absolute; top:calc(var(--tile-pad) + 1px); left:var(--tile-pad);
+    width:18px; height:20px; color:var(--tile-ink);
   }
-  #page-dashboard .dashboard-ppv-balance > div {display: contents;}
-  #page-dashboard .dashboard-ppv-balance > div > span {padding-inline-start: 1.3rem;}
   #page-dashboard .dashboard-ppv-balance > div > span,
   #page-dashboard .dashboard-personal-points > span {
-    min-height: 2.6em;
-    overflow-wrap: anywhere;
+    color:var(--tile-ink); font-size:clamp(13px,3.6vw,16px);
+    line-height:1.18; font-weight:700; min-height:2.36em;
+    text-wrap:balance; overflow-wrap:anywhere;
   }
-  #page-dashboard .dashboard-ppv-balance > div > strong,
-  #page-dashboard .dashboard-personal-points > div {
-    grid-area: 2 / 1;
-    justify-self: start;
-    text-align: start;
-    margin: 0;
-    min-width: 0;
-    max-width: 100%;
-    line-height: 1.2;
+  #page-dashboard .dashboard-ppv-balance > div > span {padding-inline-start:24px;}
+  #page-dashboard .dashboard-personal-points > div,
+  #page-dashboard .dashboard-ppv-balance strong {
+    grid-area:2 / 1; margin:0; min-width:0; max-width:100%; justify-self:start;
   }
   #page-dashboard .dashboard-personal-points > div > span {
-    display: inline-flex;
-    flex-direction: row-reverse;
-    max-width: 100%;
-    align-items: baseline;
-    gap: .25rem;
-    font-size: .75rem;
+    display:inline-flex; flex-direction:row-reverse; align-items:baseline; gap:.25em;
+    max-width:100%; color:var(--tile-ink); font-weight:700;
+    font-size:clamp(13px,3.7vw,17px);
   }
-  #page-dashboard .dashboard-personal-points b {
-    font-size: var(--card-value);
-    font-variant-numeric: tabular-nums;
-    min-width: 0;
+  #page-dashboard .dashboard-ppv-balance strong,
+  #page-dashboard .dashboard-personal-points b,
+  #page-dashboard .dashboard-exchange-balance strong {
+    color:var(--tile-ink); font-size:var(--tile-number); font-weight:750;
+    line-height:1.1; overflow-wrap:anywhere; font-variant-numeric:tabular-nums;
   }
+  #page-dashboard .dashboard-personal-points b {min-width:0;}
+  #page-dashboard .dashboard-balance-row strong small {
+    color:inherit; font-size:clamp(13px,3.7vw,17px); font-weight:700;
+  }
+  #page-dashboard .dashboard-balance-row .dashboard-balance > div > small {
+    display:block; color:var(--tile-secondary); font-size:clamp(11px,2.9vw,13px);
+    line-height:1.25; white-space:normal; overflow-wrap:anywhere;
+  }
+  #page-dashboard .dashboard-ppv-excess {display:block;}
   #page-dashboard .dashboard-balance-row > .dashboard-exchange-balance {
-    grid-column: 1 / -1;
-    grid-row: 2;
+    grid-column:1/-1; grid-row:2;
+    display:grid; grid-template-columns:22px minmax(0,1fr); align-items:center;
+    gap:10px; min-height:60px;
   }
-  @supports (grid-template-rows: subgrid) {
-    #page-dashboard .dashboard-balance-row > :is(.dashboard-ppv-balance,.dashboard-personal-points) {
-      grid-row: 1 / span 3;
-      grid-template-rows: subgrid;
-    }
-    #page-dashboard .dashboard-balance-row > .dashboard-exchange-balance {grid-row: 4;}
+  #page-dashboard .dashboard-exchange-balance > div {
+    min-width:0; display:grid; grid-template-columns:minmax(0,1fr) fit-content(48%);
+    align-items:center; gap:3px 8px;
   }
-  #page-dashboard .dashboard-identity .dashboard-total-earned {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: .25rem .75rem;
+  #page-dashboard .dashboard-exchange-balance > div > span {font-size:15px; line-height:1.2; font-weight:700; color:var(--tile-ink);}
+  #page-dashboard .dashboard-exchange-balance > div > strong {grid-area:1 / 2 / 3 / 3; margin:0; min-width:0; text-align:end;}
+  #page-dashboard .dashboard-exchange-balance > div > small {grid-column:1;}
+  @supports (grid-template-rows:subgrid) {
+    #page-dashboard .dashboard-balance-row > :is(.dashboard-ppv-balance,.dashboard-personal-points) {grid-row:1 / span 3; grid-template-rows:subgrid;}
+    #page-dashboard .dashboard-balance-row > .dashboard-exchange-balance {grid-row:4;}
   }
-  #page-dashboard .dashboard-identity .dashboard-total-earned strong {max-width: 100%; font-size: 1.5rem;}
-  #page-dashboard .dashboard-identity .dashboard-total-earned > small {flex-basis: 100%; font-size: var(--card-detail);}
-  #page-dashboard .dashboard-panel-title,
-  #page-dashboard .dashboard-graphical {flex-wrap: wrap; gap: .375rem .625rem;}
-  #page-dashboard .dashboard-panel-title > * {min-width: 0; max-width: 100%; overflow-wrap: anywhere;}
-  #page-dashboard :is(.dashboard-panel-title,.dashboard-graphical) button {min-height: 2.75rem;}
-  #page-dashboard .dashboard-binary-sides > * {min-width: 0; padding: .625rem; overflow-wrap: anywhere;}
-  #page-dashboard .dashboard-binary-sides strong {font-size: var(--card-value); font-variant-numeric: tabular-nums;}
-  #page-dashboard :is(.dashboard-binary-sides small,.dashboard-muted,.dashboard-graphical span) {font-size: var(--card-detail); line-height: 1.4;}
-  #page-dashboard .dashboard-levels {
-    display: grid;
-    grid-template-columns: repeat(auto-fit,minmax(2.75rem,1fr));
-    gap: .35rem;
-  }
-  #page-dashboard .dashboard-level {width: 100%; min-height: 2.75rem;}
-  #page-dashboard .qualification-summary .manager-summary-kicker {font-size: var(--card-label); line-height: 1.3; white-space: normal;}
-  #page-dashboard .qualification-summary p {font-size: var(--card-detail); line-height: 1.4; white-space: normal;}
-  #page-dashboard .dashboard-offer-row .maintenance-countdown small {font-size: .625rem !important; line-height: 1.3;}
-  #page-dashboard .dashboard-offer-row .maintenance-countdown b {font-variant-numeric: tabular-nums;}
 }
