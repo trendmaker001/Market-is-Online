@@ -504,34 +504,10 @@
   }
   #page-dashboard .dashboard-ppv-balance {grid-column:1;}
   #page-dashboard .dashboard-personal-points {grid-column:2;}
-  #page-dashboard .dashboard-ppv-balance > div {display:contents;}
-  #page-dashboard .dashboard-ppv-balance > svg {
-    position:absolute; top:calc(var(--tile-pad) + 1px); left:var(--tile-pad);
-    width:18px; height:20px; color:var(--tile-ink);
-  }
-  #page-dashboard .dashboard-ppv-balance > div > span,
-  #page-dashboard .dashboard-personal-points > span {
-    color:var(--tile-label); font-size:12px;
-    line-height:1.25; font-weight:400; min-height:0;
-    text-wrap:balance; overflow-wrap:anywhere;
-  }
-  #page-dashboard .dashboard-ppv-balance > div > span {padding-inline-start:24px;}
-  #page-dashboard .dashboard-personal-points > div,
-  #page-dashboard .dashboard-ppv-balance strong {
-    grid-area:2 / 1; margin:0; min-width:0; max-width:100%; justify-self:start;
-  }
-  #page-dashboard .dashboard-personal-points > div > span {
-    display:inline-flex; flex-direction:row-reverse; align-items:baseline; gap:.25em;
-    max-width:100%; color:var(--tile-ink); font-weight:600;
-    font-size:12px;
-  }
-  #page-dashboard .dashboard-ppv-balance strong,
-  #page-dashboard .dashboard-personal-points b,
   #page-dashboard .dashboard-exchange-balance strong {
     color:var(--tile-ink); font-size:var(--tile-number); font-weight:600; letter-spacing:-.03em;
     line-height:1.1; overflow-wrap:anywhere; font-variant-numeric:tabular-nums;
   }
-  #page-dashboard .dashboard-personal-points b {min-width:0;}
   #page-dashboard .dashboard-balance-row strong small {
     color:inherit; font-size:12px; font-weight:600;
   }
@@ -588,4 +564,81 @@
 #page-dashboard :is(.dashboard-balance-row .dashboard-balance, .dashboard-stat-row .dashboard-metric) > div > small {
   font-family:inherit; font-size:11px; font-weight:400; line-height:1.25;
   letter-spacing:normal;
+}
+
+/* Shared presentation for the two personal points balances. */
+#page-dashboard .dashboard-balance-row {
+  container-type:inline-size;
+}
+#page-dashboard .dashboard-balance-row > .personal-point-card {
+  display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:auto auto 1fr;
+  align-items:start; align-content:start; justify-items:stretch; gap:6px;
+  min-width:0; text-align:start; padding:12px !important;
+  border:1px solid #dee8e0; border-radius:10px; background:#fff; box-shadow:none;
+  --point-ink:#244f34; --point-label:#425f4d; --point-muted:#526e5c;
+  --point-accent:#257349; --point-icon-bg:#edf5ef;
+}
+.member-account-shell[data-theme="dark"] #page-dashboard .dashboard-balance-row > .personal-point-card {
+  background:#0d2119; border-color:#29463a;
+  --point-ink:#f2fbf6; --point-label:#ceded3; --point-muted:#a5bfb0;
+  --point-accent:#8dd7ac; --point-icon-bg:#18382a;
+}
+#page-dashboard .personal-point-card .point-heading {
+  display:grid; grid-template-columns:auto minmax(0,1fr); align-items:center;
+  gap:8px; align-self:start; min-width:0; min-height:32px;
+}
+#page-dashboard .personal-point-card .point-icon {
+  display:grid; place-items:center; width:28px; height:28px;
+  border-radius:8px; color:var(--point-accent); background:var(--point-icon-bg);
+}
+#page-dashboard .personal-point-card .point-icon svg {
+  display:block; width:17px; height:17px; color:inherit;
+}
+#page-dashboard .personal-point-card .point-title {
+  font-family:inherit; font-size:12px; font-weight:500;
+  line-height:1.3; color:var(--point-label); overflow-wrap:anywhere; text-wrap:balance;
+}
+#page-dashboard .personal-point-card .point-amount {
+  display:flex; flex-wrap:wrap; align-items:baseline; justify-content:flex-start;
+  gap:2px 5px; margin:0; min-width:0; color:var(--point-ink);
+}
+#page-dashboard .personal-point-card .point-amount b {
+  font-family:inherit; font-weight:600; font-size:22px; line-height:1.1;
+  letter-spacing:-.03em; font-variant-numeric:tabular-nums;
+  max-width:100%; min-width:0; overflow-wrap:anywhere; color:inherit;
+}
+#page-dashboard .personal-point-card .point-amount small {
+  font:inherit; font-size:12px; font-weight:500; letter-spacing:0;
+  line-height:1.25; color:var(--point-muted);
+}
+#page-dashboard .personal-point-card .point-note,
+#page-dashboard .personal-point-card .point-note span {
+  color:var(--point-muted); font:inherit; font-size:11px; line-height:1.3;
+  letter-spacing:normal; overflow-wrap:anywhere;
+}
+#page-dashboard .personal-point-card .point-note {
+  display:grid; grid-template-columns:minmax(0,1fr) auto; gap:4px; align-items:center;
+}
+#page-dashboard .personal-point-card .dashboard-ppv-excess {
+  max-width:100%; white-space:normal; overflow-wrap:anywhere;
+}
+#page-dashboard button.personal-point-card:focus-visible {
+  outline:2px solid var(--point-accent); outline-offset:2px;
+}
+@media (max-width:760px) {
+  @supports (grid-template-rows:subgrid) {
+    #page-dashboard .dashboard-balance-row > .personal-point-card {grid-template-rows:subgrid;}
+  }
+}
+@container (max-width:310px) {
+  #page-dashboard .dashboard-balance-row > .personal-point-card {padding:9px !important;}
+  #page-dashboard .personal-point-card .point-heading {gap:5px;}
+  #page-dashboard .personal-point-card .point-icon {width:22px; height:24px; border-radius:6px;}
+  #page-dashboard .personal-point-card .point-icon svg {width:15px; height:15px;}
+}
+
+@media (min-width:761px) {
+  #page-dashboard .dashboard-balance-row {grid-template-columns:repeat(2,minmax(0,1fr));}
+  #page-dashboard .dashboard-balance-row.has-exchange-wallet {grid-template-columns:repeat(3,minmax(0,1fr));}
+  #page-dashboard .dashboard-balance-row > .personal-point-card {grid-column:auto;grid-row:auto;}
 }
