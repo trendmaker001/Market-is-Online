@@ -4,3 +4,8 @@ header nav a,footer a{display:inline-flex;align-items:center;min-block-size:40px
 .cta{min-block-size:44px;line-height:1.4}
 @media(max-width:620px){header{align-items:flex-start;flex-wrap:wrap;gap:8px}header nav{gap:0 16px}header nav a{min-block-size:44px}}
 @media(prefers-reduced-motion:no-preference){a{transition:color .14s,background-color .14s}a.cta:active{background:#075f40}}
+
+header img { display: block; height: auto; }
+.skip-link { position: fixed; inset: .5rem auto auto .5rem; z-index: 1; transform: translateY(-160%); padding: .5rem 1rem; border-radius: .5rem; background: #fff; }
+.skip-link:focus { transform: none; }
+footer [aria-current="page"] { font-weight: 700; }

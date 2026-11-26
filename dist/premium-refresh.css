@@ -412,3 +412,21 @@ body:has(#page-shop:not(.hidden)) .top-main{padding-top:6px!important;padding-bo
 #productReviews .customer-review>div{flex-wrap:wrap}
 .shopping-welcome .code,.shopping-profile-form .code,.selling-links .code,.referral-tile .code{overflow-wrap:anywhere;word-break:break-word}
 @media(max-width:600px){#productReviews{padding:16px}#productReviews .customer-review{padding:14px 0}}
+
+.secondary-carousel .carousel-pause,
+.secondary-carousel .carousel-next {
+ position: absolute;
+ bottom: .5rem;
+ width: 2.75rem;
+ height: 2.75rem;
+ border: 1px solid #ffffff80;
+ border-radius: 50%;
+ color: #fff;
+ background: #075238;
+ cursor: pointer;
+}
+.secondary-carousel .carousel-pause { right: 3.75rem; }
+.secondary-carousel .carousel-next { right: .5rem; font-size: 1.5rem; }
+@media (prefers-reduced-motion: reduce) {
+ .secondary-carousel .carousel-pause { display: none; }
+}

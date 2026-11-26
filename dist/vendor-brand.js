@@ -3,6 +3,31 @@
 const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','>':'&gt;','<':'&lt;','"':'&quot;',"'":'&#39;'}[c])),pct=n=>(Number(n||0)*100).toFixed(2)+'%',draftKey='mio-vendor-logo-draft-v1';
 const logoInput=(required=false)=>`<label>Brand logo ${required?'':'(optional replacement)'}<input type="file" name="brandLogo" accept="image/png,image/jpeg,image/webp" ${required?'required':''}><small>PNG, JPG or WebP · maximum 2 MB</small><img class="vendor-logo-preview" alt="Brand logo preview" hidden></label>`;
 const fields=(name='',rate='')=>`<div class="brand-fields"><label>Brand name<input name="brandName" required minlength="2" maxlength="150" value="${esc(name)}" autocomplete="organization"></label><label>Proposed commission (%)<input name="brandRate" type="number" required min="5" max="100" step="0.0001" value="${esc(rate)}" placeholder="e.g. 30"><small>Percentage of product sale price paid to Market is Online.</small></label></div>`;
+// Read the published fee contract before showing or submitting new terms.
+const terms = {
+ active:false,
+ ready:Promise.resolve(),
+ rate(input) {
+  const selected=Number(input.value);
+  return Number((selected/100).toFixed(6));
+ },
+ display(input) {
+  if(!input||!this.active)return;
+  input.min='18';input.max='98';
+  const label=input.closest('label')||input.parentElement;
+  const info=label.querySelector('small,.helper');
+  if(info){
+   info.setAttribute('aria-live','polite');
+   const update=()=>{
+    info.textContent=input.value&&input.validity.valid
+      ? 'Order Management Fee +2%. Total vendor commission '+Number((Number(input.value)+2).toFixed(4))+'%.'
+      : 'Select 18–98%. A 2% Order Management Fee is added to your selected rate.';
+   };
+   input.oninput=update;update();
+  }
+ }
+};
+window.MioOrderFeeTerms=terms;
 function validFile(file){if(!file||!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>2097152||!file.size)throw Error('Choose a PNG, JPG or WebP logo up to 2 MB.');return file}
 function readFile(file){validFile(file);return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(Error('Could not read your logo. Please choose it again.'));r.readAsDataURL(file)})}
 function preview(form){form.elements.brandLogo.onchange=async()=>{const img=form.querySelector('.vendor-logo-preview');img.hidden=true;form.elements.brandLogo.setCustomValidity('');try{const file=form.elements.brandLogo.files[0];if(!file)return;img.src=await readFile(file);img.hidden=false}catch(e){form.elements.brandLogo.setCustomValidity(e.message);form.elements.brandLogo.reportValidity()}}}
@@ -11,17 +36,28 @@ async function upload(db,file,uid){validFile(file);const path=uid+'/'+crypto.ran
 function create(api){
  let version=0;
  function setup(){
+  terms.ready=(async()=>{
+   if(!api.db?.from)return;
+   const result=await api.db.from('system_config').select('config_value').eq('config_key','ORDER_MANAGEMENT_FEE_VERSION').is('effective_to',null).limit(1);
+   if(result.error)throw Error('Unable to verify vendor terms. Refresh before applying.');
+   terms.active=result.data?.[0]?.config_value===1;
+   terms.display($('sellerCommission'));
+   for(const input of document.querySelectorAll('#vendorSignupForm [name=brandRate],.brand-complete [name=brandRate]'))terms.display(input);
+   if(terms.active)document.querySelectorAll('.product-economics-form').forEach(f=>window.MioProductEconomics?.preview(f));
+  })();
+  // Keep a failed lookup available to the submit handler without an unhandled rejection.
+  terms.ready.catch(()=>{});
   const f=$('vendorSignupForm');f.querySelector('.row').insertAdjacentHTML('afterend',`<section class="brand-signup-fields"><h2>Your brand</h2>${fields()}<label>Product category<input name="brandCategory" required minlength="2" maxlength="150" placeholder="e.g. Beauty & personal care"></label>${logoInput(true)}</section>`);
   f.querySelector('.vendor-consent').insertAdjacentHTML('beforeend',' I agree to submit the proposed commission for review.');
   f.querySelector('.vendor-consent').insertAdjacentHTML('beforebegin','<p class="brand-help">Your proposed commission is submitted for admin approval. Any different offer will need your acceptance.</p>');
   f.closest('.vendor-registration').querySelector('.vendor-heading p').textContent='Add your contact and brand details once. After registration, sign in to track admin approval.';
-  preview(f);
+  preview(f);terms.display(f.elements.brandRate);
   f.onsubmit=async e=>{e.preventDefault();if(!f.reportValidity())return;const b=f.querySelector('[type=submit]'),status=f.querySelector('[role=status]');if(b.disabled)return;b.disabled=true;let client;
-   try{const file=validFile(f.elements.brandLogo.files[0]),data=await readFile(file),email=f.elements.email.value.trim().toLowerCase();
+   try{await terms.ready;if(!f.reportValidity())return;const file=validFile(f.elements.brandLogo.files[0]),data=await readFile(file),email=f.elements.email.value.trim().toLowerCase();
     // Only the selected public logo is retained for first verified login; never credentials.
     try{localStorage.setItem(draftKey,JSON.stringify({email,data,type:file.type,expires:Date.now()+7*86400000}))}catch{throw Error('Logo could not be saved for registration. Free some browser storage and try again.')}
     status.textContent='Creating your seller account…';client=api.signupClient();
-    const r=await client.auth.signUp({email,password:f.elements.password.value,options:{emailRedirectTo:location.origin+location.pathname+'#login',data:{registration_type:'vendor',vendor_invitation:f.elements.invitation.value.trim().toUpperCase(),full_name:f.elements.fullName.value.trim(),phone:f.elements.phone.value.trim(),country_code:f.elements.country.value,gender:f.elements.gender.value,terms_accepted:f.elements.consent.checked?'true':'false',brand_name:f.elements.brandName.value.trim(),brand_commission:Number(f.elements.brandRate.value)/100,brand_categories:f.elements.brandCategory.value.trim(),brand_logo_selected:true}}});
+    const r=await client.auth.signUp({email,password:f.elements.password.value,options:{emailRedirectTo:location.origin+location.pathname+'#login',data:{registration_type:'vendor',vendor_invitation:f.elements.invitation.value.trim().toUpperCase(),full_name:f.elements.fullName.value.trim(),phone:f.elements.phone.value.trim(),country_code:f.elements.country.value,gender:f.elements.gender.value,terms_accepted:f.elements.consent.checked?'true':'false',brand_name:f.elements.brandName.value.trim(),brand_commission:terms.rate(f.elements.brandRate),brand_categories:f.elements.brandCategory.value.trim(),brand_logo_selected:true}}});
     if(r.error)throw r.error;
     let uploadNote='';
     if(r.data?.session){try{const state=await rpc(client,'my_vendor_brand_state');const path=await upload(client,file,r.data.user.id);await rpc(client,'attach_vendor_application_logo',{p_application:state.application.id,p_path:path});localStorage.removeItem(draftKey)}catch{uploadNote=' Your logo will finish uploading when you sign in.'}}
@@ -43,9 +79,9 @@ function create(api){
   if(token!==version||!api.session())return;const a=s.application;
   if(s.store?.status==='active'){root.classList.remove('vendor-awaiting');api.go('seller');return}
   const incomplete=!a,blocked=s.store?.status==='suspended'||a?.status==='rejected',needsLogo=a?.status==='pending'&&!a.logo_url;
-  host.innerHTML=`<section class="brand-pending"><div class="brand-status-icon" aria-hidden="true">${blocked?'!':'◷'}</div><span class="brand-status">${blocked?'Review required':incomplete?'Complete registration':'Pending approval'}</span><h1>${blocked?'Please contact support':incomplete?'Finish your brand details':'Your application is under review'}</h1><p>${blocked?'Your store is not currently approved for selling. Contact support about the next steps.':incomplete?'Your login is ready. Add your brand logo and proposed commission to send your application.':'Please wait for admin approval. Your selling tools will become available after approval.'}</p>${a?`<div class="brand-pending-summary"><strong>${esc(a.business_name)}</strong><span>Proposed commission ${pct(a.proposed_commission)}</span></div>`:''}${incomplete?`<form class="form brand-complete">${fields(s.brand_name_hint||'')}<label>Product category<input name="brandCategory" required minlength="2" maxlength="150"></label>${logoInput(true)}<label class="vendor-consent"><input type="checkbox" required> I agree to the proposed commission and submit it for admin approval.</label><button class="btn primary">Submit brand for approval</button><p role="status"></p></form>`:''}${needsLogo?`<form class="form brand-logo-complete"><p>Your logo is required before admin can approve the application.</p>${logoInput(true)}<button class="btn primary">Complete logo upload</button><p role="status">${esc(uploadError)}</p></form>`:''}${a?.offered_commission!=null&&!a.agreement_accepted_at&&a.status==='pending'?`<section class="brand-offer"><h2>Commission offer: ${pct(a.offered_commission)}</h2><p>${esc(a.terms_note)}</p><button class="btn primary" data-brand-accept>Accept commission & terms</button><p role="status"></p></section>`:''}<div class="brand-status-actions"><button class="btn small" data-brand-retry>Refresh status</button><button class="vendor-text-link" data-page="support">Support</button><button class="vendor-text-link" data-account-signout>Sign out</button></div></section>`;
+  host.innerHTML=`<section class="brand-pending"><div class="brand-status-icon" aria-hidden="true">${blocked?'!':'◷'}</div><span class="brand-status">${blocked?'Review required':incomplete?'Complete registration':'Pending approval'}</span><h1>${blocked?'Please contact support':incomplete?'Finish your brand details':'Your application is under review'}</h1><p>${blocked?'Your store is not currently approved for selling. Contact support about the next steps.':incomplete?'Your login is ready. Add your brand logo and proposed commission to send your application.':'Please wait for admin approval. Your selling tools will become available after approval.'}</p>${a?`<div class="brand-pending-summary"><strong>${esc(a.business_name)}</strong><span>Proposed total commission ${pct(a.proposed_commission)}</span></div>`:''}${incomplete?`<form class="form brand-complete">${fields(s.brand_name_hint||'')}<label>Product category<input name="brandCategory" required minlength="2" maxlength="150"></label>${logoInput(true)}<label class="vendor-consent"><input type="checkbox" required> I agree to the proposed commission and submit it for admin approval.</label><button class="btn primary">Submit brand for approval</button><p role="status"></p></form>`:''}${needsLogo?`<form class="form brand-logo-complete"><p>Your logo is required before admin can approve the application.</p>${logoInput(true)}<button class="btn primary">Complete logo upload</button><p role="status">${esc(uploadError)}</p></form>`:''}${a?.offered_commission!=null&&!a.agreement_accepted_at&&a.status==='pending'?`<section class="brand-offer"><h2>Commission offer: ${pct(a.offered_commission)}</h2><p>${esc(a.terms_note)}</p><button class="btn primary" data-brand-accept>Accept commission & terms</button><p role="status"></p></section>`:''}<div class="brand-status-actions"><button class="btn small" data-brand-retry>Refresh status</button><button class="vendor-text-link" data-page="support">Support</button><button class="vendor-text-link" data-account-signout>Sign out</button></div></section>`;
   host.querySelector('[data-brand-retry]').onclick=()=>api.go('seller');
-  const f=host.querySelector('form');if(f){preview(f);f.onsubmit=async e=>{e.preventDefault();if(!f.reportValidity())return;const b=f.querySelector('[type=submit]')||f.querySelector('button');if(b.disabled)return;b.disabled=true;const status=f.querySelector('[role=status]');try{status.textContent='Uploading logo…';const path=await upload(api.db,f.elements.brandLogo.files[0],api.session().user.id);if(incomplete)await rpc(api.db,'submit_vendor_brand_application',{p_business:f.elements.brandName.value.trim(),p_categories:f.elements.brandCategory.value.trim(),p_rate:Number(f.elements.brandRate.value)/100,p_logo_path:path});else await rpc(api.db,'attach_vendor_application_logo',{p_application:a.id,p_path:path});await pending()}catch(e){status.textContent=e.message}finally{b.disabled=false}}}
+  const f=host.querySelector('form');if(f){preview(f);if(incomplete)terms.display(f.elements.brandRate);f.onsubmit=async e=>{e.preventDefault();if(!f.reportValidity())return;const b=f.querySelector('[type=submit]')||f.querySelector('button');if(b.disabled)return;b.disabled=true;const status=f.querySelector('[role=status]');try{if(incomplete){await terms.ready;if(!f.reportValidity())return}status.textContent='Uploading logo…';const path=await upload(api.db,f.elements.brandLogo.files[0],api.session().user.id);if(incomplete)await rpc(api.db,'submit_vendor_brand_application',{p_business:f.elements.brandName.value.trim(),p_categories:f.elements.brandCategory.value.trim(),p_rate:terms.rate(f.elements.brandRate),p_logo_path:path});else await rpc(api.db,'attach_vendor_application_logo',{p_application:a.id,p_path:path});await pending()}catch(e){status.textContent=e.message}finally{b.disabled=false}}}
   const accept=host.querySelector('[data-brand-accept]');if(accept)accept.onclick=async()=>{accept.disabled=true;try{await rpc(api.db,'accept_vendor_commission',{p_application_id:a.id});await pending()}catch(e){accept.parentElement.querySelector('[role=status]').textContent=e.message;accept.disabled=false}};
  }
  async function store(v){

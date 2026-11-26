@@ -1,0 +1,9 @@
+.recovery-card{box-sizing:border-box;width:min(100%,29rem);margin:clamp(1.25rem,6vw,5rem) auto;padding:clamp(1.25rem,4vw,2.5rem);border:1px solid var(--line,#cfded6);border-top:4px solid #21805d;border-radius:1rem;background:var(--surface,var(--card,#fff));color:var(--ink,#163a2f);box-shadow:0 12px 36px #124c3210}
+.recovery-brand{display:block;width:10.5rem;max-width:80%;height:auto;margin-bottom:1.75rem}
+.recovery-card h1{font-size:clamp(1.65rem,4vw,2.1rem);line-height:1.15;margin:0}
+.recovery-intro{margin:.75rem 0 1.5rem;line-height:1.5}
+.recovery-card input{box-sizing:border-box;width:100%;min-width:0;font-size:1rem}
+.recovery-card .btn{min-height:44px;width:100%}
+.recovery-card .form + .btn{margin-top:.8rem}
+.recovery-card [hidden]{display:none!important}
+#recoveryStatus:not(:empty){padding:.8rem;border-inline-start:3px solid #21805d;line-height:1.5}
