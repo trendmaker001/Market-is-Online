@@ -22,8 +22,10 @@
  // Inspect a small thumbnail only for square photos with two matching white gutters.
  const cropCache=new Map();
  const cardSelector='.product-image img.product-photo';
+ const detailSelector='#productDetail .detail-image img.product-photo';
+ const uncropped={width:1,height:1,scale:1};
  function measureGutters(image){
-  if(Math.abs(image.naturalWidth/image.naturalHeight-1)>0.015)return 1;
+  if(Math.abs(image.naturalWidth/image.naturalHeight-1)>0.015)return uncropped;
   const size=128,canvas=document.createElement('canvas');
   canvas.width=canvas.height=size;
   const ctx=canvas.getContext('2d',{willReadFrequently:true});
@@ -55,11 +57,12 @@
    const a=margin(vertical,false),b=margin(vertical,true);
    return Math.abs(a-b)<=2 && Math.min(a,b)>=2?Math.min(a,b):0;
   }
-  const edge=Math.max(pairedMargin(true),pairedMargin(false));
-  return edge?size/(size-2*Math.min(32,edge+1)):1;
+  const retained=edge=>edge?(size-2*Math.min(32,edge+1))/size:1;
+  const width=retained(pairedMargin(true)),height=retained(pairedMargin(false));
+  return {width,height,scale:1/Math.min(width,height)};
  }
  async function cropFactor(image,src){
-  if(image.naturalWidth!==image.naturalHeight)return 1;
+  if(image.naturalWidth!==image.naturalHeight)return uncropped;
   if(new URL(src,location.href).origin===location.origin)return measureGutters(image);
   const probe=new Image();
   probe.crossOrigin='anonymous';
@@ -69,18 +72,26 @@
  }
  function fillCard(event){
   const image=event.target;
-  if(!image.matches?.(cardSelector))return;
+  const isDetail=image.matches?.(detailSelector);
+  if(!isDetail && !image.matches?.(cardSelector))return;
+  if(isDetail && image.naturalWidth && image.naturalHeight){
+   image.parentElement.style.setProperty('--detail-image-ratio',String(image.naturalWidth/image.naturalHeight));
+  }
   const src=image.currentSrc||image.src;
   if(!cropCache.has(src)){
    if(cropCache.size>=512)cropCache.delete(cropCache.keys().next().value);
-   cropCache.set(src,cropFactor(image,src).catch(()=>1));
+   cropCache.set(src,cropFactor(image,src).catch(()=>uncropped));
   }
-  cropCache.get(src).then(scale=>{
-   if(image.isConnected && (image.currentSrc||image.src)===src)
-    image.style.setProperty('--card-photo-scale',String(scale));
+  cropCache.get(src).then(crop=>{
+   if(!image.isConnected || (image.currentSrc||image.src)!==src)return;
+   if(isDetail){
+    const ratio=(image.naturalWidth*crop.width)/(image.naturalHeight*crop.height);
+    image.parentElement.style.setProperty('--detail-image-ratio',String(ratio));
+    image.style.setProperty('--detail-photo-scale',String(1/Math.max(crop.width,crop.height)));
+   }else image.style.setProperty('--card-photo-scale',String(crop.scale));
   });
  }
  document.addEventListener('load',fillCard,true);
- document.querySelectorAll(cardSelector).forEach(image=>{if(image.complete && image.naturalWidth)fillCard({target:image});});
+ document.querySelectorAll(cardSelector+','+detailSelector).forEach(image=>{if(image.complete && image.naturalWidth)fillCard({target:image});});
  window.MioProductImageDisplay={mode,editor,mount};
 })();

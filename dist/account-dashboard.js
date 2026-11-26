@@ -31,8 +31,30 @@ window.createMioDashboardPresentation=(scope=document)=>{
  function openPinDialog(mode,reason){const dialog=$('transactionPinDialog'),form=$('transactionPinDialogForm');if(!dialog||!form)return Promise.resolve(null);if(pinDialogRequest)closePinDialog(null);form.reset();clearPinBoxes(form);form.dataset.mode=mode;$('transactionPinDialogStatus').textContent='';$('transactionPinDialogTitle').textContent=mode==='setup'?'Set your transaction PIN':'Confirm your transaction';$('transactionPinDialogMessage').textContent=mode==='setup'?`Create a 4-digit PIN before ${reason}.`:`Verify your account password and 4-digit PIN to confirm ${reason}.`;$('transactionPinDialogConfirmWrap').hidden=mode!=='setup';$('transactionPinDialogConfirm').required=mode==='setup';$('transactionPinDialogPasswordWrap').hidden=false;$('transactionPinDialogPassword').required=true;$('transactionPinDialogSubmit').textContent=mode==='setup'?'Create PIN':'Confirm transaction';form.scrollTop=0;document.body.classList.add('transaction-pin-open');dialog.showModal();setTimeout(()=>$('transactionPinDialogPassword')?.focus(),0);return new Promise(resolve=>{pinDialogRequest=resolve})}
 
  async function requestTransactionPin(reason='Continue this transaction'){if(!transactionPinConfigured){const setup=await openPinDialog('setup',reason);if(setup!=='__configured__')return null}return openPinDialog('verify',reason)}
+ function narrowSidebar(){return window.matchMedia?.('(max-width: 900px)').matches??true}
+ function setSidebar(toggled,restore=false){
+  const shell=$('memberAccountShell'),menu=$('dashboardMenu'),drawer=$('memberSidebar');
+  if(!shell||!menu||!drawer)return;
+  const mobile=narrowSidebar(),expanded=mobile?toggled:!toggled;
+  shell.classList.toggle('sidebar-open',toggled);
+  document.body.classList.toggle('member-sidebar-open',mobile&&expanded);
+  drawer.inert=!expanded;
+  menu.setAttribute('aria-expanded',String(expanded));
+  if(mobile&&expanded)$('memberSidebarClose')?.focus({preventScroll:true});
+  else if(restore)menu.focus({preventScroll:true});
+ }
+ function dismissNotifications(restore=false){
+  for(const [trigger,panel] of [['dashboardNotifications','dashboardNotificationList'],['dashboardGeneralNotifications','dashboardGeneralNotificationList']]){
+   const list=$(panel),button=$(trigger);
+   if(!list||!button)continue;
+   const open=!list.hidden;
+   list.hidden=true;
+   button.setAttribute('aria-expanded','false');
+   if(open&&restore)button.focus({preventScroll:true});
+  }
+ }
  function mount(options){api=options;window.addEventListener('focus',()=>{if(currentPage==='dashboard'&&api.signedIn())refreshMembershipStatus().catch(()=>{});});const main=$('main-content');
-  const shell=document.createElement('div');shell.id='memberAccountShell';shell.className='member-account-shell hidden';shell.innerHTML=`<button class="member-sidebar-backdrop" id="memberSidebarBackdrop" type="button" aria-label="Close account menu" tabindex="-1"></button><aside class="member-sidebar" id="memberSidebar" aria-label="Account navigation"><div class="sidebar-heading"><div><span>Member workspace</span><strong>Account centre</strong></div><button type="button" id="memberSidebarClose" class="mio-close-icon member-sidebar-close" aria-label="Close account menu">×</button></div><nav id="memberAccountNav" aria-label="My dashboard"></nav><button class="sidebar-signout" type="button" id="dashboardSignOut">${icon('transfer')}<span>Sign out</span></button></aside><div class="member-workspace"><header class="member-topbar"><button type="button" id="dashboardMenu" aria-label="Toggle account menu" aria-controls="memberSidebar" aria-expanded="false">${icon('menu')}</button><strong id="accountPageTitle">Dashboard</strong><span class="member-header-date">${date(new Date())}</span><button type="button" id="dashboardThemeToggle" class="dashboard-theme-toggle" aria-label="Switch to dark mode" aria-pressed="false" title="Dark mode">${icon('moon')}</button><button type="button" id="dashboardGeneralNotifications" aria-label="Account notifications" aria-expanded="false">${icon('bell')}</button><button type="button" id="dashboardNotifications" aria-label="Order notifications" aria-expanded="false">${icon('box')}</button></header><section class="dashboard-notifications" id="dashboardGeneralNotificationList" hidden></section><section class="dashboard-notifications" id="dashboardNotificationList" hidden></section><div class="member-page-content" id="memberPageContent"></div></div>`;main.append(shell);applyDashboardTheme(savedDashboardTheme());
+  const shell=document.createElement('div');shell.id='memberAccountShell';shell.className='member-account-shell hidden';shell.innerHTML=`<button class="member-sidebar-backdrop" id="memberSidebarBackdrop" type="button" aria-label="Close account menu" tabindex="-1"></button><aside class="member-sidebar" id="memberSidebar" aria-label="Account navigation"><div class="sidebar-heading"><div><span>Member workspace</span><strong>Account centre</strong></div><button type="button" id="memberSidebarClose" class="mio-close-icon member-sidebar-close" aria-label="Close account menu">×</button></div><nav id="memberAccountNav" aria-label="My dashboard"></nav><button class="sidebar-signout" type="button" id="dashboardSignOut">${icon('transfer')}<span>Sign out</span></button></aside><div class="member-workspace"><header class="member-topbar"><button type="button" id="dashboardMenu" aria-label="Toggle account menu" aria-controls="memberSidebar" aria-expanded="false">${icon('menu')}</button><strong id="accountPageTitle">Dashboard</strong><span class="member-header-date">${date(new Date())}</span><button type="button" id="dashboardThemeToggle" class="dashboard-theme-toggle" aria-label="Switch to dark mode" aria-pressed="false" title="Dark mode">${icon('moon')}</button><button type="button" id="dashboardGeneralNotifications" aria-controls="dashboardGeneralNotificationList" aria-label="Account notifications" aria-expanded="false">${icon('bell')}</button><button type="button" id="dashboardNotifications" aria-controls="dashboardNotificationList" aria-label="Order notifications" aria-expanded="false">${icon('box')}</button></header><section class="dashboard-notifications" id="dashboardGeneralNotificationList" hidden></section><section class="dashboard-notifications" id="dashboardNotificationList" hidden></section><div class="member-page-content" id="memberPageContent"></div></div>`;main.append(shell);applyDashboardTheme(savedDashboardTheme());
   const body=$('memberPageContent');for(const id of ['dashboard','profile','transfer','transactions'])body.append(newPage(id,({dashboard:'Dashboard',profile:'My profile',transfer:'Transfer MIO',transactions:'Transaction history'})[id]));
   for(const id of pages){if(id==='workspace'||id==='admin')continue;const p=$('page-'+id);if(p&&p.parentElement!==body)body.append(p)}
   for(const [id,title] of [['deposit','Deposit'],['withdraw','Withdraw'],['top-up','Top Up']]){const page=newPage(id,title);page.innerHTML=`<section class="card wallet-coming-soon"><h1>${title}</h1><p>This service is not available yet.</p><button type="button" class="btn primary" data-page="wallet">Back to My Wallet</button></section>`;body.append(page)}
@@ -55,12 +77,31 @@ window.createMioDashboardPresentation=(scope=document)=>{
   $('transactionPinDialogCancel')?.addEventListener('click',()=>closePinDialog(null));
   const nav=document.querySelector('.top .nav');let dashboard=nav.querySelector('[data-page="dashboard"]');if(!dashboard){dashboard=document.createElement('button');dashboard.dataset.page='dashboard';dashboard.textContent='My Dashboard';nav.append(dashboard)}
   $('page-dashboard').innerHTML='<div class="dashboard-loading">Loading your account overview…</div>';
-  const closeSidebar=()=>{shell.classList.remove('sidebar-open');document.body.classList.remove('member-sidebar-open');$('dashboardMenu').setAttribute('aria-expanded','false')};
-  $('dashboardMenu').onclick=()=>{const open=!shell.classList.contains('sidebar-open');shell.classList.toggle('sidebar-open',open);document.body.classList.toggle('member-sidebar-open',open&&Boolean(window.matchMedia?.('(max-width: 900px)').matches));$('dashboardMenu').setAttribute('aria-expanded',String(open))};
-  $('memberSidebarBackdrop').onclick=closeSidebar;
-  $('memberSidebarClose').onclick=closeSidebar;
-  $('memberAccountNav').addEventListener('click',e=>{const toggle=e.target.closest('[data-wallet-menu]');if(toggle){walletMenuOpen=!walletMenuOpen;toggle.setAttribute('aria-expanded',String(walletMenuOpen));$('memberWalletSubmenu').hidden=!walletMenuOpen;return}if(e.target.closest('[data-page]'))closeSidebar()});
-  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&shell.classList.contains('sidebar-open'))closeSidebar()});
+  const menu=$('dashboardMenu'),drawer=$('memberSidebar');
+  setSidebar(false);
+  menu.onclick=()=>{dismissNotifications();setSidebar(!shell.classList.contains('sidebar-open'))};
+  $('memberSidebarClose').onclick=$('memberSidebarBackdrop').onclick=()=>setSidebar(false,true);
+  const breakpoint=window.matchMedia?.('(max-width: 900px)');
+  breakpoint?.addEventListener?.('change',()=>setSidebar(false,drawer.contains(document.activeElement)));
+  $('memberAccountNav').addEventListener('click',e=>{
+   const toggle=e.target.closest('[data-wallet-menu]');
+   if(toggle){walletMenuOpen=!walletMenuOpen;toggle.setAttribute('aria-expanded',String(walletMenuOpen));$('memberWalletSubmenu').hidden=!walletMenuOpen}
+  });
+  document.addEventListener('keydown',e=>{
+   if(shell.classList.contains('hidden')||e.defaultPrevented||document.querySelector('dialog[open],.modal.open'))return;
+   if(e.key==='Escape'){
+    if(narrowSidebar()&&shell.classList.contains('sidebar-open'))setSidebar(false,true);
+    else dismissNotifications(true);
+   }
+   if(e.key!=='Tab'||!narrowSidebar()||!shell.classList.contains('sidebar-open'))return;
+   const links=[...drawer.querySelectorAll('button:not(:disabled),a[href]')].filter(n=>n.getClientRects().length);
+   const first=links[0],last=links.at(-1);
+   if(first&&e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}
+   if(last&&!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
+  });
+  document.addEventListener('click',e=>{
+   if(!shell.classList.contains('hidden')&&!e.target.closest('.dashboard-notifications,#dashboardNotifications,#dashboardGeneralNotifications'))dismissNotifications();
+  });
   $('dashboardSignOut').onclick=()=>$('signOutBtn')?.click();
   $('dashboardThemeToggle').onclick=()=>applyDashboardTheme(shell.dataset.theme==='dark'?'light':'dark',true);
   $('dashboardNotifications').onclick=()=>{const list=$('dashboardNotificationList'),general=$('dashboardGeneralNotificationList');list.hidden=!list.hidden;general.hidden=true;$('dashboardNotifications').setAttribute('aria-expanded',String(!list.hidden));$('dashboardGeneralNotifications').setAttribute('aria-expanded','false')};
@@ -77,7 +118,7 @@ window.createMioDashboardPresentation=(scope=document)=>{
   target.innerHTML=sections.filter(([,links])=>links.length).map(([label,links])=>`<section class="member-nav-group"><p>${label}</p>${links.map(([id,text])=>id==='wallet-menu'?walletMenu():id==='packages'&&window.MioSubscriptions?window.MioSubscriptions.navigation(currentPage==='packages'):link(id,text)).join('')}</section>`).join('');
  }
  function updateAuth(signedIn,admin,sellers,sellOpen,platinum=false){if(!$('memberAccountNav'))return;authState={signedIn,admin,sellers,sellOpen,platinum};renderAccountNav();document.querySelectorAll('.top .nav [data-page]').forEach(b=>{const page=b.dataset.page,publicPage=['shop','packages'].includes(page),memberPage=signedIn&&page==='dashboard',adminPage=signedIn&&admin&&page==='workspace';b.classList.toggle('hidden',!(publicPage||memberPage||adminPage))});document.querySelectorAll('.footer a[href="#orders"]').forEach(a=>a.classList.toggle('hidden',!signedIn));if(!signedIn){statusRequest++;membershipState=null;lastStatusCheck=0;closeQualificationModal(false);setTransactionPinConfigured(false);closePinDialog(null);summary=null;financial=null;maintenanceStatus=null;incomeWallets=null;generalNotifications={unread:0,rows:[]};codGuarantees=[];request++;clearInterval(timer);$('page-dashboard').innerHTML='';$('dashboardProfile').replaceChildren();$('dashboardReceiveCode').textContent='—';$('dashboardCopyCode').dataset.copy='';$('dashboardGeneralNotificationList')?.replaceChildren();$('memberAccountShell').classList.add('hidden');$('memberAccountShell').classList.remove('admin-workspace-active');document.body.classList.remove('member-dashboard-active');} }
- function navigate(page,signedIn){closeQualificationModal(false);if(page==='wallet'&&currentPage!=='wallet')window.MioWalletHub?.enter();if(walletPages.includes(page)&&page!==currentPage)walletMenuOpen=true;currentPage=page;for(const id of ['packages','orders','order']){const target=$('page-'+id);if(target)(signedIn?$('memberPageContent'):$('main-content')).append(target)}const active=signedIn&&pages.includes(page)&&page!=='workspace'&&page!=='admin';$('memberAccountShell')?.classList.toggle('hidden',!active);document.body.classList.toggle('member-dashboard-active',active);$('memberAccountShell')?.classList.remove('sidebar-open');document.body.classList.remove('member-sidebar-open');$('dashboardMenu')?.setAttribute('aria-expanded','false');if(page==='earnings')$('accountPageTitle').innerHTML='<span class="earning-mobile-label">Earning History</span><span class="earning-desktop-name">Earning History</span>';else $('accountPageTitle').textContent=page==='network-graphical'?'Graphical':({packages:'Subscription Plans',dashboard:'Dashboard',profile:'My profile',wallet:'My Wallet','top-up':'Top Up',transactions:'Transaction history',transfer:'Transfer MIO',sell:'My Vendors'})[page]||page.replaceAll('-',' ').replace(/^./,s=>s.toUpperCase());renderAccountNav();if(active&&(page==='dashboard'||page==='wallet'))refresh(page).catch(api.error)}
+ function navigate(page,signedIn){closeQualificationModal(false);if(page==='wallet'&&currentPage!=='wallet')window.MioWalletHub?.enter();if(walletPages.includes(page)&&page!==currentPage)walletMenuOpen=true;currentPage=page;for(const id of ['packages','orders','order']){const target=$('page-'+id);if(target)(signedIn?$('memberPageContent'):$('main-content')).append(target)}const active=signedIn&&pages.includes(page)&&page!=='workspace'&&page!=='admin';$('memberAccountShell')?.classList.toggle('hidden',!active);document.body.classList.toggle('member-dashboard-active',active);setSidebar(false);dismissNotifications();if(page==='earnings')$('accountPageTitle').innerHTML='<span class="earning-mobile-label">Earning History</span><span class="earning-desktop-name">Earning History</span>';else $('accountPageTitle').textContent=page==='network-graphical'?'Graphical':({packages:'Subscription Plans',dashboard:'Dashboard',profile:'My profile',wallet:'My Wallet','top-up':'Top Up',transactions:'Transaction history',transfer:'Transfer MIO',sell:'My Vendors'})[page]||page.replaceAll('-',' ').replace(/^./,s=>s.toUpperCase());renderAccountNav();if(active&&(page==='dashboard'||page==='wallet'))refresh(page).catch(api.error)}
  function setFinancial(value){
   financial=value;
   const cap=Number(rewardPreference.ppvCap)||110;
@@ -227,7 +268,7 @@ window.createMioDashboardPresentation=(scope=document)=>{
   else if(kind==='generation'){const row=generations.find(g=>Number(g.level)===level);host.innerHTML=`<div class="dashboard-panel-title"><h2>Generation ${level} · ${number(row?.member_count)} members</h2><span class="dashboard-muted">${row?.unlocked?'Earning active':row?.allowed?'Qualification pending':'Not in current plan'}</span></div>${memberRows(row?.members||[])}`;}
   else if(kind==='generations')host.innerHTML='<div class="dashboard-panel-title"><h2>Generation network</h2></div>'+generations.map(g=>`<button type="button" class="dashboard-generation-row" data-dashboard-generation="${g.level}"><span>Generation ${g.level}</span><strong>${number(g.member_count)} members →</strong></button>`).join('');
   else{const side=kind.toUpperCase();host.innerHTML=`<div class="dashboard-panel-title"><h2>${kind==='left'?'Left':'Right'} binary team</h2></div><p class="dashboard-muted">Open Graphical to explore placement and individual member information.</p><button type="button" class="btn primary small" data-dashboard-tree="binary">Open ${side} team in Binary Tree</button>`;}
-  host.scrollIntoView({behavior:'smooth',block:'nearest'});
+  host.scrollIntoView({behavior:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'nearest'});
  }
  function renderSnapshot(value,options){api=options;summary=value.summary;financial=value.financial;incomeWallets=value.incomeWallets;maintenanceStatus=value.maintenanceStatus;rewardPreference=value.rewardPreference;serverOffset=new Date(summary.server_now).getTime()-Date.now();render();if(scope!==document){scope.querySelectorAll('[id]').forEach(node=>{node.dataset.dashboardId=node.id;node.removeAttribute('id')});scope.querySelectorAll('[data-reward-mode],[data-annual-maintenance],[data-maintenance-shop],[data-wallet-release]').forEach(button=>{button.disabled=true;button.title='Member action; use the administrator controls for support'});}}
  function dispose(){statusRequest++;membershipState=null;closeQualificationModal(false);clearInterval(timer);timer=null;summary=null;financial=null;}

@@ -1,0 +1,128 @@
+/* Marketplace and member surfaces share spacing and control metrics. */
+body:not(.admin-workspace-active):not(.admin-member-support-active) {
+  --mio-gap: .75rem;
+  --mio-tight: .5rem;
+  --mio-control: 2.75rem;
+  --mio-compact: 2.35rem;
+  --mio-control-radius: .65rem;
+  --mio-focus: #b36a13;
+}
+
+body:not(.admin-workspace-active):not(.admin-member-support-active) :is(.page.active,.modal.open,dialog[open],.member-account-bar,.member-sidebar,.footer) {
+  --mio-ease: cubic-bezier(.2,.7,.2,1);
+}
+
+body:not(.admin-workspace-active):not(.admin-member-support-active) :is(.page.active,.modal.open,dialog[open]) :where(.btn,.activate-package,.bundle-select) {
+  box-sizing: border-box;
+  min-block-size: var(--mio-compact);
+  max-inline-size: 100%;
+  border-radius: var(--mio-control-radius);
+  line-height: 1.25;
+  white-space: normal;
+  overflow-wrap: break-word;
+  align-content: center;
+}
+body:not(.admin-workspace-active):not(.admin-member-support-active) :is(.page.active,.modal.open,dialog[open]) :is(form,.detail-actions,.order-primary-actions,.subscription-toolbar) :where(.btn.primary,button[type=submit]) {
+  min-block-size: var(--mio-control);
+}
+body:not(.admin-workspace-active):not(.admin-member-support-active) :is(.page.active,.modal.open,dialog[open]) :where(.detail-actions,.order-primary-actions,.shipment-actions,.history-pagination,.transaction-pin-actions,.shopping-inline-tabs,.shopping-auth-tabs):not([hidden]):not(.hidden) {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--mio-tight);
+}
+body:not(.admin-workspace-active):not(.admin-member-support-active) :where(.payment-grid,.shopping-account-content,.vendor-portal-main,.payment-account-summary,.configured-bundle-builder,.wallet-hub-card,.history-pagination > *) {
+  min-inline-size: 0;
+}
+body:not(.admin-workspace-active):not(.admin-member-support-active) :where(.shopping-welcome-email,.payment-account-summary,.wallet-hub-message,.shopping-account-empty,.dashboard-notification-empty,.order-action-status,.helper) {
+  overflow-wrap: anywhere;
+}
+body:not(.admin-workspace-active):not(.admin-member-support-active) :where(.history-table-scroll,.invoice-table-wrap,.table-wrap) {
+  max-inline-size: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+body:not(.admin-workspace-active):not(.admin-member-support-active) :where(.wallet-hub-balance,.dashboard-balance,.pay,.product-price,.payment-balance-row,.shopping-account-stats) {
+  font-variant-numeric: tabular-nums;
+}
+body:not(.admin-workspace-active):not(.admin-member-support-active) :is(.page.active,.modal.open,dialog[open]) :where(input:not([type]),input[type=text],input[type=email],input[type=password],input[type=search],input[type=tel],input[type=number],select,textarea) {
+  box-sizing: border-box;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+}
+body:not(.admin-workspace-active):not(.admin-member-support-active) :where(button,a[href],summary,input,select,textarea):focus-visible {
+  outline: 2px solid var(--mio-focus);
+  outline-offset: 2px;
+}
+body:not(.admin-workspace-active):not(.admin-member-support-active) :where(.btn,.qty,.bundle-select,[data-mobile-plan]):disabled {
+  cursor: not-allowed;
+}
+.mio-route-progress {
+  display: none;
+  position: fixed;
+  inset: 0 0 auto;
+  height: 3px;
+  background: #afcebf;
+  z-index: 1000;
+  pointer-events: none;
+}
+body.mio-route-loading:not(.admin-workspace-active):not(.admin-member-support-active) > .mio-route-progress { display: block; }
+.mio-route-progress::after { content: ''; display: block; width: 40%; height: 100%; background: #13814d; }
+@keyframes mio-route-track { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+@keyframes mio-section-reveal { from { opacity: .72; } to { opacity: 1; } }
+
+@media (prefers-reduced-motion: no-preference) {
+  .mio-route-progress::after { animation: mio-route-track 1s ease-in-out infinite; }
+  body:not(.admin-workspace-active):not(.admin-member-support-active) :where(button, a[href], summary, input, textarea, select) {
+    transition-property: background-color,border-color,color,box-shadow;
+    transition-duration: 140ms;
+    transition-timing-function: ease-out;
+  }
+  body:not(.admin-workspace-active):not(.admin-member-support-active) :where(button:enabled,a.btn,summary):active {
+    filter: brightness(.94);
+  }
+  body:not(.admin-workspace-active):not(.admin-member-support-active) :where(
+    .member-wallet-submenu:not([hidden]),.vendor-panel:not([hidden]),#walletHubStatement:not([hidden]),
+    .page.active .package,.subscription-mobile-tabs,.shopping-account-empty,.action-confirmation,
+    .configured-bundle-builder,.shopping-inline-tabs,details[open] > :not(summary)
+  ) { animation: mio-section-reveal 160ms ease-out; }
+}
+@media (hover:hover) and (pointer:fine) {
+  body:not(.admin-workspace-active):not(.admin-member-support-active) :where(.page.active,.member-sidebar,.modal.open,dialog[open]) :is(.btn:not(.primary),[data-account-section],[data-vendor-tab],.rail-button):enabled:hover {
+    border-color: #6eab8d;
+  }
+}
+@media (max-width:680px) {
+  body:not(.admin-workspace-active):not(.admin-member-support-active) :is(.page.active,.modal.open) :where(.payment-heading,.directory-heading,.history-pagination,.vendor-store-selector) { flex-wrap:wrap; gap:var(--mio-tight); }
+  body:not(.admin-workspace-active):not(.admin-member-support-active) :is(.page.active,.modal.open,dialog[open]) :where(.qty,.shopping-inline-tabs button,.subscription-mobile-tabs button,.history-pagination button) { min-height:var(--mio-compact); }
+  body:not(.admin-workspace-active):not(.admin-member-support-active) :where(.member-sidebar,.vendor-portal-nav,.shopping-account-nav) button { min-height:var(--mio-control); }
+  body:not(.admin-workspace-active):not(.admin-member-support-active) :where(.page.active,.modal.open) :is(.detail-actions,.order-primary-actions) > .btn { flex:1 1 8rem; }
+}
+
+/* The cart's normal position is immediately before the footer. The lower
+   sticky inset holds it in view until that position comes into view. */
+.basket-boundary {
+  position: sticky;
+  bottom: 0;
+  z-index: 19;
+  height: 0;
+  pointer-events: none;
+}
+.basket-boundary #basketButton {
+  position: absolute;
+  pointer-events: auto;
+}
+
+#productDetail .product-detail .detail-gallery .detail-image {
+  aspect-ratio: var(--detail-image-ratio, 1) !important;
+  height: auto !important;
+  overflow: hidden;
+}
+#productDetail .product-detail .detail-gallery .detail-image img.product-photo {
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  padding: 0 !important;
+  object-fit: cover !important;
+  transform: scale(var(--detail-photo-scale, 1));
+}
