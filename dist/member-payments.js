@@ -46,8 +46,43 @@ window.MioPayments=(()=>{
  function accountChange(){const accounts=withdraw?data.payout_accounts:data.company_accounts;account=accounts.find(a=>a.id===f.elements.account_id.value);f.querySelector('[data-account-details]').innerHTML=account?`<strong>${esc(account.title)}</strong><span>${esc(account.provider)} · ${esc(account.account)}</span><p>${esc(account.instructions||'')}</p>${current?.kind==='crypto'?`<p><strong>Network: ${esc(current.network)}</strong> · Send only on this exact network.</p>`:''}`:'No eligible account. '+(withdraw?'Add a saved payout account.':'The company has not configured a receiving account for this method.');b.disabled=!account||withdraw&&!kycAllowed(data);f.elements.confirm.checked=false;}
  function change(){current=methods.find(m=>m.id===f.elements.method_id.value);const accounts=(withdraw?data.payout_accounts:data.company_accounts).filter(a=>a.method_id===current?.id&&a.enabled);f.elements.account_id.innerHTML=options(accounts.map(a=>[a.id,`${a.provider||current.label} · ${a.account.slice(-6)}`]),accounts[0]?.id);rate=Number((withdraw?current?.withdrawal_rate:current?.deposit_rate)??(withdraw?data.country?.withdrawal_rate:data.country?.deposit_rate)??0);f.querySelector('[data-limits]').textContent=current?`Minimum ${current[withdraw?'withdrawal_min':'deposit_min']} MIO · Maximum ${current[withdraw?'withdrawal_max':'deposit_max']} MIO. ${current.instructions||''}`:'No enabled payment method is available for your country. Contact support.';accountChange();calc();}
  f.elements.method_id.onchange=change;f.elements.account_id.onchange=accountChange;f.elements.amount.oninput=calc;change();
- formAction(f,async()=>{if(!account||!current)throw Error('Select a valid account');const payload={direction:withdraw?'withdrawal':'deposit',method_id:current.id,account_id:account.id,amount:f.elements.amount.value,quoted_rate:String(rate)};if(withdraw)payload.account_revision=account.revision;else{payload.account_version=account.version;payload.reference=f.elements.reference.value.trim();payload.sender_details={name:f.elements.sender_name.value.trim(),account:f.elements.sender_account.value.trim()};payload.proof_path=await upload(f.elements.proof.files[0],'member-payment-proofs',f.dataset.proofPath);f.dataset.proofPath=payload.proof_path;}const sig=JSON.stringify(payload);if(signature&&signature!==sig)key=crypto.randomUUID();signature=sig;let pin='';if(withdraw){pin=await api.pin(`withdrawing ${payload.amount} MIO to ${account.title} · ${account.account}`);if(!pin)return;}await call('submit_member_payment',{p_data:payload,p_pin:pin,p_key:key});api.notify(withdraw?'Withdrawal submitted. Amount moved to pending withdrawal.':'Deposit submitted for payment verification.');await memberPage(kind);});
- f.elements.proof?.addEventListener('change',()=>delete f.dataset.proofPath);
+ let lastProof;
+ formAction(f,async()=>{
+   if(!account||!current)throw Error('Select a valid account');
+   const memberId=identity(), selectedAccount=account;
+   const payload={direction:withdraw?'withdrawal':'deposit',method_id:current.id,account_id:account.id,amount:f.elements.amount.value,quoted_rate:String(rate)};
+   if(withdraw){
+     payload.account_revision=account.revision;
+   }else{
+     payload.account_version=account.version;
+     payload.reference=f.elements.reference.value.trim();
+     payload.sender_details={name:f.elements.sender_name.value.trim(),account:f.elements.sender_account.value.trim()};
+     const file=f.elements.proof.files[0];
+     if(!lastProof||lastProof.file!==file){
+       lastProof={file,path:await upload(file,'member-payment-proofs')};
+     }
+     payload.proof_path=lastProof.path;
+   }
+   const sig=JSON.stringify(payload);
+   if(signature&&signature!==sig)key=crypto.randomUUID();
+   signature=sig;
+   let pin='';
+   if(withdraw){
+     pin=await api.pin(`withdrawing ${payload.amount} MIO to ${selectedAccount.title} · ${selectedAccount.account}`);
+     if(!pin){f.querySelector('[data-status]').textContent='Withdrawal cancelled.';return;}
+   }
+   if(api.identity()!==memberId||!f.isConnected)return;
+   try{
+     await call('submit_member_payment',{p_data:payload,p_pin:pin,p_key:key});
+   }catch(error){
+     if(/failed to fetch|network|load failed|fetch failed/i.test(error.message||'')){
+       throw Error('Request status is unconfirmed. Check your payment history before retrying.');
+     }
+     throw error;
+   }
+   api.notify(withdraw?'Withdrawal submitted. Amount moved to pending withdrawal.':'Deposit submitted for payment verification.');
+   await memberPage(kind);
+ });
  bindHistory(root,data.history,false,()=>memberPage(kind));
  }
  function bindHistory(root,rows,adminMode,reload){root.querySelectorAll('[data-request]').forEach(b=>b.onclick=()=>requestDetail(rows.find(r=>r.id===b.dataset.request),adminMode,reload));root.querySelectorAll('[data-payment-page]').forEach(b=>b.onclick=()=>{if(adminMode)adminOffset=Math.max(0,adminOffset+Number(b.dataset.paymentPage)*25);else offset=Math.max(0,offset+Number(b.dataset.paymentPage)*25);reload();});}

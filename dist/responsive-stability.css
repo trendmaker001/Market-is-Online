@@ -51,7 +51,39 @@ dialog{max-width:calc(100vw - 24px);max-height:calc(100vh - 32px);max-height:cal
 /* Align the bundle entry bar with the category/product content frame. */
 #page-shop #marketBundleSection{width:calc(100% - 48px);max-width:1320px;margin-inline:auto}
 @media(max-width:680px){#page-shop #marketBundleSection{width:calc(100% - 24px)}}
+@media(min-width:1260px){#page-shop #marketBundleSection{max-width:none}}
 @media(min-width:681px) and (max-width:900px){body:not(.graphical-network-active)>.top .top-main{padding-inline:20px!important;box-sizing:border-box}}
 @supports(padding:max(0px)){
  body>.top{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
 }
+
+/* Move only the open panel. Preserve the page layout and the dialog's own positioning. */
+@keyframes mio-panel-enter {
+  from { opacity: 0; translate: var(--mio-panel-x, 0) var(--mio-panel-y, 7px); }
+  to { opacity: 1; translate: 0 0; }
+}
+@keyframes mio-backdrop-enter { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: no-preference) {
+  dialog[open], .modal.open > .modal-box, .dashboard-notifications:not([hidden]),
+  .country-search-panel:not([hidden]), details[open] > .wallet-filter-panel,
+  .tree-filter-drawer:not([hidden]), .tree-search-drawer:not([hidden]) {
+    animation: mio-panel-enter 180ms cubic-bezier(.2,.7,.2,1);
+  }
+  dialog[open]::backdrop { animation: mio-backdrop-enter 150ms ease-out; }
+  .order-management-dialog { --mio-panel-x: 20px; --mio-panel-y: 0; }
+  .dashboard-notifications, .country-search-panel { --mio-panel-y: -5px; }
+}
+@media (max-width: 680px) and (prefers-reduced-motion: no-preference) {
+  #catalogFilters { --mio-panel-y: 14px; }
+}
+.modal-box, .dashboard-notifications, .country-search-panel, .order-management-body {
+  box-sizing: border-box;
+  overscroll-behavior: contain;
+}
+.modal.open > .modal-box {
+  max-width: 100%;
+  max-height: calc(100vh - 36px);
+  max-height: calc(100dvh - 36px);
+  overflow-y: auto;
+}
+.dashboard-notifications { overflow-wrap: anywhere; overflow-y: auto; }
