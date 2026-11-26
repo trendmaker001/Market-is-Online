@@ -463,30 +463,32 @@
     display:grid;
     grid-template-columns:repeat(2,minmax(0,1fr));
     align-items:stretch;
-    gap:6px;
-    --tile-pad:clamp(9px,2.7vw,14px);
-    --tile-number:clamp(23px,6.3vw,32px);
-    --tile-ink:#084333;
-    --tile-secondary:#526f60;
-    --tile-line:#a8c9b0;
+    gap:6px 10px;
+    --tile-pad:10px;
+    --tile-number:22px;
+    --tile-ink:#244f34;
+    --tile-label:#667f6a;
+    --tile-secondary:#677c68;
+    --tile-line:#dee8e0;
     --tile-bg:#fff;
   }
   [data-theme="dark"] #page-dashboard .dashboard-balance-row {
-    --tile-ink:#e2f5e9;
-    --tile-secondary:#b2cdbd;
-    --tile-line:#3f6753;
-    --tile-bg:#10271d;
+    --tile-ink:#f2fbf6;
+    --tile-label:#9fc0ae;
+    --tile-secondary:#9fc0ae;
+    --tile-line:#29463a;
+    --tile-bg:#0d2119;
   }
   #page-dashboard .dashboard-balance-row > * {
     min-width:0;
     margin:0;
     border:1px solid var(--tile-line);
-    border-radius:9px;
+    border-radius:10px;
     background:var(--tile-bg);
     color:var(--tile-ink);
     box-shadow:none;
     text-align:start;
-    padding:var(--tile-pad) !important;
+    padding:9px var(--tile-pad) !important;
   }
   #page-dashboard .dashboard-balance-row > :is(.dashboard-ppv-balance,.dashboard-personal-points) {
     position:relative;
@@ -497,8 +499,8 @@
     align-content:start;
     align-items:start;
     justify-content:stretch;
-    row-gap:4px;
-    min-height:0;
+    row-gap:2px;
+    min-height:var(--sponsor-card-height,70px);
   }
   #page-dashboard .dashboard-ppv-balance {grid-column:1;}
   #page-dashboard .dashboard-personal-points {grid-column:2;}
@@ -509,8 +511,8 @@
   }
   #page-dashboard .dashboard-ppv-balance > div > span,
   #page-dashboard .dashboard-personal-points > span {
-    color:var(--tile-ink); font-size:clamp(13px,3.6vw,16px);
-    line-height:1.18; font-weight:700; min-height:2.36em;
+    color:var(--tile-label); font-size:12px;
+    line-height:1.25; font-weight:400; min-height:0;
     text-wrap:balance; overflow-wrap:anywhere;
   }
   #page-dashboard .dashboard-ppv-balance > div > span {padding-inline-start:24px;}
@@ -520,21 +522,21 @@
   }
   #page-dashboard .dashboard-personal-points > div > span {
     display:inline-flex; flex-direction:row-reverse; align-items:baseline; gap:.25em;
-    max-width:100%; color:var(--tile-ink); font-weight:700;
-    font-size:clamp(13px,3.7vw,17px);
+    max-width:100%; color:var(--tile-ink); font-weight:600;
+    font-size:12px;
   }
   #page-dashboard .dashboard-ppv-balance strong,
   #page-dashboard .dashboard-personal-points b,
   #page-dashboard .dashboard-exchange-balance strong {
-    color:var(--tile-ink); font-size:var(--tile-number); font-weight:750;
+    color:var(--tile-ink); font-size:var(--tile-number); font-weight:600; letter-spacing:-.03em;
     line-height:1.1; overflow-wrap:anywhere; font-variant-numeric:tabular-nums;
   }
   #page-dashboard .dashboard-personal-points b {min-width:0;}
   #page-dashboard .dashboard-balance-row strong small {
-    color:inherit; font-size:clamp(13px,3.7vw,17px); font-weight:700;
+    color:inherit; font-size:12px; font-weight:600;
   }
   #page-dashboard .dashboard-balance-row .dashboard-balance > div > small {
-    display:block; color:var(--tile-secondary); font-size:clamp(11px,2.9vw,13px);
+    display:block; color:var(--tile-secondary); font-size:11px;
     line-height:1.25; white-space:normal; overflow-wrap:anywhere;
   }
   #page-dashboard .dashboard-ppv-excess {display:block;}
@@ -547,11 +549,43 @@
     min-width:0; display:grid; grid-template-columns:minmax(0,1fr) fit-content(48%);
     align-items:center; gap:3px 8px;
   }
-  #page-dashboard .dashboard-exchange-balance > div > span {font-size:15px; line-height:1.2; font-weight:700; color:var(--tile-ink);}
+  #page-dashboard .dashboard-exchange-balance > div > span {font-size:12px; line-height:1.25; font-weight:400; color:var(--tile-label);}
   #page-dashboard .dashboard-exchange-balance > div > strong {grid-area:1 / 2 / 3 / 3; margin:0; min-width:0; text-align:end;}
   #page-dashboard .dashboard-exchange-balance > div > small {grid-column:1;}
   @supports (grid-template-rows:subgrid) {
+    /* A spanning item sets the combined height of the three shared tracks. */
+    #page-dashboard .dashboard-balance-row::before {
+      content:""; grid-column:1; grid-row:1 / span 3;
+      min-height:var(--sponsor-card-height,70px); visibility:hidden; pointer-events:none;
+    }
     #page-dashboard .dashboard-balance-row > :is(.dashboard-ppv-balance,.dashboard-personal-points) {grid-row:1 / span 3; grid-template-rows:subgrid;}
     #page-dashboard .dashboard-balance-row > .dashboard-exchange-balance {grid-row:4;}
   }
+}
+
+@media (min-width:621px) and (max-width:760px) {
+  #page-dashboard .dashboard-stat-row {grid-template-columns:repeat(2,minmax(0,1fr));}
+  #page-dashboard .dashboard-stat-row > :last-child {grid-column:1 / -1;}
+}
+
+/* Use the same text hierarchy for linked balances and read-only metrics. */
+#page-dashboard :is(.dashboard-balance-row, .dashboard-stat-row) > * {
+  font-family:inherit;
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
+}
+#page-dashboard :is(.dashboard-metric, .dashboard-balance) > div > span,
+#page-dashboard .dashboard-personal-points > span {
+  font-family:inherit; font-size:12px; font-weight:400; line-height:1.25;
+  letter-spacing:normal; text-transform:none;
+}
+#page-dashboard :is(.dashboard-metric, .dashboard-balance) > div > strong,
+#page-dashboard .dashboard-personal-points > div b {
+  font-family:inherit; font-size:22px; font-weight:600; line-height:1.1;
+  letter-spacing:-.03em; font-variant-numeric:tabular-nums;
+  overflow-wrap:anywhere;
+}
+#page-dashboard :is(.dashboard-balance-row .dashboard-balance, .dashboard-stat-row .dashboard-metric) > div > small {
+  font-family:inherit; font-size:11px; font-weight:400; line-height:1.25;
+  letter-spacing:normal;
 }
